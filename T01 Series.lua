@@ -1847,7 +1847,7 @@ end
 -- Interrupter
 
 addInterrupterCallback(function(target, spellType, spell)
-	if Ryze.Interrupter.UseW:Value() then
+	if RyzeMenu.Interrupter.UseW:Value() then
 		if ValidTarget(target, RyzeW.range) then
 			if CanUseSpell(myHero,_W) == READY then
 				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
