@@ -55,6 +55,19 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
+local TSVer = 1.0.6
+
+function AutoUpdate(data)
+	local num = tonumber(data)
+	if num > TSVer then
+		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>New version found! " .. data)
+		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Downloading update, please wait...")
+		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/T01%20Series.lua", SCRIPT_PATH .. "T01 Series.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Update Complete, please 2x F6!") return end)
+    end
+end
+
+GetWebResultAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/T01%20Series.version", AutoUpdate)
+
 function Mode()
 	if _G.IOW_Loaded and IOW:Mode() then
 		return IOW:Mode()
