@@ -8,10 +8,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.6
--- Intermediate GoS script which supports currently 10 champions.
+-- Current version: 1.0.7
+-- Intermediate GoS script which supports currently 11 champions.
 -- Features:
--- + supports Annie, Fizz, Katarina, Syndra, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Annie, Fizz, Katarina, Ryze, Syndra, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + uses offensive items while doing Combo,
 -- + indludes table selection for Auto Level-up,
@@ -26,6 +26,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.7
+-- + Added Ryze
 -- 1.0.6
 -- + Added Auto-Update
 -- 1.0.5
@@ -57,7 +59,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.06
+local TSVer = 1.07
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -1489,6 +1491,429 @@ function VectorWay(A,B)
 	return Vector(WayX, WayY, WayZ)
 end
 
+-- Ryze
+
+elseif "Ryze" == GetObjectName(myHero) then
+
+require('Interrupter')
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Ryze loaded successfully!")
+local RyzeMenu = Menu("[T01] Ryze", "[T01] Ryze")
+RyzeMenu:Menu("Auto", "Auto")
+RyzeMenu.Auto:Boolean('UseQ', 'Use Q [Overload]', true)
+RyzeMenu:Menu("Combo", "Combo")
+RyzeMenu.Combo:Boolean('UseQ', 'Use Q [Overload]', true)
+RyzeMenu.Combo:Boolean('UseW', 'Use W [Rune Prison]', true)
+RyzeMenu.Combo:Boolean('UseE', 'Use E [Spell Flux]', true)
+RyzeMenu:Menu("Harass", "Harass")
+RyzeMenu.Harass:Boolean('UseQ', 'Use Q [Overload]', true)
+RyzeMenu.Harass:Boolean('UseW', 'Use W [Rune Prison]', true)
+RyzeMenu.Harass:Boolean('UseE', 'Use E [Spell Flux]', true)
+RyzeMenu:Menu("LastHit", "LastHit")
+RyzeMenu.LastHit:Boolean('UseQ', 'Use Q [Overload]', false)
+RyzeMenu.LastHit:Boolean('UseE', 'Use E [Spell Flux]', true)
+RyzeMenu:Menu("LaneClear", "LaneClear")
+RyzeMenu.LaneClear:Boolean('UseQ', 'Use Q [Overload]', true)
+RyzeMenu.LaneClear:Boolean('UseW', 'Use W [Rune Prison]', false)
+RyzeMenu.LaneClear:Boolean('UseE', 'Use E [Spell Flux]', false)
+RyzeMenu:Menu("JungleClear", "JungleClear")
+RyzeMenu.JungleClear:Boolean('UseQ', 'Use Q [Overload]', true)
+RyzeMenu.JungleClear:Boolean('UseW', 'Use W [Rune Prison]', true)
+RyzeMenu.JungleClear:Boolean('UseE', 'Use E [Spell Flux]', true)
+RyzeMenu:Menu("Interrupter", "Interrupter")
+RyzeMenu.Interrupter:Boolean('UseW', 'Use W [Rune Prison]', true)
+RyzeMenu:Menu("Prediction", "Prediction")
+RyzeMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 3, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+RyzeMenu:Menu("Drawings", "Drawings")
+RyzeMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+RyzeMenu.Drawings:Boolean('DrawWE', 'Draw WE Range', true)
+RyzeMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+RyzeMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
+RyzeMenu:Menu("Misc", "Misc")
+RyzeMenu.Misc:Boolean('ST', 'Stack Tear', true)
+RyzeMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+RyzeMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+RyzeMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
+RyzeMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
+RyzeMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
+RyzeMenu.Misc:Slider("MPT","Mana-Manager: Tear", 80, 0, 100, 5)
+
+local RyzeQ = { range = 1000, radius = 55, width = 110, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local RyzeW = { range = 615 }
+local RyzeE = { range = 615 }
+local RyzeR = { range = GetCastRange(myHero,_R) }
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if RyzeMenu.Drawings.DrawQ:Value() then DrawCircle(pos,RyzeQ.range,1,25,0xff00bfff) end
+if RyzeMenu.Drawings.DrawWE:Value() then DrawCircle(pos,RyzeW.range,1,25,0xff4169e1) end
+if RyzeMenu.Drawings.DrawR:Value() then DrawCircle(pos,RyzeR.range,1,25,0xff0000ff) end
+end)
+OnDrawMinimap(function()
+local pos = GetOrigin(myHero)
+if RyzeMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,RyzeR.range,0,255,0xff0000ff) end
+end)
+
+OnDraw(function(myHero)
+	local target = GetCurrentTarget()
+	local QDmg = (25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero))
+	local QBDmg = QDmg*(0.1*GetCastLevel(myHero,_Q)+1.3)
+	local WDmg = (20*GetCastLevel(myHero,_W)+60)+(0.6*GetBonusAP(myHero))+(0.01*GetMaxMana(myHero))
+	local EDmg = (25*GetCastLevel(myHero,_E)+25)+(0.3*GetBonusAP(myHero))+(0.02*GetMaxMana(myHero))
+	local ComboDmg = QDmg + WDmg + QDmg + EDmg + QBDmg
+	local WEDmg = WDmg + QDmg + EDmg + QBDmg
+	local QEDmg = QDmg + EDmg + QBDmg
+	local QWDmg = QDmg + WDmg + QDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if RyzeMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg+QDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg+QBDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Combo()
+		Harass()
+		LastHit()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	if GetDistance(target) < RyzeQ.range then
+		if RyzeMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif RyzeMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),RyzeQ.speed,RyzeQ.delay*1000,RyzeQ.range,RyzeQ.width,true,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif RyzeMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,RyzeQ,false,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif RyzeMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="RyzeQ", range=RyzeQ.range, speed=RyzeQ.speed, delay=RyzeQ.delay, width=RyzeQ.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(RyzeQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif RyzeMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetPrediction(target,RyzeQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	if CanUseSpell(myHero,_Q) == ONCOOLDOWN then
+		CastTargetSpell(target, _W)
+	end
+end
+function useE(target)
+	if CanUseSpell(myHero,_Q) == ONCOOLDOWN then
+		CastTargetSpell(target, _E)
+	end
+end
+
+-- Auto
+
+OnTick(function(myHero)
+	if RyzeMenu.Auto.UseQ:Value() then
+		if CanUseSpell(myHero,_Q) == READY then
+			if ValidTarget(target, RyzeQ.range) then
+				useQ(target)
+			end
+		end
+	end
+end)
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if RyzeMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, RyzeQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if RyzeMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, RyzeW.range) then
+					useW(target)
+				end
+			end
+		end
+		if RyzeMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, RyzeE.range) then
+					useE(target)
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if RyzeMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, RyzeQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if RyzeMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPW:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, RyzeW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if RyzeMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPE:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, RyzeE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, RyzeQ.range) then
+					if RyzeMenu.LastHit.UseQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								if GotBuff(minion, "RyzeE") > 0 then
+									local RyzeQBDmg = ((25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero)))*(0.1*GetCastLevel(myHero,_Q)+1.3)
+									if GetCurrentHP(minion) < RyzeQBDmg then
+										local qPredMin = _G.gPred:GetPrediction(minion,myHero,RyzeQ,false,true)
+										if qPredMin and qPredMin.HitChance >= 3 then
+											CastSkillShot(_Q, qPredMin.CastPosition)
+										end
+									end
+								else
+									local RyzeQDmg = (25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero))
+									if GetCurrentHP(minion) < RyzeQDmg then
+										local qPredMin = _G.gPred:GetPrediction(minion,myHero,RyzeQ,false,true)
+										if qPredMin and qPredMin.HitChance >= 3 then
+											CastSkillShot(_Q, qPredMin.CastPosition)
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+				if ValidTarget(minion, RyzeE.range) then
+					if RyzeMenu.LastHit.UseE:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPE:Value() then
+							if CanUseSpell(myHero,_E) == READY then
+								local RyzeEDmg = (25*GetCastLevel(myHero,_E)+25)+(0.3*GetBonusAP(myHero))+(0.02*GetMaxMana(myHero))
+								if GetCurrentHP(minion) < RyzeEDmg then
+									CastTargetSpell(minion, _E)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if RyzeMenu.LaneClear.UseQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+						if ValidTarget(minion, RyzeQ.range) then
+							if RyzeMenu.LaneClear.UseQ:Value() then
+								if CanUseSpell(myHero,_Q) == READY then
+									if GotBuff(minion, "RyzeE") > 0 then
+										local qPredMin = _G.gPred:GetPrediction(minion,myHero,RyzeQ,false,true)
+										if qPredMin and qPredMin.HitChance >= 3 then
+											CastSkillShot(_Q, qPredMin.CastPosition)
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+				if RyzeMenu.LaneClear.UseW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPW:Value() then
+						if ValidTarget(minion, RyzeW.range) then
+							if RyzeMenu.LaneClear.UseW:Value() then
+								if CanUseSpell(myHero,_W) == READY then
+									CastTargetSpell(minion, _W)
+								end
+							end
+						end
+					end
+				end
+				if RyzeMenu.LaneClear.UseE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPE:Value() then
+						if ValidTarget(minion, RyzeE.range) then
+							if RyzeMenu.LaneClear.UseE:Value() then
+								if CanUseSpell(myHero,_E) == READY then
+									if GotBuff(minion, "RyzeE") > 0 then
+										CastTargetSpell(minion, _E)
+									else
+										CastTargetSpell(minion, _E)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, RyzeQ.range) then
+						if RyzeMenu.JungleClear.UseQ:Value() then
+							CastSkillShot(_Q,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(mob, RyzeW.range) then
+						if RyzeMenu.JungleClear.UseW:Value() then	   
+							CastTargetSpell(mob, _W)
+						end
+					end
+				end
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, RyzeE.range) then
+						if RyzeMenu.JungleClear.UseE:Value() then
+							CastTargetSpell(mob, _E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+addInterrupterCallback(function(target, spellType, spell)
+	if Ryze.Interrupter.UseW:Value() then
+		if ValidTarget(target, RyzeW.range) then
+			if CanUseSpell(myHero,_W) == READY then
+				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
+					CastTargetSpell(target, _W)
+				end
+			end
+		end
+	end
+end)
+
+-- Misc
+
+OnTick(function(myHero)
+	if RyzeMenu.Misc.ST:Value() then
+		if GotBuff(myHero,"recall") == 0 then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPT:Value() then
+				if EnemiesAround(myHero, 2500) == 0 then
+					if not UnderTurret(myHero, 775) then
+						if GetItemSlot(myHero, 3070) > 0 then
+							if CanUseSpell(myHero,_Q) == READY then
+								DelayAction(function() CastSkillShot(_Q,GetOrigin(myHero)) end, 0.25)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if RyzeMenu.Misc.AutoLvlUp:Value() then
+		if RyzeMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RyzeMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RyzeMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RyzeMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RyzeMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RyzeMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
 -- Syndra
 
 elseif "Syndra" == GetObjectName(myHero) then
@@ -1551,8 +1976,6 @@ function Mode()
 		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
 	end
 end
-
--- Syndra
 
 local SyndraQ = { range = 800, radius = 150, width = 300, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
 local SyndraW = { range = 950, radius = 225, width = 450, speed = 1450, delay = 0.25, type = "circular", collision = false, source = myHero }
