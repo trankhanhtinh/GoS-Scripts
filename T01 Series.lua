@@ -64,7 +64,7 @@ function AutoUpdate(data)
 	if num > TSVer then
 		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>New version found! " .. data)
 		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Downloading update, please wait...")
-		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/T01%20Series.lua", SCRIPT_PATH .. "T01 Series.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Still updating, please wait...") return end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/T01%20Series.lua", SCRIPT_PATH .. "T01 Series.lua", PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Still updating, please wait..."))
 		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/AntiDangerousSpells.lua", COMMON_PATH .. "AntiDangerousSpells.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Successfully updated. Please 2x F6!") return end)
     end
 end
