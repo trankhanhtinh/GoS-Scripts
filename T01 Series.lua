@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.5
+-- Current version: 1.0.6
 -- Intermediate GoS script which supports currently 10 champions.
 -- Features:
 -- + supports Annie, Fizz, Katarina, Syndra, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
@@ -55,7 +55,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.0.6
+local TSVer = 1.06
 
 function AutoUpdate(data)
 	local num = tonumber(data)
