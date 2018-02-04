@@ -2404,7 +2404,7 @@ VayneMenu.Combo:DropDown("ModeQ", "Cast Mode: Q", 2, {"Standard", "On Stack"})
 VayneMenu:Menu("Harass", "Harass")
 VayneMenu.Harass:Boolean('UseQ', 'Use Q [Tumble]', true)
 VayneMenu.Harass:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu.Harass:Boolean('StackE', 'Use E When Stacked', true)
+VayneMenu.Harass:DropDown("ModeQ", "Cast Mode: Q", 1, {"Standard", "On Stack"})
 VayneMenu:Menu("KillSteal", "KillSteal")
 VayneMenu.KillSteal:Boolean('UseE', 'Use E [Condemn]', true)
 VayneMenu:Menu("LastHit", "LastHit")
@@ -2533,7 +2533,13 @@ function Harass()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPQ:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
-						useQ(target)
+						if VayneMenu.Harass.ModeQ:Value() == 1 then
+							useQ(target)
+						elseif VayneMenu.Harass.ModeQ:Value() == 2 then
+							if GotBuff(target, "VayneSilveredDebuff") > 0 then
+								useQ(target)
+							end
+						end
 					end
 				end
 			end
@@ -2543,17 +2549,6 @@ function Harass()
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, VayneE.range) then
 						useE(target)
-					end
-				end
-			end
-		end
-		if VayneMenu.Harass.StackE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
-				if CanUseSpell(myHero,_E) == READY then
-					if ValidTarget(target, VayneE.range) then
-						if GotBuff(target, "VayneSilveredDebuff") > 0 then
-							CastTargetSpell(target, _E)
-						end
 					end
 				end
 			end
