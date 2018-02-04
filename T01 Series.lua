@@ -8,10 +8,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.7
--- Intermediate GoS script which supports currently 11 champions.
+-- Current version: 1.0.8
+-- Intermediate GoS script which supports currently 12 champions.
 -- Features:
--- + supports Annie, Fizz, Katarina, Ryze, Syndra, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Annie, Fizz, Katarina, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + uses offensive items while doing Combo,
 -- + indludes table selection for Auto Level-up,
@@ -26,6 +26,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.8
+-- + Added Vayne
 -- 1.0.7
 -- + Added Ryze
 -- 1.0.6
@@ -59,7 +61,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.07
+local TSVer = 1.08
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -996,7 +998,7 @@ KatarinaMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 KatarinaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 KatarinaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', true)
 KatarinaMenu:Menu("Misc", "Misc")
-KatarinaMenu.Misc:Boolean('UI', 'Use Items', true)
+KatarinaMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 KatarinaMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
 KatarinaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 KatarinaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
@@ -2385,6 +2387,395 @@ function VectorWay(A,B)
 	WayZ = B.z - A.z
 	return Vector(WayX, WayY, WayZ)
 end
+
+elseif "Vayne" == GetObjectName(myHero) then
+
+require('Interrupter')
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Vayne loaded successfully!")
+local VayneMenu = Menu("[T01] Vayne", "[T01] Vayne")
+VayneMenu:Menu("Auto", "Auto")
+VayneMenu.Auto:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu:Menu("Combo", "Combo")
+VayneMenu.Combo:Boolean('UseQ', 'Use Q [Tumble]', true)
+VayneMenu.Combo:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu.Combo:Boolean('UseR', 'Use R [Final Hour]', true)
+VayneMenu.Combo:DropDown("ModeQ", "Cast Mode: Q", 2, {"Standard", "On Stack"})
+VayneMenu:Menu("Harass", "Harass")
+VayneMenu.Harass:Boolean('UseQ', 'Use Q [Tumble]', true)
+VayneMenu.Harass:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu.Harass:Boolean('StackE', 'Use E When Stacked', true)
+VayneMenu:Menu("KillSteal", "KillSteal")
+VayneMenu.KillSteal:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu:Menu("LastHit", "LastHit")
+VayneMenu.LastHit:Boolean('UseQ', 'Use Q [Tumble]', true)
+VayneMenu:Menu("LaneClear", "LaneClear")
+VayneMenu.LaneClear:Boolean('UseQ', 'Use Q [Tumble]', false)
+VayneMenu.LaneClear:Boolean('UseE', 'Use E [Condemn]', false)
+VayneMenu:Menu("JungleClear", "JungleClear")
+VayneMenu.JungleClear:Boolean('UseQ', 'Use Q [Tumble]', true)
+VayneMenu.JungleClear:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu:Menu("AntiGapcloser", "AntiGapcloser")
+VayneMenu.AntiGapcloser:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu:Menu("Interrupter", "Interrupter")
+VayneMenu.Interrupter:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu:Menu("Drawings", "Drawings")
+VayneMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+VayneMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+VayneMenu:Menu("Misc", "Misc")
+VayneMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
+VayneMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+VayneMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+VayneMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
+VayneMenu.Misc:Slider("ED","Extended Delay: Q", 0.4, 0, 1, 0.05)
+VayneMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+VayneMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+VayneMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
+VayneMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
+VayneMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
+
+local VayneQ = { range = 300 }
+local VayneE = { range = 550 }
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if VayneMenu.Drawings.DrawQ:Value() then DrawCircle(pos,VayneQ.range,1,25,0xff00bfff) end
+if VayneMenu.Drawings.DrawE:Value() then DrawCircle(pos,VayneE.range,1,25,0xff1e90ff) end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Combo()
+		Harass()
+		KillSteal()
+		LastHit()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	if VayneMenu.Misc.ExtraDelay:Value() then
+		DelayAction(function() CastSkillShot(_Q,GetMousePos()) end, VayneMenu.Misc.ED:Value())
+	else
+		CastSkillShot(_Q,GetMousePos())
+	end
+end
+function useE(target)
+	local VayneEStun = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,550,1,false,true).PredPos
+	local VectorPos = Vector(VayneEStun)
+	for Length = 0, 475, GetHitBox(target) do
+		local TotalPos = VectorPos+Vector(VectorPos-Vector(myHero)):normalized()*Length
+		if MapPosition:inWall(TotalPos) then
+			CastTargetSpell(target, _E)
+			break
+		end
+	end
+end
+function useR(target)
+	if 100*GetCurrentHP(target)/GetMaxHP(target) < VayneMenu.Misc.HP:Value() then
+		if EnemiesAround(myHero, GetRange(myHero)+VayneQ.range) >= VayneMenu.Misc.X:Value() then
+			CastTargetSpell(target, _R)
+		end
+	end
+end
+
+-- Auto
+
+OnTick(function(myHero)
+	if VayneMenu.Auto.UseE:Value() then
+		if CanUseSpell(myHero,_E) == READY then
+			if ValidTarget(target, VayneE.range) then
+				useE(target)
+			end
+		end
+	end
+end)
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if VayneMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
+					if VayneMenu.Combo.ModeQ:Value() == 1 then
+						useQ(target)
+					elseif VayneMenu.Combo.ModeQ:Value() == 2 then
+						if GotBuff(target, "VayneSilveredDebuff") > 0 then
+							useQ(target)
+						end
+					end
+				end
+			end
+		end
+		if VayneMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, VayneE.range) then
+					useE(target)
+				end
+			end
+		end
+		if VayneMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
+					useR(target)
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if VayneMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPQ:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if VayneMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, VayneE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+		if VayneMenu.Harass.StackE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, VayneE.range) then
+						if GotBuff(target, "VayneSilveredDebuff") > 0 then
+							CastTargetSpell(target, _E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if VayneMenu.KillSteal.UseE:Value() then
+			if ValidTarget(enemy, VayneE.range) then
+				if CanUseSpell(myHero,_E) == READY then
+					local VayneEDmg = (40*GetCastLevel(myHero,_E)+10)+(0.5*GetBonusDmg(myHero))
+					if GetCurrentHP(enemy) < VayneEDmg then
+						CastTargetSpell(enemy, _E)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, GetRange(myHero)) then
+					if VayneMenu.LastHit.UseQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPQ:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								local VayneQDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+((0.05*GetCastLevel(myHero,_Q)+0.45)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
+								local MinionToLastHit = minion
+								if GetCurrentHP(MinionToLastHit) < VayneQDmg then
+									if _G.IOW then
+										IOW.attacksEnabled = false
+									elseif _G.GoSWalkLoaded then
+										_G.GoSWalk:EnableAttack(false)
+									end
+									CastSkillShot(_Q,GetMousePos())
+									AttackUnit(MinionToLastHit)
+									if _G.IOW then
+										IOW.attacksEnabled = true
+									elseif _G.GoSWalkLoaded then
+										_G.GoSWalk:EnableAttack(true)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if VayneMenu.LaneClear.UseQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPQ:Value() then
+						if ValidTarget(minion, GetRange(myHero)) then
+							if CanUseSpell(myHero,_Q) == READY then
+								CastSkillShot(_Q,GetMousePos())
+							end
+						end
+					end
+				end
+				if VayneMenu.LaneClear.UseE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
+						if ValidTarget(minion, VayneE.range) then
+							if CanUseSpell(myHero,_E) == READY then
+								CastTargetSpell(minion, _E)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, GetRange(myHero)) then
+						if VayneMenu.JungleClear.UseQ:Value() then
+							CastSkillShot(_Q,GetMousePos())
+						end
+					end
+				end
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, VayneE.range) then
+						if VayneMenu.JungleClear.UseE:Value() then
+							CastTargetSpell(mob, _E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	if VayneMenu.AntiGapcloser.UseE:Value() then
+		if ValidTarget(target, 200) then
+			if CanUseSpell(myHero,_E) == READY then
+				CastTargetSpell(target, _E)
+			end
+		end
+	end
+end)
+
+-- Interrupter
+
+addInterrupterCallback(function(target, spellType, spell)
+	if VayneMenu.Interrupter.UseE:Value() then
+		if ValidTarget(target, VayneE.range) then
+			if CanUseSpell(myHero,_E) == READY then
+				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
+					CastTargetSpell(target, _E)
+				end
+			end
+		end
+	end
+end)
+
+-- Misc
+
+OnTick(function(myHero)
+	if Mode() == "Combo" then
+		if VayneMenu.Misc.UI:Value() then
+			local target = GetCurrentTarget()
+			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
+					CastSpell(GetItemSlot(myHero, 3074))
+				end -- Ravenous Hydra
+			end
+			if GetItemSlot(myHero, 3077) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3077)) == READY then
+					CastSpell(GetItemSlot(myHero, 3077))
+				end -- Tiamat
+			end
+			if GetItemSlot(myHero, 3144) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3144)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3144))
+					end -- Bilgewater Cutlass
+				end
+			end
+			if GetItemSlot(myHero, 3146) >= 1 and ValidTarget(target, 700) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3146)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3146))
+					end -- Hextech Gunblade
+				end
+			end
+			if GetItemSlot(myHero, 3153) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3153)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3153))
+					end -- BOTRK
+				end
+			end
+			if GetItemSlot(myHero, 3748) >= 1 and ValidTarget(target, 300) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero,GetItemSlot(myHero, 3748)) == READY then
+						CastSpell(GetItemSlot(myHero, 3748))
+					end -- Titanic Hydra
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if VayneMenu.Misc.AutoLvlUp:Value() then
+		if VayneMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif VayneMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif VayneMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif VayneMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif VayneMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif VayneMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
 
 -- Veigar
 
@@ -4547,7 +4938,7 @@ YasuoMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 YasuoMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 YasuoMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 YasuoMenu:Menu("Misc", "Misc")
-YasuoMenu.Misc:Boolean('UI', 'Use Items', true)
+YasuoMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 YasuoMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
 YasuoMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 YasuoMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
@@ -5058,7 +5449,7 @@ ZedMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 ZedMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 ZedMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', true)
 ZedMenu:Menu("Misc", "Misc")
-ZedMenu.Misc:Boolean('UI', 'Use Items', true)
+ZedMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 ZedMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
 ZedMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 ZedMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
