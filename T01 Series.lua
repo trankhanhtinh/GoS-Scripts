@@ -4467,8 +4467,8 @@ function KillSteal()
 			if CanUseSpell(myHero,_R) == READY then
 				if ValidTarget(enemy, XerathR.range) then
 					local XerathRDmg = ((40*GetCastLevel(myHero,_R)+160)+(0.43*GetBonusAP(myHero)))*(GetCastLevel(myHero,_R)+2)
-					if GetCurrentHP(enemy) < XerathRDmg then
-						local EnemyToKS = enemy
+					local EnemyToKS = enemy
+					if GetCurrentHP(EnemyToKS) < XerathRDmg then
 						if GotBuff(myHero, "xerathrshots") > 0 then
 							if XerathMenu.Prediction.PredictionR:Value() == 1 then
 								CastSkillShot(_R,GetOrigin(EnemyToKS))
