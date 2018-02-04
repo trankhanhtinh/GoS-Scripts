@@ -21,7 +21,7 @@
 -- ==================
 -- == Requirements ==
 -- ==================
--- + Additional dangerous spells library: https://pastebin.com/raw/VKUhd6Fg
+-- + Additional dangerous spells library: 'AntiDangerousSpells.lua'
 -- + Orbwalker: IOW/GosWalk
 -- ===============
 -- == Changelog ==
@@ -544,7 +544,7 @@ end)
 
 elseif "Fizz" == GetObjectName(myHero) then
 
-if not pcall( require, "AntiDangerousSpells" ) then PrintChat("<font color='#00BFFF'>AntiDangerousSpells.lua not detected: https://pastebin.com/raw/VKUhd6Fg ... Probably incorrect file name or doesnt exist in Common folder!") return end
+if not pcall( require, "AntiDangerousSpells" ) then PrintChat("<font color='#00BFFF'>AntiDangerousSpells.lua not detected! Probably incorrect file name or doesnt exist in Common folder!") return end
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Fizz loaded successfully!")
 local FizzMenu = Menu("[T01] Fizz", "[T01] Fizz")
@@ -3678,7 +3678,7 @@ end)
 
 elseif "Vladimir" == GetObjectName(myHero) then
 
-if not pcall( require, "AntiDangerousSpells" ) then PrintChat("<font color='#00BFFF'>AntiDangerousSpells.lua not detected: https://pastebin.com/raw/VKUhd6Fg ... Probably incorrect file name or doesnt exist in Common folder!") return end
+if not pcall( require, "AntiDangerousSpells" ) then PrintChat("<font color='#00BFFF'>AntiDangerousSpells.lua not detected! Probably incorrect file name or doesnt exist in Common folder!") return end
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Vladimir loaded successfully!")
 local VladimirMenu = Menu("[T01] Vladimir", "[T01] Vladimir")
