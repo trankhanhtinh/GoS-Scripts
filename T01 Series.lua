@@ -8,10 +8,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.8
--- Intermediate GoS script which supports currently 12 champions.
+-- Current version: 1.0.9
+-- Intermediate GoS script which supports currently 13 champions.
 -- Features:
--- + supports Annie, Fizz, Katarina, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Annie, Fizz, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + uses offensive items while doing Combo,
 -- + indludes table selection for Auto Level-up,
@@ -26,6 +26,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.9
+-- + Added MasterYi
+-- + Improved files auto-update
 -- 1.0.8
 -- + Added Vayne
 -- 1.0.7
@@ -57,19 +60,26 @@
 -- + Initial release
 -- + Imported Katarina, Viktor, Vladimir, Xerath, Yasuo
 
+OnLoad(function()
+	if FileExist(COMMON_PATH.."AntiDangerousSpells.lua") then
+		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>AntiDangerousSpells loaded successfully!")
+	else
+		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/AntiDangerousSpells.lua", COMMON_PATH .. "AntiDangerousSpells.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>AntiDangerousSpells downloaded. Please 2x F6!") return end)
+	end
+end)
+
 require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.08
+local TSVer = 1.09
 
 function AutoUpdate(data)
 	local num = tonumber(data)
 	if num > TSVer then
 		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>New version found! " .. data)
 		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Downloading update, please wait...")
-		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/T01%20Series.lua", SCRIPT_PATH .. "T01 Series.lua", PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Still updating, please wait..."))
-		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/AntiDangerousSpells.lua", COMMON_PATH .. "AntiDangerousSpells.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Successfully updated. Please 2x F6!") return end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/T01%20Series.lua", SCRIPT_PATH .. "T01 Series.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Successfully updated. Please 2x F6!") return end)
     end
 end
 
@@ -1492,6 +1502,296 @@ function VectorWay(A,B)
 	WayZ = B.z - A.z
 	return Vector(WayX, WayY, WayZ)
 end
+
+-- MasterYi
+
+elseif "MasterYi" == GetObjectName(myHero) then
+
+if not pcall( require, "AntiDangerousSpells" ) then PrintChat("<font color='#00BFFF'>AntiDangerousSpells.lua not detected! Probably incorrect file name or doesnt exist in Common folder!") return end
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>MasterYi loaded successfully!")
+local MasterYiMenu = Menu("[T01] MasterYi", "[T01] MasterYi")
+MasterYiMenu:Menu("Auto", "Auto")
+MasterYiMenu.Auto:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
+MasterYiMenu:Menu("Combo", "Combo")
+MasterYiMenu.Combo:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
+MasterYiMenu.Combo:Boolean('UseE', 'Use E [Wuju Style]', true)
+MasterYiMenu.Combo:Boolean('UseR', 'Use R [Highlander]', true)
+MasterYiMenu:Menu("Harass", "Harass")
+MasterYiMenu.Harass:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
+MasterYiMenu.Harass:Boolean('UseE', 'Use E [Wuju Style]', true)
+MasterYiMenu:Menu("KillSteal", "KillSteal")
+MasterYiMenu.KillSteal:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
+MasterYiMenu:Menu("LaneClear", "LaneClear")
+MasterYiMenu.LaneClear:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
+MasterYiMenu.LaneClear:Boolean('UseE', 'Use E [Wuju Style]', true)
+MasterYiMenu:Menu("JungleClear", "JungleClear")
+MasterYiMenu.JungleClear:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
+MasterYiMenu.JungleClear:Boolean('UseE', 'Use E [Wuju Style]', true)
+MasterYiMenu:Menu("Drawings", "Drawings")
+MasterYiMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+MasterYiMenu:Menu("Misc", "Misc")
+MasterYiMenu.Misc:Boolean('UI', 'Use Items', true)
+MasterYiMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+MasterYiMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+MasterYiMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+MasterYiMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+MasterYiMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
+MasterYiMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
+
+local MasterYiQ = { range = 600 }
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if MasterYiMenu.Drawings.DrawQ:Value() then DrawCircle(pos,MasterYiQ.range,1,25,0xff00bfff) end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Combo()
+		Harass()
+		KillSteal()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	CastTargetSpell(target, _Q)
+end
+function useE(target)
+	CastSpell(_E)
+end
+function useR(target)
+	CastSpell(_R)
+end
+
+-- Auto
+
+addAntiDSCallback(function()
+	if MasterYiMenu.Auto.UseQ:Value() then
+		for _, dodge in pairs(minionManager.objects) do
+			if GetTeam(dodge) == MINION_ENEMY then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(dodge, MasterYiQ.range-50) then
+						CastTargetSpell(dodge, _Q)
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if MasterYiMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, MasterYiQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if MasterYiMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, GetRange(myHero)+100) then
+					useE(target)
+				end
+			end
+		end
+		if MasterYiMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, 1000) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < MasterYiMenu.Misc.HP:Value() then
+						if EnemiesAround(myHero, MasterYiR.range) >= MasterYiMenu.Misc.X:Value() then
+							useR(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if MasterYiMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPQ:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, MasterYiQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if MasterYiMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPE:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, GetRange(myHero)+100) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if MasterYiMenu.KillSteal.UseQ:Value() then
+			if ValidTarget(enemy, MasterYiQ.range) then
+				if CanUseSpell(myHero,_Q) == READY then
+					local MasterYiQDmg = (35*GetCastLevel(myHero,_Q)-10)+(GetBonusDmg(myHero)+GetBaseDamage(myHero))+0.6*(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+					if GetCurrentHP(enemy) < MasterYiQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		for _,minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if MasterYiMenu.LaneClear.UseQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPQ:Value() then
+						if ValidTarget(minion, MasterYiQ.range) then
+							if CanUseSpell(myHero,_Q) == READY then
+								useQ(minion)
+							end
+						end
+					end
+				end
+				if MasterYiMenu.LaneClear.UseE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPE:Value() then
+						if ValidTarget(minion, GetRange(myHero)+100) then
+							if CanUseSpell(myHero,_E) == READY then
+								useE(minion)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, MasterYiQ.range) then
+						if MasterYiMenu.JungleClear.UseQ:Value() then
+							useQ(mob)
+						end
+					end
+				end
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, GetRange(myHero)+100) then
+						if MasterYiMenu.JungleClear.UseE:Value() then
+							useE(mob)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Misc
+
+OnTick(function(myHero)
+	if Mode() == "Combo" then
+		if MasterYiMenu.Misc.UI:Value() then
+			local target = GetCurrentTarget()
+			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
+					CastSpell(GetItemSlot(myHero, 3074))
+				end -- Ravenous Hydra
+			end
+			if GetItemSlot(myHero, 3077) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3077)) == READY then
+					CastSpell(GetItemSlot(myHero, 3077))
+				end -- Tiamat
+			end
+			if GetItemSlot(myHero, 3144) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3144)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3144))
+					end -- Bilgewater Cutlass
+				end
+			end
+			if GetItemSlot(myHero, 3146) >= 1 and ValidTarget(target, 700) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3146)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3146))
+					end -- Hextech Gunblade
+				end
+			end
+			if GetItemSlot(myHero, 3153) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3153)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3153))
+					end -- BOTRK
+				end
+			end
+			if GetItemSlot(myHero, 3748) >= 1 and ValidTarget(target, 300) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero,GetItemSlot(myHero, 3748)) == READY then
+						CastSpell(GetItemSlot(myHero, 3748))
+					end -- Titanic Hydra
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if MasterYiMenu.Misc.AutoLvlUp:Value() then
+		if MasterYiMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif MasterYiMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif MasterYiMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif MasterYiMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif MasterYiMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif MasterYiMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
 
 -- Ryze
 
