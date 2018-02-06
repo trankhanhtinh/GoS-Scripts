@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.1
+-- Current version: 1.1.2
 -- Intermediate GoS script which supports currently 14 champions.
 -- Features:
 -- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
@@ -26,6 +26,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.2
+-- + Fixed Auto Level-up option
 -- 1.1.1
 -- + Added Anti-Gapcloser to some champions
 -- + Corrected Xerath's R damage
@@ -78,7 +80,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.11
+local TSVer = 1.12
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -139,11 +141,10 @@ AnnieMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", 
 AnnieMenu.Prediction:DropDown("PredictionR", "Prediction: R", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 AnnieMenu:Menu("Drawings", "Drawings")
 AnnieMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
-AnnieMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
-AnnieMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+AnnieMenu.Drawings:Boolean('DrawWR', 'Draw WR Range', true)
 AnnieMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
 AnnieMenu:Menu("Misc", "Misc")
-AnnieMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+AnnieMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 AnnieMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 AnnieMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 AnnieMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -158,8 +159,7 @@ local AnnieR = { range = 600, radius = 290, width = 580, speed = math.huge, dela
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
 if AnnieMenu.Drawings.DrawQ:Value() then DrawCircle(pos,AnnieQ.range,1,25,0xff00bfff) end
-if AnnieMenu.Drawings.DrawW:Value() then DrawCircle(pos,AnnieW.range,1,25,0xff4169e1) end
-if AnnieMenu.Drawings.DrawR:Value() then DrawCircle(pos,AnnieR.range,1,25,0xff0000ff) end
+if AnnieMenu.Drawings.DrawWR:Value() then DrawCircle(pos,AnnieW.range,1,25,0xff4169e1) end
 end)
 
 OnDraw(function(myHero)
@@ -521,7 +521,7 @@ end
 -- Misc
 
 OnTick(function(myHero)
-	if AnnieMenu.Misc.AutoLvlUp:Value() then
+	if AnnieMenu.Misc.LvlUp:Value() then
 		if AnnieMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -595,7 +595,7 @@ FizzMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 FizzMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 FizzMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 FizzMenu:Menu("Misc", "Misc")
-FizzMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+FizzMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 FizzMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 6, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 FizzMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 FizzMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -936,7 +936,7 @@ end
 -- Misc
 
 OnTick(function(myHero)
-	if FizzMenu.Misc.AutoLvlUp:Value() then
+	if FizzMenu.Misc.LvlUp:Value() then
 		if FizzMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -1522,7 +1522,7 @@ end)
 -- Misc
 
 OnTick(function(myHero)
-	if JayceMenu.Misc.AutoLvlUp:Value() then
+	if JayceMenu.Misc.LvlUp:Value() then
 		if JayceMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _W, _Q, _W, _Q, _W, _Q, _W, _W, _E, _E, _E, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -1627,7 +1627,7 @@ KatarinaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 KatarinaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', true)
 KatarinaMenu:Menu("Misc", "Misc")
 KatarinaMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
-KatarinaMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+KatarinaMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 KatarinaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 KatarinaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 KatarinaMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -2079,7 +2079,7 @@ OnTick(function(myHero)
 end)
 
 OnTick(function(myHero)
-	if KatarinaMenu.Misc.AutoLvlUp:Value() then
+	if KatarinaMenu.Misc.LvlUp:Value() then
 		if KatarinaMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -2150,7 +2150,7 @@ MasterYiMenu:Menu("Drawings", "Drawings")
 MasterYiMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 MasterYiMenu:Menu("Misc", "Misc")
 MasterYiMenu.Misc:Boolean('UI', 'Use Items', true)
-MasterYiMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+MasterYiMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 MasterYiMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 MasterYiMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 MasterYiMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -2376,7 +2376,7 @@ OnTick(function(myHero)
 end)
 
 OnTick(function(myHero)
-	if MasterYiMenu.Misc.AutoLvlUp:Value() then
+	if MasterYiMenu.Misc.LvlUp:Value() then
 		if MasterYiMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -2453,7 +2453,7 @@ RyzeMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 RyzeMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
 RyzeMenu:Menu("Misc", "Misc")
 RyzeMenu.Misc:Boolean('ST', 'Stack Tear', true)
-RyzeMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+RyzeMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 RyzeMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 RyzeMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 RyzeMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
@@ -2815,7 +2815,7 @@ OnTick(function(myHero)
 end)
 
 OnTick(function(myHero)
-	if RyzeMenu.Misc.AutoLvlUp:Value() then
+	if RyzeMenu.Misc.LvlUp:Value() then
 		if RyzeMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -2893,7 +2893,7 @@ SyndraMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 SyndraMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 SyndraMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 SyndraMenu:Menu("Misc", "Misc")
-SyndraMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+SyndraMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 SyndraMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 SyndraMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 SyndraMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
@@ -3296,7 +3296,7 @@ end)
 -- Misc
 
 OnTick(function(myHero)
-	if SyndraMenu.Misc.AutoLvlUp:Value() then
+	if SyndraMenu.Misc.LvlUp:Value() then
 		if SyndraMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -3375,7 +3375,7 @@ VayneMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 VayneMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 VayneMenu:Menu("Misc", "Misc")
 VayneMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
-VayneMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+VayneMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VayneMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 VayneMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 VayneMenu.Misc:Slider("ED","Extended Delay: Q", 0.4, 0, 1, 0.05)
@@ -3688,7 +3688,7 @@ OnTick(function(myHero)
 end)
 
 OnTick(function(myHero)
-	if VayneMenu.Misc.AutoLvlUp:Value() then
+	if VayneMenu.Misc.LvlUp:Value() then
 		if VayneMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -3767,7 +3767,7 @@ VeigarMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 VeigarMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 VeigarMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
 VeigarMenu:Menu("Misc", "Misc")
-VeigarMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+VeigarMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VeigarMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 VeigarMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 VeigarMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
@@ -4154,7 +4154,7 @@ end)
 -- Misc
 
 OnTick(function(myHero)
-	if VeigarMenu.Misc.AutoLvlUp:Value() then
+	if VeigarMenu.Misc.LvlUp:Value() then
 		if VeigarMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -4231,7 +4231,7 @@ ViktorMenu.Drawings:Boolean('DrawWR', 'Draw WR Range', true)
 ViktorMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 ViktorMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 ViktorMenu:Menu("Misc", "Misc")
-ViktorMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+ViktorMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 ViktorMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 ViktorMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ViktorMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -4601,7 +4601,7 @@ end
 -- Misc
 
 OnTick(function(myHero)
-	if ViktorMenu.Misc.AutoLvlUp:Value() then
+	if ViktorMenu.Misc.LvlUp:Value() then
 		if ViktorMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -4677,7 +4677,7 @@ VladimirMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 VladimirMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 VladimirMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 VladimirMenu:Menu("Misc", "Misc")
-VladimirMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+VladimirMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VladimirMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 VladimirMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 VladimirMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -5039,7 +5039,7 @@ end)
 -- Misc
 
 OnTick(function(myHero)
-	if VladimirMenu.Misc.AutoLvlUp:Value() then
+	if VladimirMenu.Misc.LvlUp:Value() then
 		if VladimirMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -5122,7 +5122,7 @@ XerathMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 XerathMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 XerathMenu:Menu("Misc", "Misc")
 XerathMenu.Misc:Key("UseQ", "Casting Q Key", string.byte("A"))
-XerathMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+XerathMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 XerathMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 XerathMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 XerathMenu.Misc:Slider("ED","Extended Delay: Q", 0.1, 0, 1, 0.05)
@@ -5607,7 +5607,7 @@ end)
 -- Misc
 
 OnTick(function(myHero)
-	if XerathMenu.Misc.AutoLvlUp:Value() then
+	if XerathMenu.Misc.LvlUp:Value() then
 		if XerathMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -5933,7 +5933,7 @@ YasuoMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 YasuoMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 YasuoMenu:Menu("Misc", "Misc")
 YasuoMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
-YasuoMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+YasuoMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 YasuoMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 YasuoMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 YasuoMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -6369,7 +6369,7 @@ OnTick(function(myHero)
 end)
 
 OnTick(function(myHero)
-	if YasuoMenu.Misc.AutoLvlUp:Value() then
+	if YasuoMenu.Misc.LvlUp:Value() then
 		if YasuoMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -6444,7 +6444,7 @@ ZedMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 ZedMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', true)
 ZedMenu:Menu("Misc", "Misc")
 ZedMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
-ZedMenu.Misc:Boolean('AutoLvlUp', 'Level-Up', true)
+ZedMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 ZedMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 ZedMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ZedMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
@@ -6801,7 +6801,7 @@ OnTick(function(myHero)
 end)
 
 OnTick(function(myHero)
-	if ZedMenu.Misc.AutoLvlUp:Value() then
+	if ZedMenu.Misc.LvlUp:Value() then
 		if ZedMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
