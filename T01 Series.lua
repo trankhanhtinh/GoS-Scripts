@@ -8,10 +8,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.9
--- Intermediate GoS script which supports currently 13 champions.
+-- Current version: 1.1
+-- Intermediate GoS script which supports currently 14 champions.
 -- Features:
--- + supports Annie, Fizz, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + uses offensive items while doing Combo,
 -- + indludes table selection for Auto Level-up,
@@ -26,6 +26,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1
+-- + Added Jayce
+-- + Fixed Vayne's E
 -- 1.0.9
 -- + Added MasterYi
 -- + Improved files auto-update
@@ -72,7 +75,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.09
+local TSVer = 1.1
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -960,6 +963,618 @@ OnTick(function(myHero)
 			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
+-- Jayce
+
+elseif "Jayce" == GetObjectName(myHero) then
+
+require('Interrupter')
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Jayce loaded successfully!")
+local JayceMenu = Menu("[T01] Jayce", "[T01] Jayce")
+JayceMenu:Menu("Auto", "Auto")
+JayceMenu.Auto:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
+JayceMenu.Auto:Boolean('UseECannon', 'Use E [Acceleration Gate]', false)
+JayceMenu:Menu("Combo", "Combo")
+JayceMenu.Combo:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
+JayceMenu.Combo:Boolean('UseWCannon', 'Use W [Hyper Charge]', true)
+JayceMenu.Combo:Boolean('UseECannon', 'Use E [Acceleration Gate]', true)
+JayceMenu.Combo:Boolean('UseQHammer', 'Use Q [To the Skies!]', true)
+JayceMenu.Combo:Boolean('UseWHammer', 'Use W [Lightning Field]', true)
+JayceMenu:Menu("Harass", "Harass")
+JayceMenu.Harass:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
+JayceMenu.Harass:Boolean('UseWCannon', 'Use W [Hyper Charge]', true)
+JayceMenu.Harass:Boolean('UseECannon', 'Use E [Acceleration Gate]', true)
+JayceMenu.Harass:Boolean('UseQHammer', 'Use Q [To the Skies!]', true)
+JayceMenu.Harass:Boolean('UseWHammer', 'Use W [Lightning Field]', true)
+JayceMenu:Menu("KillSteal", "KillSteal")
+JayceMenu.KillSteal:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
+JayceMenu.KillSteal:Boolean('UseECannon', 'Use E [Acceleration Gate]', true)
+JayceMenu.KillSteal:Boolean('UseEHammer', 'Use E [Thundering Blow]', true)
+JayceMenu:Menu("LaneClear", "LaneClear")
+JayceMenu.LaneClear:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
+JayceMenu.LaneClear:Boolean('UseWCannon', 'Use W [Hyper Charge]', true)
+JayceMenu.LaneClear:Boolean('UseECannon', 'Use E [Acceleration Gate]', false)
+JayceMenu.LaneClear:Boolean('UseQHammer', 'Use Q [To the Skies!]', false)
+JayceMenu.LaneClear:Boolean('UseWHammer', 'Use W [Lightning Field]', true)
+JayceMenu.LaneClear:Boolean('UseEHammer', 'Use E [Thundering Blow]', true)
+JayceMenu:Menu("JungleClear", "JungleClear")
+JayceMenu.JungleClear:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
+JayceMenu.JungleClear:Boolean('UseWCannon', 'Use W [Hyper Charge]', true)
+JayceMenu.JungleClear:Boolean('UseECannon', 'Use E [Acceleration Gate]', true)
+JayceMenu.JungleClear:Boolean('UseQHammer', 'Use Q [To the Skies!]', true)
+JayceMenu.JungleClear:Boolean('UseWHammer', 'Use W [Lightning Field]', true)
+JayceMenu.JungleClear:Boolean('UseEHammer', 'Use E [Thundering Blow]', true)
+JayceMenu:Menu("Interrupter", "Interrupter")
+JayceMenu.Interrupter:Boolean('UseEHammer', 'Use E [Thundering Blow]', true)
+JayceMenu:Menu("Prediction", "Prediction")
+JayceMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+JayceMenu:Menu("Drawings", "Drawings")
+JayceMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+JayceMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+JayceMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+JayceMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+JayceMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
+JayceMenu:Menu("Misc", "Misc")
+JayceMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
+JayceMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W"})
+JayceMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
+JayceMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
+JayceMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
+
+local JayceQCannon = { range = 1000, radius = 80, width = 160, speed = 1450, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local JayceQExhanced = { range = 1470, radius = 110, width = 220, speed = 1890, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local JayceECannon = { range = 650 }
+local JayceQHammer = { range = 600 }
+local JayceWHammer = { range = 285 }
+local JayceEHammer = { range = 240 }
+
+OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if JayceMenu.Drawings.DrawQ:Value() then
+		if GetRange(myHero) > 300 then
+			if CanUseSpell(myHero,_E) == READY then
+				DrawCircle(pos,JayceQExhanced.range,1,25,0xff00bfff)
+			else
+				DrawCircle(pos,JayceQCannon.range,1,25,0xff00bfff)
+			end
+		elseif GetRange(myHero) < 300 then
+			DrawCircle(pos,JayceQHammer.range,1,25,0xff00bfff)
+		end
+	end
+	if JayceMenu.Drawings.DrawW:Value() then
+		if GotBuff(myHero, "JaycePassiveMeleeAttack") > 0 then
+			DrawCircle(pos,JayceWHammer.range,1,25,0xff4169e1)
+		end
+	end
+	if JayceMenu.Drawings.DrawE:Value() then
+		if GetRange(myHero) > 300 then
+			DrawCircle(pos,JayceECannon.range,1,25,0xff1e90ff)
+		elseif GetRange(myHero) < 300 then
+			DrawCircle(pos,JayceEHammer.range,1,25,0xff1e90ff)
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if GetRange(myHero) > 300 then
+		local target = GetCurrentTarget()
+		local QDmg = (70*GetCastLevel(myHero,_Q)+28)+(1.68*GetBonusDmg(myHero))
+		local WDmg = ((0.08*GetCastLevel(myHero,_W)+0.62)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))*3
+		local ComboDmg = QDmg + WDmg
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy) then
+				if JayceMenu.Drawings.DrawDMG:Value() then
+					if Ready(_Q) and Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+					elseif Ready(_Q) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+					elseif Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+					end
+				end
+			end
+		end
+	elseif GetRange(myHero) < 300 then
+		local target = GetCurrentTarget()
+		local QDmg = (35*GetCastLevel(myHero,_Q)+10)+(1.2*GetBonusDmg(myHero))
+		local WDmg = (60*GetCastLevel(myHero,_W)+40)+GetBonusAP(myHero)
+		local EDmg = ((0.024*GetCastLevel(myHero,_E)+0.056)*GetMaxHP(target))+GetBonusDmg(myHero)
+		local ComboDmg = QDmg + WDmg + EDmg
+		local WEDmg = WDmg + EDmg
+		local QEDmg = QDmg + EDmg
+		local QWDmg = QDmg + WDmg
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy) then
+				if JayceMenu.Drawings.DrawDMG:Value() then
+					if Ready(_Q) and Ready(_W) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+					elseif Ready(_W) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+					elseif Ready(_Q) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+					elseif Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+					elseif Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+					end
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Combo()
+		Harass()
+		KillSteal()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQCannon(target)
+	if GetDistance(target) < JayceQCannon.range then
+		if JayceMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JayceQCannon.speed,JayceQCannon.delay*1000,JayceQCannon.range,JayceQCannon.radius,true,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,JayceQCannon,true,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="JayceShockBlast", range=JayceQCannon.range, speed=JayceQCannon.speed, delay=JayceQCannon.delay, width=JayceQCannon.radius, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(JayceQCannon.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,JayceQCannon)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useEQCannon(target)
+	if GetDistance(target) < JayceQExhanced.range then
+		if JayceMenu.Prediction.PredictionQ:Value() == 1 then
+			local EPos = Vector(myHero)-200*(Vector(myHero)-Vector(target)):normalized()
+			CastSkillShot(_E, EPos)
+			DelayAction(function() CastSkillShot(_Q,GetOrigin(target)) end, 0.25)
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JayceQExhanced.speed,JayceQExhanced.delay*1000,JayceQExhanced.range,JayceQExhanced.radius,true,true)
+			if QPred.HitChance == 1 then
+				local EPos = Vector(myHero)-200*(Vector(myHero)-Vector(target)):normalized()
+				CastSkillShot(_E, EPos)
+				DelayAction(function() CastSkillShot(_Q, QPred.PredPos) end, 0.25)
+			end
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,JayceQExhanced,true,true)
+			if qPred and qPred.HitChance >= 3 then
+				local EPos = Vector(myHero)-200*(Vector(myHero)-Vector(target)):normalized()
+				CastSkillShot(_E, EPos)
+				DelayAction(function() CastSkillShot(_Q, qPred.CastPosition) end, 0.25)
+			end
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="JayceShockBlastWallMis", range=JayceQExhanced.range, speed=JayceQExhanced.speed, delay=JayceQExhanced.delay, width=JayceQExhanced.radius, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(JayceQExhanced.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				local EPos = Vector(myHero)-200*(Vector(myHero)-Vector(target)):normalized()
+				CastSkillShot(_E, EPos)
+				DelayAction(function() CastSkillShot(_Q, y.x, y.y, y.z) end, 0.25)
+			end
+		elseif JayceMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,JayceQExhanced)
+			if QPrediction.hitChance > 0.9 then
+				local EPos = Vector(myHero)-200*(Vector(myHero)-Vector(target)):normalized()
+				CastSkillShot(_E, EPos)
+				DelayAction(function() CastSkillShot(_Q, QPrediction.castPos) end, 0.25)
+			end
+		end
+	end
+end
+function useWCannon(target)
+	CastSpell(_W)
+	if _G.IOW then
+		IOW:ResetAA()
+	elseif _G.GoSWalkLoaded then
+		GoSWalk:ResetAttack()
+	end
+end
+function useQHammer(target)
+	CastTargetSpell(target, _Q)
+end
+function useWHammer(target)
+	CastSpell(_W)
+end
+function useEHammer(target)
+	CastTargetSpell(target, _E)
+end
+
+-- Auto
+
+OnTick(function(myHero)
+	if GetRange(myHero) > 300 then
+		if JayceMenu.Auto.UseECannon:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+				if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, JayceQExhanced.range) then
+						useEQCannon(target)
+					end
+				end
+			end
+		end
+		if JayceMenu.Auto.UseQCannon:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, JayceQCannon.range) then
+						useQCannon(target)
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if GetRange(myHero) > 300 then
+			if JayceMenu.Combo.UseECannon:Value() then
+				if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, JayceQExhanced.range) then
+						useEQCannon(target)
+					end
+				end
+			end
+			if JayceMenu.Combo.UseQCannon:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, JayceQCannon.range) then
+						useQCannon(target)
+					end
+				end
+			end
+			if JayceMenu.Combo.UseWCannon:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, GetRange(myHero)+50) then
+						useWCannon(target)
+					end
+				end
+			end
+		elseif GetRange(myHero) < 300 then
+			if JayceMenu.Combo.UseQHammer:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, JayceQHammer.range) then
+						useQHammer(target)
+					end
+				end
+			end
+			if JayceMenu.Combo.UseWHammer:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, JayceWHammer.range) then
+						useWHammer(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if GetRange(myHero) > 300 then
+			if JayceMenu.Harass.UseECannon:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+					if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
+						if ValidTarget(target, JayceQExhanced.range) then
+							useEQCannon(target)
+						end
+					end
+				end
+			end
+			if JayceMenu.Harass.UseQCannon:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+					if CanUseSpell(myHero,_Q) == READY then
+						if ValidTarget(target, JayceQCannon.range) then
+							useQCannon(target)
+						end
+					end
+				end
+			end
+			if JayceMenu.Harass.UseWCannon:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+					if CanUseSpell(myHero,_W) == READY then
+						if ValidTarget(target, GetRange(myHero)+50) then
+							useWCannon(target)
+						end
+					end
+				end
+			end
+		elseif GetRange(myHero) < 300 then
+			if JayceMenu.Harass.UseQHammer:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+					if CanUseSpell(myHero,_Q) == READY then
+						if ValidTarget(target, JayceQHammer.range) then
+							useQHammer(target)
+						end
+					end
+				end
+			end
+			if JayceMenu.Harass.UseWHammer:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+					if CanUseSpell(myHero,_W) == READY then
+						if ValidTarget(target, JayceWHammer.range) then
+							useWHammer(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if GetRange(myHero) > 300 then
+			if JayceMenu.KillSteal.UseECannon:Value() then
+				if ValidTarget(enemy, JayceQExhanced.range) then
+					if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
+						local JayceEQDmg = (70*GetCastLevel(myHero,_Q)+28)+(1.68*GetBonusDmg(myHero))
+						if GetCurrentHP(enemy) < JayceEQDmg then
+							useEQCannon(enemy)
+						end
+					end
+				end
+			end
+			if JayceMenu.KillSteal.UseQCannon:Value() then
+				if ValidTarget(enemy, JayceQCannon.range) then
+					if CanUseSpell(myHero,_Q) == READY then
+						local JayceQDmg = (50*GetCastLevel(myHero,_Q)+20)+(1.2*GetBonusDmg(myHero))
+						if GetCurrentHP(enemy) < JayceQDmg then
+							useQCannon(enemy)
+						end
+					end
+				end
+			end
+		else
+			if JayceMenu.KillSteal.UseEHammer:Value() then
+				if ValidTarget(enemy, JayceEHammer.range) then
+					if CanUseSpell(myHero,_E) == READY then
+						local JayceEDmg = ((0.024*GetCastLevel(myHero,_E)+0.056)*GetMaxHP(target))+GetBonusDmg(myHero)
+						if GetCurrentHP(enemy) < JayceEDmg then
+							useEHammer(enemy)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if GetRange(myHero) > 300 then
+					if JayceMenu.LaneClear.UseECannon:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+							if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
+								if ValidTarget(minion, JayceQExhanced.range) then
+									local EPos = Vector(myHero)-100*(Vector(myHero)-Vector(minion)):normalized()
+									CastSkillShot(_E, EPos)
+									CastSkillShot(_Q, GetOrigin(minion))
+								end
+							end
+						end
+					end
+					if JayceMenu.LaneClear.UseQCannon:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								if ValidTarget(minion, JayceQCannon.range) then
+									CastSkillShot(_Q, GetOrigin(minion))
+								end
+							end
+						end
+					end
+					if JayceMenu.LaneClear.UseWCannon:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+							if CanUseSpell(myHero,_W) == READY then
+								if ValidTarget(minion, GetRange(myHero)+50) then
+									useWCannon(minion)
+								end
+							end
+						end
+					end
+				elseif GetRange(myHero) < 300 then
+					if JayceMenu.LaneClear.UseQHammer:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								if ValidTarget(minion, JayceQHammer.range) then
+									useQHammer(minion)
+								end
+							end
+						end
+					end
+					if JayceMenu.LaneClear.UseWHammer:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+							if CanUseSpell(myHero,_W) == READY then
+								if ValidTarget(minion, JayceWHammer.range) then
+									useWHammer(minion)
+								end
+							end
+						end
+					end
+					if JayceMenu.LaneClear.UseEHammer:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+							if CanUseSpell(myHero,_E) == READY then
+								if ValidTarget(minion, JayceEHammer.range) then
+									useEHammer(minion)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if GetRange(myHero) > 300 then
+					if JayceMenu.JungleClear.UseECannon:Value() then
+						if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
+							if ValidTarget(mob, JayceQExhanced.range) then
+								local EPos = Vector(myHero)-100*(Vector(myHero)-Vector(mob)):normalized()
+								CastSkillShot(_E, EPos)
+								CastSkillShot(_Q, GetOrigin(mob))
+							end
+						end
+					end
+					if JayceMenu.JungleClear.UseQCannon:Value() then
+						if CanUseSpell(myHero,_Q) == READY then
+							if ValidTarget(mob, JayceQCannon.range) then
+								CastSkillShot(_Q, GetOrigin(mob))
+							end
+						end
+					end
+					if JayceMenu.JungleClear.UseWCannon:Value() then
+						if CanUseSpell(myHero,_W) == READY then
+							if ValidTarget(mob, GetRange(myHero)+50) then
+								useWCannon(mob)
+							end
+						end
+					end
+				elseif GetRange(myHero) < 300 then
+					if JayceMenu.JungleClear.UseQHammer:Value() then
+						if CanUseSpell(myHero,_Q) == READY then
+							if ValidTarget(mob, JayceQHammer.range) then
+								useQHammer(mob)
+							end
+						end
+					end
+					if JayceMenu.JungleClear.UseWHammer:Value() then
+						if CanUseSpell(myHero,_W) == READY then
+							if ValidTarget(mob, JayceWHammer.range) then
+								useWHammer(mob)
+							end
+						end
+					end
+					if JayceMenu.JungleClear.UseEHammer:Value() then
+						if CanUseSpell(myHero,_E) == READY then
+							if ValidTarget(mob, JayceEHammer.range) then
+								useEHammer(mob)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+addInterrupterCallback(function(target, spellType, spell)
+	if JayceMenu.Interrupter.UseEHammer:Value() then
+		if ValidTarget(target, JayceEHammer.range) then
+			if CanUseSpell(myHero,_E) == READY then
+				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
+					useEHammer(target)
+				end
+			end
+		end
+	end
+end)
+
+-- Misc
+
+OnTick(function(myHero)
+	if JayceMenu.Misc.AutoLvlUp:Value() then
+		if JayceMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _W, _Q, _W, _Q, _W, _Q, _W, _W, _E, _E, _E, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif JayceMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _E, _Q, _E, _Q, _E, _Q, _E, _E, _W, _W, _W, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if Mode() == "Combo" then
+		if JayceMenu.Misc.UI:Value() then
+			local target = GetCurrentTarget()
+			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
+					CastSpell(GetItemSlot(myHero, 3074))
+				end -- Ravenous Hydra
+			end
+			if GetItemSlot(myHero, 3077) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3077)) == READY then
+					CastSpell(GetItemSlot(myHero, 3077))
+				end -- Tiamat
+			end
+			if GetItemSlot(myHero, 3144) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3144)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3144))
+					end -- Bilgewater Cutlass
+				end
+			end
+			if GetItemSlot(myHero, 3146) >= 1 and ValidTarget(target, 700) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3146)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3146))
+					end -- Hextech Gunblade
+				end
+			end
+			if GetItemSlot(myHero, 3153) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3153)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3153))
+					end -- BOTRK
+				end
+			end
+			if GetItemSlot(myHero, 3748) >= 1 and ValidTarget(target, 300) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero,GetItemSlot(myHero, 3748)) == READY then
+						CastSpell(GetItemSlot(myHero, 3748))
+					end -- Titanic Hydra
+				end
 			end
 		end
 	end
@@ -2691,6 +3306,7 @@ end
 elseif "Vayne" == GetObjectName(myHero) then
 
 require('Interrupter')
+require('MapPositionGOS')
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Vayne loaded successfully!")
 local VayneMenu = Menu("[T01] Vayne", "[T01] Vayne")
@@ -2966,7 +3582,7 @@ end
 
 OnTick(function(myHero)
 	if VayneMenu.AntiGapcloser.UseE:Value() then
-		if ValidTarget(target, 200) then
+		if ValidTarget(target, 125) then
 			if CanUseSpell(myHero,_E) == READY then
 				CastTargetSpell(target, _E)
 			end
