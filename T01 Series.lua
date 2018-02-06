@@ -26,7 +26,7 @@
 -- ===============
 -- == Changelog ==
 -- ===============
--- 1.11
+-- 1.1.1
 -- + Added Anti-Gapcloser to some champions
 -- + Corrected Xerath's R damage
 -- 1.1
