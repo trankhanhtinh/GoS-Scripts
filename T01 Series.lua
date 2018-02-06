@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1
+-- Current version: 1.11
 -- Intermediate GoS script which supports currently 14 champions.
 -- Features:
 -- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
@@ -26,6 +26,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.11
+-- + Added Anti-Gapcloser to some champions
+-- + Corrected Xerath's R damage
 -- 1.1
 -- + Added Jayce
 -- + Fixed Vayne's E
@@ -75,7 +78,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.10
+local TSVer = 1.11
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -2437,6 +2440,8 @@ RyzeMenu:Menu("JungleClear", "JungleClear")
 RyzeMenu.JungleClear:Boolean('UseQ', 'Use Q [Overload]', true)
 RyzeMenu.JungleClear:Boolean('UseW', 'Use W [Rune Prison]', true)
 RyzeMenu.JungleClear:Boolean('UseE', 'Use E [Spell Flux]', true)
+RyzeMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+RyzeMenu.AntiGapcloser:Boolean('UseW', 'Use W [Rune Prison]', true)
 RyzeMenu:Menu("Interrupter", "Interrupter")
 RyzeMenu.Interrupter:Boolean('UseW', 'Use W [Rune Prison]', true)
 RyzeMenu:Menu("Prediction", "Prediction")
@@ -2775,6 +2780,20 @@ addInterrupterCallback(function(target, spellType, spell)
 	end
 end)
 
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if RyzeMenu.AntiGapcloser.UseW:Value() then
+			if ValidTarget(antigap, 250) then
+				if CanUseSpell(myHero,_W) == READY then
+					CastTargetSpell(antigap, _W)
+				end
+			end
+		end
+	end
+end)
+
 -- Misc
 
 OnTick(function(myHero)
@@ -2861,6 +2880,8 @@ SyndraMenu:Menu("JungleClear", "JungleClear")
 SyndraMenu.JungleClear:Boolean('UseQ', 'Use Q [Dark Sphere]', true)
 SyndraMenu.JungleClear:Boolean('UseW', 'Use W [Force of Will]', true)
 SyndraMenu.JungleClear:Boolean('UseE', 'Use E [Scatter the Weak]', true)
+SyndraMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+SyndraMenu.AntiGapcloser:Boolean('UseE', 'Use E [Scatter the Weak]', true)
 SyndraMenu:Menu("Prediction", "Prediction")
 SyndraMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 SyndraMenu.Prediction:DropDown("PredictionW", "Prediction: W", 1, {"CurrentPos", "GoSPred"})
@@ -3258,6 +3279,20 @@ function JungleClear()
 	end
 end
 
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if SyndraMenu.AntiGapcloser.UseE:Value() then
+			if ValidTarget(antigap, 150) then
+				if CanUseSpell(myHero,_E) == READY then
+					CastSkillShot(_E, antigap)
+				end
+			end
+		end
+	end
+end)
+
 -- Misc
 
 OnTick(function(myHero)
@@ -3331,7 +3366,7 @@ VayneMenu.LaneClear:Boolean('UseE', 'Use E [Condemn]', false)
 VayneMenu:Menu("JungleClear", "JungleClear")
 VayneMenu.JungleClear:Boolean('UseQ', 'Use Q [Tumble]', true)
 VayneMenu.JungleClear:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu:Menu("AntiGapcloser", "AntiGapcloser")
+VayneMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
 VayneMenu.AntiGapcloser:Boolean('UseE', 'Use E [Condemn]', true)
 VayneMenu:Menu("Interrupter", "Interrupter")
 VayneMenu.Interrupter:Boolean('UseE', 'Use E [Condemn]', true)
@@ -3582,7 +3617,7 @@ end
 
 OnTick(function(myHero)
 	if VayneMenu.AntiGapcloser.UseE:Value() then
-		if ValidTarget(target, 125) then
+		if ValidTarget(target, 150) then
 			if CanUseSpell(myHero,_E) == READY then
 				CastTargetSpell(target, _E)
 			end
@@ -3697,7 +3732,7 @@ local VeigarMenu = Menu("[T01] Veigar", "[T01] Veigar")
 VeigarMenu:Menu("Auto", "Auto")
 VeigarMenu.Auto:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
 VeigarMenu.Auto:Boolean('UseW', 'Use W [Dark Matter]', true)
-VeigarMenu.Auto:Boolean('UseE', 'Use E [Event Horizon]', true)
+VeigarMenu.Auto:Boolean('UseE', 'Use E [Event Horizon]', false)
 VeigarMenu.Auto:DropDown("ModeW", "Cast Mode: W", 2, {"On Dashing", "On Stunned"})
 VeigarMenu:Menu("Combo", "Combo")
 VeigarMenu.Combo:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
@@ -3719,6 +3754,8 @@ VeigarMenu.LaneClear:Boolean('UseW', 'Use W [Dark Matter]', true)
 VeigarMenu:Menu("JungleClear", "JungleClear")
 VeigarMenu.JungleClear:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
 VeigarMenu.JungleClear:Boolean('UseW', 'Use W [Dark Matter]', true)
+VeigarMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+VeigarMenu.AntiGapcloser:Boolean('UseE', 'Use E [Event Horizon]', true)
 VeigarMenu:Menu("Prediction", "Prediction")
 VeigarMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 3, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 VeigarMenu.Prediction:DropDown("PredictionW", "Prediction: W", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
@@ -4099,6 +4136,20 @@ function JungleClear()
 		end
 	end
 end
+
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if VeigarMenu.AntiGapcloser.UseE:Value() then
+			if ValidTarget(antigap, VeigarE.radius) then
+				if CanUseSpell(myHero,_E) == READY then
+					CastSkillShot(_E, myHero)
+				end
+			end
+		end
+	end
+end)
 
 -- Misc
 
@@ -4616,6 +4667,8 @@ VladimirMenu:Menu("JungleClear", "JungleClear")
 VladimirMenu.JungleClear:Boolean('UseQ', 'Use Q [Transfusion]', true)
 VladimirMenu.JungleClear:Boolean('UseW', 'Use W [Sanguine Pool]', true)
 VladimirMenu.JungleClear:Boolean('UseE', 'Use E [Tides of Blood]', true)
+VladimirMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+VladimirMenu.AntiGapcloser:Boolean('UseW', 'Use W [Sanguine Pool]', true)
 VladimirMenu:Menu("Prediction", "Prediction")
 VladimirMenu.Prediction:DropDown("PredictionR", "Prediction: R", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 VladimirMenu:Menu("Drawings", "Drawings")
@@ -4969,6 +5022,20 @@ function JungleClear()
 	end
 end
 
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if VladimirMenu.AntiGapcloser.UseW:Value() then
+			if ValidTarget(antigap, 150) then
+				if CanUseSpell(myHero,_W) == READY then
+					CastSpell(_W)
+				end
+			end
+		end
+	end
+end)
+
 -- Misc
 
 OnTick(function(myHero)
@@ -5038,6 +5105,8 @@ XerathMenu:Menu("JungleClear", "JungleClear")
 XerathMenu.JungleClear:Boolean('UseQ', 'Use Q [Arcanopulse]', true)
 XerathMenu.JungleClear:Boolean('UseW', 'Use W [Eye of Destruction]', true)
 XerathMenu.JungleClear:Boolean('UseE', 'Use E [Shocking Orb]', true)
+XerathMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+XerathMenu.AntiGapcloser:Boolean('UseE', 'Use E [Shocking Orb]', true)
 XerathMenu:Menu("Interrupter", "Interrupter")
 XerathMenu.Interrupter:Boolean('UseE', 'Use E [Shocking Orb]', true)
 XerathMenu:Menu("Prediction", "Prediction")
@@ -5083,7 +5152,7 @@ OnDraw(function(myHero)
 	local QDmg = (40*GetCastLevel(myHero,_Q)+40)+(0.75*GetBonusAP(myHero))
 	local WDmg = (45*GetCastLevel(myHero,_W)+45)+(0.9*GetBonusAP(myHero))
 	local EDmg = (30*GetCastLevel(myHero,_E)+50)+(0.45*GetBonusAP(myHero))
-	local RDmg = ((40*GetCastLevel(myHero,_R)+160)+(0.43*GetBonusAP(myHero)))*(GetCastLevel(myHero,_R)+2)
+	local RDmg = (360*GetCastLevel(myHero,_R)+240)+((0.43*GetCastLevel(myHero,_R)+0.86)*GetBonusAP(myHero))
 	local ComboDmg = QDmg + WDmg + EDmg + RDmg
 	local WERDmg = WDmg + EDmg + RDmg
 	local QERDmg = QDmg + EDmg + RDmg
@@ -5382,7 +5451,7 @@ function KillSteal()
 		if XerathMenu.KillSteal.UseR:Value() then
 			if CanUseSpell(myHero,_R) == READY then
 				if ValidTarget(enemy, XerathR.range) then
-					local XerathRDmg = ((40*GetCastLevel(myHero,_R)+160)+(0.43*GetBonusAP(myHero)))*(GetCastLevel(myHero,_R)+2)
+					local XerathRDmg = (360*GetCastLevel(myHero,_R)+240)+((0.43*GetCastLevel(myHero,_R)+0.86)*GetBonusAP(myHero))
 					local EnemyToKS = enemy
 					if GetCurrentHP(EnemyToKS) < XerathRDmg then
 						if GotBuff(myHero, "xerathrshots") > 0 then
@@ -5520,6 +5589,20 @@ function JungleClear()
 		end
 	end
 end
+
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if XerathMenu.AntiGapcloser.UseE:Value() then
+			if ValidTarget(antigap, 300) then
+				if CanUseSpell(myHero,_E) == READY then
+					useE(antigap)
+				end
+			end
+		end
+	end
+end)
 
 -- Misc
 
