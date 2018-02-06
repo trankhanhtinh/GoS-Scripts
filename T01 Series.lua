@@ -75,7 +75,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.1
+local TSVer = 1.10
 
 function AutoUpdate(data)
 	local num = tonumber(data)
