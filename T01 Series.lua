@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.2
+-- Current version: 1.1.2.1
 -- Intermediate GoS script which supports currently 14 champions.
 -- Features:
 -- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
@@ -26,6 +26,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.2.1
+-- + Fixed Annie's W
 -- 1.1.2
 -- + Fixed Auto Level-up option
 -- 1.1.1
@@ -80,7 +82,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.12
+local TSVer = 1.121
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -344,7 +346,7 @@ function Combo()
 		if AnnieMenu.Combo.UseW:Value() then
 			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, AnnieW.range) then
-					useE(target)
+					useW(target)
 				end
 			end
 		end
