@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.2.1
+-- Current version: 1.1.2.2
 -- Intermediate GoS script which supports currently 14 champions.
 -- Features:
 -- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
@@ -26,6 +26,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.2.2
+-- + Minor changes in Zed
 -- 1.1.2.1
 -- + Fixed Annie's W
 -- 1.1.2
@@ -82,7 +84,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.121
+local TSVer = 1.122
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -6571,13 +6573,13 @@ end)
 function Combo()
 	if Mode() == "Combo" then
 		if ZedMenu.Combo.UseW:Value() then
-			if CanUseSpell(myHero,_W) and CanUseSpell(myHero,_E) or CanUseSpell(myHero,_W) and CanUseSpell(myHero,_Q) == READY then
+			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, ZedW.range) then
 					if ZedMenu.Combo.GapW:Value() then
 						local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),ZedW.speed,ZedW.delay*1000,ZedW.range,ZedW.width,false,true)
 						if WPred.HitChance == 1 then
 							CastSkillShot(_W, WPred.PredPos)
-							CastSpell(_E)
+							DelayAction(function() CastSpell(_E) end, 0.1)
 						end
 					else
 						local TimerW = GetTickCount()
@@ -6585,7 +6587,7 @@ function Combo()
 							local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),ZedW.speed,ZedW.delay*1000,ZedW.range,ZedW.width,false,true)
 							if WPred.HitChance == 1 then
 								CastSkillShot(_W, WPred.PredPos)
-								CastSpell(_E)
+								DelayAction(function() CastSpell(_E) end, 0.1)
 								GlobalTimer = TimerW
 							end
 						end
@@ -6624,13 +6626,13 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if ZedMenu.Harass.UseW:Value() then
-			if CanUseSpell(myHero,_W) and CanUseSpell(myHero,_E) or CanUseSpell(myHero,_W) and CanUseSpell(myHero,_Q) == READY then
+			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, ZedW.range) then
 					if ZedMenu.Harass.GapW:Value() then
 						local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),ZedW.speed,ZedW.delay*1000,ZedW.range,ZedW.width,false,true)
 						if WPred.HitChance == 1 then
 							CastSkillShot(_W, WPred.PredPos)
-							CastSpell(_E)
+							DelayAction(function() CastSpell(_E) end, 0.25)
 						end
 					else
 						local TimerW = GetTickCount()
@@ -6638,7 +6640,7 @@ function Harass()
 							local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),ZedW.speed,ZedW.delay*1000,ZedW.range,ZedW.width,false,true)
 							if WPred.HitChance == 1 then
 								CastSkillShot(_W, WPred.PredPos)
-								CastSpell(_E)
+								DelayAction(function() CastSpell(_E) end, 0.25)
 								GlobalTimer = TimerW
 							end
 						end
