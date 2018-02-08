@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.2.2
+-- Current version: 1.1.2.3
 -- Intermediate GoS script which supports currently 14 champions.
 -- Features:
 -- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
@@ -26,6 +26,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.2.3
+-- + Changes in Zed again...
 -- 1.1.2.2
 -- + Minor changes in Zed
 -- 1.1.2.1
@@ -84,7 +86,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.122
+local TSVer = 1.123
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -6549,6 +6551,11 @@ function useR(target)
 		end
 	end
 end
+OnSpellCast(function(spell)
+	if spell.spellID == _W then
+		CastSpell(_E)
+	end
+end)
 
 -- Auto
 
@@ -6573,6 +6580,15 @@ end)
 
 function Combo()
 	if Mode() == "Combo" then
+		if ZedMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, ZedR.range) then
+					if GotBuff(target,"zedrtargetmark") == 0 then
+						useR(target)
+					end
+				end
+			end
+		end
 		if ZedMenu.Combo.UseW:Value() then
 			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, ZedW.range) then
@@ -6598,8 +6614,8 @@ function Combo()
 		end
 		if ZedMenu.Combo.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if ValidTarget(target, ZedQ.range) then
-					useQ(target)
+				if ValidTarget(target, ZedQ.range+ZedW.range) then
+					DelayAction(function() useQ(target) end, 0.1)
 				end
 			end
 		end
@@ -6607,15 +6623,6 @@ function Combo()
 			if CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, ZedE.range) then
 					useE(target)
-				end
-			end
-		end
-		if ZedMenu.Combo.UseR:Value() then
-			if CanUseSpell(myHero,_R) == READY then
-				if ValidTarget(target, ZedR.range) then
-					if GotBuff(target,"zedrtargetmark") == 0 then
-						useR(target)
-					end
 				end
 			end
 		end
@@ -6633,7 +6640,7 @@ function Harass()
 						local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),ZedW.speed,ZedW.delay*1000,ZedW.range,ZedW.width,false,true)
 						if WPred.HitChance == 1 then
 							CastSkillShot(_W, WPred.PredPos)
-							DelayAction(function() CastSpell(_E) end, 0.25)
+							DelayAction(function() CastSpell(_E) end, 0.1)
 						end
 					else
 						local TimerW = GetTickCount()
@@ -6641,7 +6648,7 @@ function Harass()
 							local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),ZedW.speed,ZedW.delay*1000,ZedW.range,ZedW.width,false,true)
 							if WPred.HitChance == 1 then
 								CastSkillShot(_W, WPred.PredPos)
-								DelayAction(function() CastSpell(_E) end, 0.25)
+								DelayAction(function() CastSpell(_E) end, 0.1)
 								GlobalTimer = TimerW
 							end
 						end
@@ -6651,8 +6658,8 @@ function Harass()
 		end
 		if ZedMenu.Harass.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if ValidTarget(target, ZedQ.range) then
-					useQ(target)
+				if ValidTarget(target, ZedQ.range+ZedW.range) then
+					DelayAction(function() useQ(target) end, 0.1)
 				end
 			end
 		end
