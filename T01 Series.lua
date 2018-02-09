@@ -6162,7 +6162,7 @@ function Combo()
 					elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > YasuoE.range then
 						for _, minion in pairs(minionManager.objects) do
 							if GetTeam(minion) == MINION_ENEMY and GetDistance(minion) <= YasuoE.range then
-								EPos = myHero+(Vector(minion)-myHero):normalized()*YasuoE.range
+								EPos = Vector(myHero)+(Vector(target)-Vector(myHero)):normalized()*YasuoE.range
 								if GetDistance(EPos,target) < GetDistance(minion,target) then
 									useE(minion)
 								end
@@ -6204,7 +6204,7 @@ function Harass()
 					elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > YasuoE.range then
 						for _, minion in pairs(minionManager.objects) do
 							if GetTeam(minion) == MINION_ENEMY and GetDistance(minion) <= YasuoE.range then
-								EPos = myHero+(Vector(minion)-myHero):normalized()*YasuoE.range
+								EPos = Vector(myHero)+(Vector(target)-Vector(myHero)):normalized()*YasuoE.range
 								if GetDistance(EPos,target) < GetDistance(minion,target) then
 									useE(minion)
 								end
