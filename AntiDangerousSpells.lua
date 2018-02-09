@@ -41,6 +41,7 @@ DS = {
 ["SowTheWind"] 					= 	{ slot = _W , champName = "Janna"				, spellType = "target" 		, projectileSpeed = 1000		, spellDelay = 250	, spellRange = 550		, spellRadius = 0		, collision = false }, 
 ["JannaR"] 						= 	{ slot = _R , champName = "Janna"				, spellType = "aoe" 		, projectileSpeed = math.huge	, spellDelay = 250	, spellRange = 725		, spellRadius = 725		, collision = false }, 
 ["JarvanIVCataclysm"] 			= 	{ slot = _R , champName = "JarvanIV"			, spellType = "target" 		, projectileSpeed = 1900		, spellDelay = 0	, spellRange = 650		, spellRadius = 325		, collision = false }, 
+["JaxQ"] 						= 	{ slot = _Q , champName = "Jax"					, spellType = "target" 		, projectileSpeed = 1900		, spellDelay = 250	, spellRange = 700		, spellRadius = 0		, collision = false }, 
 ["JayceToTheSkies"] 			= 	{ slot = _Q , champName = "Jayce"				, spellType = "target" 		, projectileSpeed = 1000		, spellDelay = 250	, spellRange = 600		, spellRadius = 100		, collision = false	}, 
 ["JayceThunderingBlow"] 		= 	{ slot = _E , champName = "Jayce"				, spellType = "target" 		, projectileSpeed = math.huge	, spellDelay = 250	, spellRange = 240		, spellRadius = 0		, collision = false }, 
 ["JhinR"] 						= 	{ slot = _R , champName = "Jhin"				, spellType = "line" 		, projectileSpeed = 5000		, spellDelay = 250	, spellRange = 3500		, spellRadius = 80		, collision = false }, 
