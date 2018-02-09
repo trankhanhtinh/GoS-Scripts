@@ -6551,11 +6551,6 @@ function useR(target)
 		end
 	end
 end
-OnSpellCast(function(spell)
-	if spell.spellID == _W then
-		CastSpell(_E)
-	end
-end)
 
 -- Auto
 
