@@ -3552,7 +3552,7 @@ function Combo()
 								end
 							end
 						elseif TwistedFateMenu.Combo.ModeW:Value() == 2 then
-							if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25) then
+							if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25)+1 then
 								if EnemiesAround(target, 200) > 1 then
 									if CurrentCard == "Red" then
 										CastSpell(_W)
@@ -3626,7 +3626,7 @@ function Harass()
 									end
 								end
 							elseif TwistedFateMenu.Harass.ModeW:Value() == 2 then
-								if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25) then
+								if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25)+1 then
 									if EnemiesAround(target, 200) > 1 then
 										if CurrentCard == "Red" then
 											CastSpell(_W)
