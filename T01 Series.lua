@@ -8,16 +8,17 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.2.3
--- Intermediate GoS script which supports currently 14 champions.
+-- Current version: 1.1.3
+-- Intermediate GoS script which supports currently 15 champions.
 -- Features:
--- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, TwistedFate, Vayne,
+--   Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + uses offensive items while doing Combo,
 -- + indludes table selection for Auto Level-up,
 -- + 4 predictions to choose and current pos casting,
--- + additional features: Auto, Combo, Harass, KillSteal, LastHit,
---   LaneClear, JungleClear, Interrupter, Drawings, & Misc.
+-- + additional features: Auto, Combo, Harass, KillSteal, LastHit, LaneClear,
+--   JungleClear, Anti-Gapcloser, Interrupter, Drawings, & Misc..
 -- ==================
 -- == Requirements ==
 -- ==================
@@ -26,6 +27,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.3
+-- + Added TwistedFate
 -- 1.1.2.3
 -- + Changes in Zed again...
 -- 1.1.2.2
@@ -86,7 +89,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.123
+local TSVer = 1.13
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -3344,6 +3347,508 @@ function VectorWay(A,B)
 	WayZ = B.z - A.z
 	return Vector(WayX, WayY, WayZ)
 end
+
+-- TwistedFate
+
+elseif "TwistedFate" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>TwistedFate loaded successfully!")
+local TwistedFateMenu = Menu("[T01] TwistedFate", "[T01] TwistedFate")
+TwistedFateMenu:Menu("Auto", "Auto")
+TwistedFateMenu.Auto:Boolean('UseQ', 'Use Q [Wild Cards]', true)
+TwistedFateMenu.Auto:DropDown("ModeQ", "Cast Mode: Q", 2, {"On Dashing", "On Immobile"})
+TwistedFateMenu:Menu("Combo", "Combo")
+TwistedFateMenu.Combo:Boolean('UseQ', 'Use Q [Wild Cards]', true)
+TwistedFateMenu.Combo:Boolean('UseW', 'Use W [Pick a Card]', true)
+TwistedFateMenu.Combo:DropDown("ModeQ", "Cast Mode: Q", 2, {"On Dashing", "On Immobile"})
+TwistedFateMenu.Combo:DropDown("ModeW", "Cast Mode: W", 1, {"Priority", "Smart"})
+TwistedFateMenu.Combo:DropDown("PickW", "Priority: W", 3, {"Blue", "Red", "Gold"})
+TwistedFateMenu:Menu("Harass", "Harass")
+TwistedFateMenu.Harass:Boolean('UseQ', 'Use Q [Wild Cards]', true)
+TwistedFateMenu.Harass:Boolean('UseW', 'Use W [Pick a Card]', true)
+TwistedFateMenu.Harass:DropDown("ModeQ", "Cast Mode: Q", 2, {"On Dashing", "On Immobile"})
+TwistedFateMenu.Harass:DropDown("ModeW", "Cast Mode: W", 2, {"Priority", "Smart"})
+TwistedFateMenu.Harass:DropDown("PickW", "Priority: W", 3, {"Blue", "Red", "Gold"})
+TwistedFateMenu:Menu("KillSteal", "KillSteal")
+TwistedFateMenu.KillSteal:Boolean('UseQ', 'Use Q [Wild Cards]', true)
+TwistedFateMenu:Menu("LastHit", "LastHit")
+TwistedFateMenu.LastHit:Boolean('UseW', 'Use W [Urchin Strike]', true)
+TwistedFateMenu:Menu("LaneClear", "LaneClear")
+TwistedFateMenu.LaneClear:Boolean('UseQ', 'Use Q [Wild Cards]', true)
+TwistedFateMenu.LaneClear:Boolean('UseW', 'Use W [Pick a Card]', false)
+TwistedFateMenu.LaneClear:DropDown("ModeW", "Cast Mode: W", 2, {"Priority", "Smart"})
+TwistedFateMenu.LaneClear:DropDown("PickW", "Priority: W", 1, {"Blue", "Red"})
+TwistedFateMenu:Menu("JungleClear", "JungleClear")
+TwistedFateMenu.JungleClear:Boolean('UseQ', 'Use Q [Wild Cards]', true)
+TwistedFateMenu.JungleClear:Boolean('UseW', 'Use W [Pick a Card]', true)
+TwistedFateMenu:Menu("Prediction", "Prediction")
+TwistedFateMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+TwistedFateMenu:Menu("Drawings", "Drawings")
+TwistedFateMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+TwistedFateMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+TwistedFateMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
+TwistedFateMenu:Menu("Misc", "Misc")
+TwistedFateMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
+TwistedFateMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+TwistedFateMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
+TwistedFateMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
+
+local TwistedFateQ = { range = 1450, radius = 45, width = 90, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local TwistedFateR = { range = GetCastRange(myHero,_R) }
+local GlobalTimer = 0
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if TwistedFateMenu.Drawings.DrawQ:Value() then DrawCircle(pos,TwistedFateQ.range,1,25,0xff00bfff) end
+if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircle(pos,TwistedFateR.range,1,25,0xff0000ff) end
+end)
+OnDrawMinimap(function()
+local pos = GetOrigin(myHero)
+if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,TwistedFateR.range,0,255,0xff0000ff) end
+end)
+
+OnDraw(function(myHero)
+	local target = GetCurrentTarget()
+	local QDmg = (45*GetCastLevel(myHero,_Q)+15)+(0.65*GetBonusAP(myHero))
+	local WDmg = (7.5*GetCastLevel(myHero,_W)+7.5)+(0.5*GetBonusAP(myHero))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+	local EDmg = (25*GetCastLevel(myHero,_E)+30)+(0.5*GetBonusAP(myHero))
+	local ComboDmg = QDmg + WDmg + EDmg
+	local WEDmg = WDmg + EDmg
+	local QEDmg = QDmg + EDmg
+	local QWDmg = QDmg + WDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if TwistedFateMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Combo()
+		Harass()
+		KillSteal()
+		LastHit()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	if GetDistance(target) < TwistedFateQ.range then
+		if TwistedFateMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif TwistedFateMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),TwistedFateQ.speed,TwistedFateQ.delay*1000,TwistedFateQ.range,TwistedFateQ.width,false,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif TwistedFateMenu.Prediction.PredictionQ:Value() == 3 then
+			local QPred = _G.gPred:GetPrediction(target,myHero,TwistedFateQ,true,false)
+			if QPred and QPred.HitChance >= 3 then
+				CastSkillShot(_Q, QPred.CastPosition)
+			end
+		elseif TwistedFateMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="WildCards", range=TwistedFateQ.range, speed=TwistedFateQ.speed, delay=TwistedFateQ.delay, width=TwistedFateQ.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(TwistedFateQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif TwistedFateMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,TwistedFateQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+OnCreateObj(function(Object)
+	if GetObjectBaseName(Object) == "TwistedFate_Base_W_BlueCard.troy" then
+		CurrentCard = "Blue"
+	elseif GetObjectBaseName(Object) == "TwistedFate_Base_W_RedCard.troy" then
+		CurrentCard = "Red"
+	elseif GetObjectBaseName(Object) == "TwistedFate_Base_W_GoldCard.troy" then
+		CurrentCard = "Gold"
+	end
+end)
+
+-- Auto
+
+OnTick(function(myHero)
+	if TwistedFateMenu.Auto.UseQ:Value() then
+		if CanUseSpell(myHero,_Q) == READY then
+			if ValidTarget(target, TwistedFateQ.range) then
+				if TwistedFateMenu.Auto.ModeQ:Value() == 1 then
+					useQ(target)
+				elseif TwistedFateMenu.Auto.ModeQ:Value() == 2 then
+					if GotBuff(target, "Stun") > 0 or GotBuff(target, "Taunt") > 0 or GotBuff(target, "Slow") > 0 or GotBuff(target, "Snare") > 0 or GotBuff(target, "Charm") > 0 or GotBuff(target, "Suppression") > 0 or GotBuff(target, "Flee") > 0 or GotBuff(target, "Knockup") > 0 then
+						CastSkillShot(_Q,GetOrigin(target))
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if TwistedFateMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, TwistedFateQ.range) then
+					if TwistedFateMenu.Combo.ModeQ:Value() == 1 then
+						useQ(target)
+					elseif TwistedFateMenu.Auto.ModeQ:Value() == 2 then
+						if GotBuff(target, "Stun") > 0 or GotBuff(target, "Taunt") > 0 or GotBuff(target, "Slow") > 0 or GotBuff(target, "Snare") > 0 or GotBuff(target, "Charm") > 0 or GotBuff(target, "Suppression") > 0 or GotBuff(target, "Flee") > 0 or GotBuff(target, "Knockup") > 0 then
+							CastSkillShot(_Q,GetOrigin(target))
+						end
+					end
+				end
+			end
+		end
+		if TwistedFateMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, GetRange(myHero)+500) then
+					if GotBuff(myHero, "pickacard_tracker") == 0 then
+						local TimerW = GetTickCount()
+						if (GlobalTimer + 1000) < TimerW then
+							CastSpell(_W)
+							GlobalTimer = TimerW
+						end
+					else
+						if TwistedFateMenu.Combo.ModeW:Value() == 1 then
+							if TwistedFateMenu.Combo.PickW:Value() == 1 then
+								if CurrentCard == "Blue" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
+							elseif TwistedFateMenu.Combo.PickW:Value() == 2 then
+								if CurrentCard == "Red" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
+							elseif TwistedFateMenu.Combo.PickW:Value() == 3 then
+								if CurrentCard == "Gold" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
+							end
+						elseif TwistedFateMenu.Combo.ModeW:Value() == 2 then
+							if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25) then
+								if EnemiesAround(target, 200) > 1 then
+									if CurrentCard == "Red" then
+										CastSpell(_W)
+										CurrentCard = "nil"
+									end
+								else
+									if CurrentCard == "Gold" then
+										CastSpell(_W)
+										CurrentCard = "nil"
+									end
+								end
+							else
+								if CurrentCard == "Blue" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if TwistedFateMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MPQ:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, TwistedFateQ.range) then
+						if TwistedFateMenu.Harass.ModeQ:Value() == 1 then
+							useQ(target)
+						elseif TwistedFateMenu.Auto.ModeQ:Value() == 2 then
+							if GotBuff(target, "Stun") > 0 or GotBuff(target, "Taunt") > 0 or GotBuff(target, "Slow") > 0 or GotBuff(target, "Snare") > 0 or GotBuff(target, "Charm") > 0 or GotBuff(target, "Suppression") > 0 or GotBuff(target, "Flee") > 0 or GotBuff(target, "Knockup") > 0 then
+								CastSkillShot(_Q,GetOrigin(target))
+							end
+						end
+					end
+				end
+			end
+		end
+		if TwistedFateMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MPW:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, GetRange(myHero)+500) then
+						if GotBuff(myHero, "pickacard_tracker") == 0 then
+							local TimerW = GetTickCount()
+							if (GlobalTimer + 1000) < TimerW then
+								CastSpell(_W)
+								GlobalTimer = TimerW
+							end
+						else
+							if TwistedFateMenu.Harass.ModeW:Value() == 1 then
+								if TwistedFateMenu.Harass.PickW:Value() == 1 then
+									if CurrentCard == "Blue" then
+										CastSpell(_W)
+										CurrentCard = "nil"
+									end
+								elseif TwistedFateMenu.Harass.PickW:Value() == 2 then
+									if CurrentCard == "Red" then
+										CastSpell(_W)
+										CurrentCard = "nil"
+									end
+								elseif TwistedFateMenu.Harass.PickW:Value() == 3 then
+									if CurrentCard == "Gold" then
+										CastSpell(_W)
+										CurrentCard = "nil"
+									end
+								end
+							elseif TwistedFateMenu.Harass.ModeW:Value() == 2 then
+								if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25) then
+									if EnemiesAround(target, 200) > 1 then
+										if CurrentCard == "Red" then
+											CastSpell(_W)
+											CurrentCard = "nil"
+										end
+									else
+										if CurrentCard == "Gold" then
+											CastSpell(_W)
+											CurrentCard = "nil"
+										end
+									end
+								else
+									if CurrentCard == "Blue" then
+										CastSpell(_W)
+										CurrentCard = "nil"
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if TwistedFateMenu.KillSteal.UseQ:Value() then
+			if ValidTarget(enemy, TwistedFateQ.range) then
+				if CanUseSpell(myHero,_Q) == READY then
+					local TwistedFateQDmg = (45*GetCastLevel(myHero,_Q)+15)+(0.65*GetBonusAP(myHero))
+					if GetCurrentHP(enemy) < TwistedFateQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, GetRange(myHero)+100) then
+					if TwistedFateMenu.LastHit.UseW:Value() then
+						if CanUseSpell(myHero,_W) == READY then
+							local TwistedFateWDmg = (20*GetCastLevel(myHero,_W)+20)+(0.5*GetBonusAP(myHero))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+							local MinionToLastHit = minion
+							if GetCurrentHP(MinionToLastHit) < TwistedFateWDmg then
+								if GotBuff(myHero, "pickacard_tracker") == 0 then
+									local TimerW = GetTickCount()
+									if (GlobalTimer + 1000) < TimerW then
+										CastSpell(_W)
+										GlobalTimer = TimerW
+									end
+								else
+									if CurrentCard == "Blue" then
+										if _G.IOW then
+											IOW:ResetAA()
+										elseif _G.GoSWalkLoaded then
+											GoSWalk:ResetAttack()
+										end
+										CastSpell(_W)
+										AttackUnit(MinionToLastHit)
+										CurrentCard = "nil"
+										if _G.IOW then
+											IOW:ResetAA()
+										elseif _G.GoSWalkLoaded then
+											GoSWalk:ResetAttack()
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if TwistedFateMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MPQ:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					local BestPos, BestHit = GetLineFarmPosition(TwistedFateQ.range, TwistedFateQ.radius)
+					if BestPos and BestHit > 2 then
+						CastSkillShot(_Q, BestPos)
+					end
+				end
+			end
+		end
+		for _,minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if TwistedFateMenu.LaneClear.UseW:Value() then
+					if ValidTarget(minion, GetRange(myHero)+100) then
+						if CanUseSpell(myHero,_W) == READY then
+							if GotBuff(myHero, "pickacard_tracker") == 0 then
+								local TimerW = GetTickCount()
+								if (GlobalTimer + 1000) < TimerW then
+									CastSpell(_W)
+									GlobalTimer = TimerW
+								end
+							else
+								if TwistedFateMenu.LaneClear.ModeW:Value() == 1 then
+									if TwistedFateMenu.LaneClear.PickW:Value() == 1 then
+										if CurrentCard == "Blue" then
+											CastSpell(_W)
+											CurrentCard = "nil"
+										end
+									elseif TwistedFateMenu.LaneClear.PickW:Value() == 2 then
+										if CurrentCard == "Red" then
+											CastSpell(_W)
+											CurrentCard = "nil"
+										end
+									end
+								elseif TwistedFateMenu.LaneClear.ModeW:Value() == 2 then
+									if MinionsAround(minion, 200) >= 2 then
+										if CurrentCard == "Red" then
+											CastSpell(_W)
+											CurrentCard = "nil"
+										end
+									else
+										if CurrentCard == "Blue" then
+											CastSpell(_W)
+											CurrentCard = "nil"
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, TwistedFateQ.range) then
+						if TwistedFateMenu.JungleClear.UseQ:Value() then
+							CastSkillShot(_Q,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(mob, GetRange(myHero)) then
+						if TwistedFateMenu.JungleClear.UseW:Value() then
+							if GotBuff(myHero, "pickacard_tracker") == 0 then
+								local TimerW = GetTickCount()
+								if (GlobalTimer + 1000) < TimerW then
+									CastSpell(_W)
+									GlobalTimer = TimerW
+								end
+							else
+								if CurrentCard == "Blue" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Misc
+
+OnTick(function(myHero)
+	if TwistedFateMenu.Misc.LvlUp:Value() then
+		if TwistedFateMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif TwistedFateMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif TwistedFateMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif TwistedFateMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif TwistedFateMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif TwistedFateMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
+-- Vayne
 
 elseif "Vayne" == GetObjectName(myHero) then
 
