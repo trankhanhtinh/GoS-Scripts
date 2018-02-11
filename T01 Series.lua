@@ -8,11 +8,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.3
--- Intermediate GoS script which supports currently 15 champions.
+-- Current version: 1.1.4
+-- Intermediate GoS script which supports currently 16 champions.
 -- Features:
--- + supports Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra, TwistedFate, Vayne,
---   Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Ahri, Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra,
+--   TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + uses offensive items while doing Combo,
 -- + indludes table selection for Auto Level-up,
@@ -27,6 +27,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.4
+-- + Added Ahri
+-- + Fixed Auto & LaneClear mode
 -- 1.1.3
 -- + Added TwistedFate
 -- 1.1.2.3
@@ -110,9 +113,442 @@ function Mode()
 	end
 end
 
+-- Ahri
+
+if "Ahri" == GetObjectName(myHero) then
+
+require('Interrupter')
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Ahri loaded successfully!")
+local AhriMenu = Menu("[T01] Ahri", "[T01] Ahri")
+AhriMenu:Menu("Auto", "Auto")
+AhriMenu.Auto:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
+AhriMenu.Auto:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu:Menu("Combo", "Combo")
+AhriMenu.Combo:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
+AhriMenu.Combo:Boolean('UseW', 'Use W [Fox-Fire]', true)
+AhriMenu.Combo:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu.Combo:Boolean('UseR', 'Use R [Spirit Rush]', true)
+AhriMenu.Combo:DropDown("ModeR", "Cast Mode: R", 2, {"Gapclose To Target", "Mouse Position"})
+AhriMenu:Menu("Harass", "Harass")
+AhriMenu.Harass:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
+AhriMenu.Harass:Boolean('UseW', 'Use W [Fox-Fire]', true)
+AhriMenu.Harass:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu:Menu("LaneClear", "LaneClear")
+AhriMenu.LaneClear:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
+AhriMenu.LaneClear:Boolean('UseW', 'Use W [Fox-Fire]', true)
+AhriMenu.LaneClear:Boolean('UseE', 'Use E [Charm]', false)
+AhriMenu:Menu("JungleClear", "JungleClear")
+AhriMenu.JungleClear:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
+AhriMenu.JungleClear:Boolean('UseW', 'Use W [Fox-Fire]', true)
+AhriMenu.JungleClear:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+AhriMenu.AntiGapcloser:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu:Menu("Interrupter", "Interrupter")
+AhriMenu.Interrupter:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu:Menu("Prediction", "Prediction")
+AhriMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 3, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+AhriMenu.Prediction:DropDown("PredictionE", "Prediction: E", 3, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+AhriMenu:Menu("Drawings", "Drawings")
+AhriMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+AhriMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+AhriMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+AhriMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+AhriMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+AhriMenu:Menu("Misc", "Misc")
+AhriMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
+AhriMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+AhriMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+AhriMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+AhriMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
+AhriMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
+AhriMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
+
+local AhriQ = { range = 880, radius = 80, width = 160, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"yasuowall"}}
+local AhriW = { range = 700 }
+local AhriE = { range = 975, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local AhriR = { range = 450 }
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if AhriMenu.Drawings.DrawQ:Value() then DrawCircle(pos,AhriQ.range,1,25,0xff00bfff) end
+if AhriMenu.Drawings.DrawW:Value() then DrawCircle(pos,AhriW.range,1,25,0xff4169e1) end
+if AhriMenu.Drawings.DrawE:Value() then DrawCircle(pos,AhriE.range,1,25,0xff1e90ff) end
+if AhriMenu.Drawings.DrawR:Value() then DrawCircle(pos,AhriR.range,1,25,0xff0000ff) end
+end)
+
+OnDraw(function(myHero)
+	local target = GetCurrentTarget()
+	local QDmg = (50*GetCastLevel(myHero,_Q)+30)+(0.7*GetBonusAP(myHero))
+	local WDmg = (40*GetCastLevel(myHero,_W)+24)+(0.48*GetBonusAP(myHero))
+	local EDmg = (45*GetCastLevel(myHero,_E)+15)+(0.6*GetBonusAP(myHero))
+	local RDmg = (360*GetCastLevel(myHero,_R)+270)+(2.25*GetBonusAP(myHero))
+	local ComboDmg = QDmg + WDmg + EDmg + RDmg
+	local WERDmg = WDmg + EDmg + RDmg
+	local QERDmg = QDmg + EDmg + RDmg
+	local QWRDmg = QDmg + WDmg + RDmg
+	local QWEDmg = QDmg + WDmg + EDmg
+	local ERDmg = EDmg + RDmg
+	local WRDmg = WDmg + RDmg
+	local QRDmg = QDmg + RDmg
+	local WEDmg = WDmg + EDmg
+	local QEDmg = QDmg + EDmg
+	local QWDmg = QDmg + WDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if AhriMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Combo()
+		Harass()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	if GetDistance(target) < AhriQ.range then
+		if AhriMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif AhriMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),AhriQ.speed,AhriQ.delay*1000,AhriQ.range,AhriQ.width,false,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif AhriMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,AhriQ,true,false)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif AhriMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="AhriOrbofDeception", range=AhriQ.range, speed=AhriQ.speed, delay=AhriQ.delay, width=AhriQ.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(AhriQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif AhriMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,AhriQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	CastTargetSpell(target, _W)
+end
+function useE(target)
+	if GetDistance(target) < AhriE.range then
+		if AhriMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif AhriMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),AhriE.speed,AhriE.delay*1000,AhriE.range,AhriE.width,true,false)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif AhriMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,AhriE,false,true)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_E, EPred.CastPosition)
+			end
+		elseif AhriMenu.Prediction.PredictionE:Value() == 4 then
+			local ESpell = IPrediction.Prediction({name="AhriSeduce", range=AhriE.range, speed=AhriE.speed, delay=AhriE.delay, width=AhriE.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(AhriE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif AhriMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetLinearAOEPrediction(target,AhriE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+OnTick(function(myHero)
+	if AhriMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, AhriQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if AhriMenu.Auto.UseE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, AhriE.range) then
+					useE(target)
+				end
+			end
+		end
+	end
+end)
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if AhriMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, AhriQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if AhriMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, AhriW.range) then
+					useW(target)
+				end
+			end
+		end
+		if AhriMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, AhriE.range) then
+					useE(target)
+				end
+			end
+		end
+		if AhriMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, AhriR.range+GetRange(myHero)) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < AhriMenu.Misc.HP:Value() then
+						if EnemiesAround(myHero, AhriR.range+GetRange(myHero)) >= AhriMenu.Misc.X:Value() then
+							if AhriMenu.Combo.ModeR:Value() == 1 then
+								CastSkillShot(_R, GetOrigin(target))
+							elseif AhriMenu.Combo.ModeR:Value() == 2 then
+								CastSkillShot(_R, GetMousePos())
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if AhriMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPQ:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, AhriQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if AhriMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPW:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, AhriW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if AhriMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPE:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, AhriE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if AhriMenu.LaneClear.UseW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPW:Value() then
+						if ValidTarget(minion, AhriW.range) then
+							if AhriMenu.LaneClear.UseW:Value() then
+								if CanUseSpell(myHero,_W) == READY then
+									CastTargetSpell(minion, _W)
+								end
+							end
+						end
+					end
+				end
+				if AhriMenu.LaneClear.UseE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPE:Value() then
+						if ValidTarget(minion, AhriE.range) then
+							if AhriMenu.LaneClear.UseE:Value() then
+								if CanUseSpell(myHero,_E) == READY then
+									CastSkillShot(_E,GetOrigin(minion))
+								end
+							end
+						end
+					end
+				end
+				if AhriMenu.LaneClear.UseW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPQ:Value() then
+						if CanUseSpell(myHero,_Q) == READY then
+							local BestPos, BestHit = GetLineFarmPosition(AhriQ.range, AhriQ.radius, MINION_ENEMY)
+							if BestPos and BestHit > 2 then  
+								CastSkillShot(_Q, BestPos)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, AhriQ.range) then
+						if AhriMenu.JungleClear.UseQ:Value() then
+							CastSkillShot(_Q,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(mob, AhriW.range) then
+						if AhriMenu.JungleClear.UseW:Value() then	   
+							CastTargetSpell(mob, _W)
+						end
+					end
+				end
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, AhriE.range) then
+						if AhriMenu.JungleClear.UseE:Value() then
+							CastSkillShot(_E,GetOrigin(mob))
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+addInterrupterCallback(function(target, spellType, spell)
+	if AhriMenu.Interrupter.UseE:Value() then
+		if ValidTarget(target, AhriE.range) then
+			if CanUseSpell(myHero,_E) == READY then
+				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
+					useE(target)
+				end
+			end
+		end
+	end
+end)
+
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if AhriMenu.AntiGapcloser.UseE:Value() then
+			if ValidTarget(antigap, 300) then
+				if CanUseSpell(myHero,_E) == READY then
+					useE(antigap)
+				end
+			end
+		end
+	end
+end)
+
+-- Misc
+
+OnTick(function(myHero)
+	if AhriMenu.Misc.LvlUp:Value() then
+		if AhriMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif AhriMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif AhriMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif AhriMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif AhriMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif AhriMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
 -- Annie
 
-if "Annie" == GetObjectName(myHero) then
+elseif "Annie" == GetObjectName(myHero) then
 
 require('Interrupter')
 
@@ -156,7 +592,7 @@ AnnieMenu:Menu("Misc", "Misc")
 AnnieMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 AnnieMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 AnnieMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-AnnieMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+AnnieMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 AnnieMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 AnnieMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
 AnnieMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
@@ -607,7 +1043,7 @@ FizzMenu:Menu("Misc", "Misc")
 FizzMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 FizzMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 6, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 FizzMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-FizzMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+FizzMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 FizzMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 FizzMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
 FizzMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
@@ -1640,7 +2076,7 @@ KatarinaMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 KatarinaMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 KatarinaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 KatarinaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-KatarinaMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+KatarinaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local KatarinaQ = { range = 625 }
 local KatarinaW = { range = 340 }
@@ -2163,7 +2599,7 @@ MasterYiMenu.Misc:Boolean('UI', 'Use Items', true)
 MasterYiMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 MasterYiMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 MasterYiMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-MasterYiMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+MasterYiMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 MasterYiMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 MasterYiMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
@@ -2573,9 +3009,11 @@ end
 
 OnTick(function(myHero)
 	if RyzeMenu.Auto.UseQ:Value() then
-		if CanUseSpell(myHero,_Q) == READY then
-			if ValidTarget(target, RyzeQ.range) then
-				useQ(target)
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, RyzeQ.range) then
+					useQ(target)
+				end
 			end
 		end
 	end
@@ -3237,7 +3675,7 @@ function LaneClear()
 		if SyndraMenu.LaneClear.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPQ:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
-					local BestPos, BestHit = GetFarmPosition(SyndraQ.range, SyndraQ.radius)
+					local BestPos, BestHit = GetFarmPosition(SyndraQ.range, SyndraQ.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then
 						CastSkillShot(_Q, BestPos)
 					end
@@ -3247,7 +3685,7 @@ function LaneClear()
 		if SyndraMenu.LaneClear.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPW:Value() then
 				if CanUseSpell(myHero,_W) == READY then
-					local BestPos, BestHit = GetFarmPosition(SyndraW.range, SyndraW.radius)
+					local BestPos, BestHit = GetFarmPosition(SyndraW.range, SyndraW.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then 
 						CastSkillShot3(_W, BestPos, GetOrigin(Seed))
 					end
@@ -3721,7 +4159,7 @@ function LaneClear()
 		if TwistedFateMenu.LaneClear.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MPQ:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
-					local BestPos, BestHit = GetLineFarmPosition(TwistedFateQ.range, TwistedFateQ.radius)
+					local BestPos, BestHit = GetLineFarmPosition(TwistedFateQ.range, TwistedFateQ.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then
 						CastSkillShot(_Q, BestPos)
 					end
@@ -3892,7 +4330,7 @@ VayneMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E
 VayneMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 VayneMenu.Misc:Slider("ED","Extended Delay: Q", 0.4, 0, 1, 0.05)
 VayneMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-VayneMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+VayneMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 VayneMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 VayneMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
 VayneMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
@@ -3946,9 +4384,11 @@ end
 
 OnTick(function(myHero)
 	if VayneMenu.Auto.UseE:Value() then
-		if CanUseSpell(myHero,_E) == READY then
-			if ValidTarget(target, VayneE.range) then
-				useE(target)
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, VayneE.range) then
+					useE(target)
+				end
 			end
 		end
 	end
@@ -4599,7 +5039,7 @@ function LaneClear()
 		if VeigarMenu.LaneClear.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPW:Value() then
 				if CanUseSpell(myHero,_W) == READY then
-					local BestPos, BestHit = GetLineFarmPosition(VeigarW.range, VeigarW.radius)
+					local BestPos, BestHit = GetLineFarmPosition(VeigarW.range, VeigarW.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then  
 						CastSkillShot(_W, BestPos)
 					end
@@ -4746,7 +5186,7 @@ ViktorMenu:Menu("Misc", "Misc")
 ViktorMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 ViktorMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 ViktorMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-ViktorMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+ViktorMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 ViktorMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 ViktorMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
 ViktorMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
@@ -5058,7 +5498,7 @@ function LaneClear()
 		if ViktorMenu.LaneClear.UseE:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPE:Value() then
 				if CanUseSpell(myHero,_E) == READY then
-					local BestPos, BestHit = GetLineFarmPosition(ViktorE.range, ViktorE.radius)
+					local BestPos, BestHit = GetLineFarmPosition(ViktorE.range, ViktorE.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then
 						local StartPos = Vector(myHero)-(ViktorE.range-500)*(Vector(myHero)-Vector(BestPos)):normalized()
 						CastSkillShot3(_E,StartPos,BestPos)
@@ -5192,7 +5632,7 @@ VladimirMenu:Menu("Misc", "Misc")
 VladimirMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VladimirMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 VladimirMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-VladimirMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+VladimirMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local VladimirQ = { range = 600 }
 local VladimirW = { range = 300 }
@@ -6043,7 +6483,7 @@ function LaneClear()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPQ:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if GotBuff(myHero, "XerathArcanopulseChargeUp") > 0 then
-						local BestPos, BestHit = GetLineFarmPosition(XerathQ.range, XerathQ.radius)
+						local BestPos, BestHit = GetLineFarmPosition(XerathQ.range, XerathQ.radius, MINION_ENEMY)
 						if BestPos and BestHit > 2 then
 							DelayAction(function() CastSkillShot2(_Q, BestPos) end, 0.5)
 						end
@@ -6056,7 +6496,7 @@ function LaneClear()
 		if XerathMenu.LaneClear.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPW:Value() then
 				if CanUseSpell(myHero,_W) == READY then
-					local BestPos, BestHit = GetFarmPosition(XerathW.range, XerathW.radius)
+					local BestPos, BestHit = GetFarmPosition(XerathW.range, XerathW.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then 
 						CastSkillShot(_W, BestPos)
 					end
@@ -6448,7 +6888,7 @@ YasuoMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 YasuoMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 YasuoMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 YasuoMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-YasuoMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+YasuoMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 -- > #Deftsu
 function GenerateWallPos(unitPos)
@@ -6959,7 +7399,7 @@ ZedMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 ZedMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 ZedMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 ZedMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-ZedMenu.Misc:Slider('HP','HP-Manager: R', 25, 0, 100, 5)
+ZedMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local ZedQ = { range = 900, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local ZedW = { range = 650, radius = 80, width = 500, speed = 1750, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
@@ -7210,7 +7650,7 @@ function LaneClear()
 	if Mode() == "LaneClear" then
 		if ZedMenu.LaneClear.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				local BestPos, BestHit = GetLineFarmPosition(ZedQ.range, ZedQ.radius)
+				local BestPos, BestHit = GetLineFarmPosition(ZedQ.range, ZedQ.radius, MINION_ENEMY)
 				if BestPos and BestHit > 2 then  
 					CastSkillShot(_Q, BestPos)
 				end
