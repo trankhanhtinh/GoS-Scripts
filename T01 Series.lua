@@ -1580,7 +1580,7 @@ function useQCannon(target)
 				CastSkillShot(_Q, QPred.PredPos)
 			end
 		elseif JayceMenu.Prediction.PredictionQ:Value() == 3 then
-			local qPred = _G.gPred:GetPrediction(target,myHero,JayceQCannon,true,true)
+			local qPred = _G.gPred:GetPrediction(target,myHero,JayceQCannon,false,true)
 			if qPred and qPred.HitChance >= 3 then
 				CastSkillShot(_Q, qPred.CastPosition)
 			end
@@ -1614,7 +1614,7 @@ function useEQCannon(target)
 				DelayAction(function() CastSkillShot(_Q, QPred.PredPos) end, 0.25)
 			end
 		elseif JayceMenu.Prediction.PredictionQ:Value() == 3 then
-			local qPred = _G.gPred:GetPrediction(target,myHero,JayceQExhanced,true,true)
+			local qPred = _G.gPred:GetPrediction(target,myHero,JayceQExhanced,false,true)
 			if qPred and qPred.HitChance >= 3 then
 				local EPos = Vector(myHero)-200*(Vector(myHero)-Vector(target)):normalized()
 				CastSkillShot(_E, EPos)
@@ -3332,7 +3332,7 @@ SyndraMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
 SyndraMenu.AntiGapcloser:Boolean('UseE', 'Use E [Scatter the Weak]', true)
 SyndraMenu:Menu("Prediction", "Prediction")
 SyndraMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
-SyndraMenu.Prediction:DropDown("PredictionW", "Prediction: W", 1, {"CurrentPos", "GoSPred"})
+SyndraMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred"})
 SyndraMenu.Prediction:DropDown("PredictionE", "Prediction: E", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 SyndraMenu:Menu("Drawings", "Drawings")
 SyndraMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
@@ -3342,7 +3342,7 @@ SyndraMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 SyndraMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 SyndraMenu:Menu("Misc", "Misc")
 SyndraMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
-SyndraMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+SyndraMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 SyndraMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
 SyndraMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
 SyndraMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
