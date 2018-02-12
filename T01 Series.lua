@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.4
+-- Current version: 1.1.4.1
 -- Intermediate GoS script which supports currently 16 champions.
 -- Features:
 -- + supports Ahri, Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra,
@@ -27,6 +27,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.4.1
+-- + Rebuilt Mana-Manager
 -- 1.1.4
 -- + Added Ahri
 -- + Fixed Auto & LaneClear mode
@@ -92,7 +94,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.14
+local TSVer = 1.141
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -124,6 +126,7 @@ local AhriMenu = Menu("[T01] Ahri", "[T01] Ahri")
 AhriMenu:Menu("Auto", "Auto")
 AhriMenu.Auto:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
 AhriMenu.Auto:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AhriMenu:Menu("Combo", "Combo")
 AhriMenu.Combo:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
 AhriMenu.Combo:Boolean('UseW', 'Use W [Fox-Fire]', true)
@@ -134,10 +137,12 @@ AhriMenu:Menu("Harass", "Harass")
 AhriMenu.Harass:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
 AhriMenu.Harass:Boolean('UseW', 'Use W [Fox-Fire]', true)
 AhriMenu.Harass:Boolean('UseE', 'Use E [Charm]', true)
+AhriMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AhriMenu:Menu("LaneClear", "LaneClear")
 AhriMenu.LaneClear:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
 AhriMenu.LaneClear:Boolean('UseW', 'Use W [Fox-Fire]', true)
 AhriMenu.LaneClear:Boolean('UseE', 'Use E [Charm]', false)
+AhriMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AhriMenu:Menu("JungleClear", "JungleClear")
 AhriMenu.JungleClear:Boolean('UseQ', 'Use Q [Orb of Deception]', true)
 AhriMenu.JungleClear:Boolean('UseW', 'Use W [Fox-Fire]', true)
@@ -160,9 +165,6 @@ AhriMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 AhriMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 AhriMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 AhriMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
-AhriMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-AhriMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-AhriMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local AhriQ = { range = 880, radius = 80, width = 160, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"yasuowall"}}
 local AhriW = { range = 700 }
@@ -309,7 +311,7 @@ end
 
 OnTick(function(myHero)
 	if AhriMenu.Auto.UseQ:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				if ValidTarget(target, AhriQ.range) then
 					useQ(target)
@@ -318,7 +320,7 @@ OnTick(function(myHero)
 		end
 	end
 	if AhriMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, AhriE.range) then
 					useE(target)
@@ -376,7 +378,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if AhriMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, AhriQ.range) then
 						useQ(target)
@@ -385,7 +387,7 @@ function Harass()
 			end
 		end
 		if AhriMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					if ValidTarget(target, AhriW.range) then
 						useW(target)
@@ -394,7 +396,7 @@ function Harass()
 			end
 		end
 		if AhriMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, AhriE.range) then
 						useE(target)
@@ -412,7 +414,7 @@ function LaneClear()
 		for _, minion in pairs(minionManager.objects) do
 			if GetTeam(minion) == MINION_ENEMY then
 				if AhriMenu.LaneClear.UseW:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, AhriW.range) then
 							if AhriMenu.LaneClear.UseW:Value() then
 								if CanUseSpell(myHero,_W) == READY then
@@ -423,7 +425,7 @@ function LaneClear()
 					end
 				end
 				if AhriMenu.LaneClear.UseE:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, AhriE.range) then
 							if AhriMenu.LaneClear.UseE:Value() then
 								if CanUseSpell(myHero,_E) == READY then
@@ -434,7 +436,7 @@ function LaneClear()
 					end
 				end
 				if AhriMenu.LaneClear.UseW:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Misc.MPQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.LaneClear.MP:Value() then
 						if CanUseSpell(myHero,_Q) == READY then
 							local BestPos, BestHit = GetLineFarmPosition(AhriQ.range, AhriQ.radius, MINION_ENEMY)
 							if BestPos and BestHit > 2 then  
@@ -558,6 +560,7 @@ AnnieMenu:Menu("Auto", "Auto")
 AnnieMenu.Auto:Boolean('UseQ', 'Use Q [Disintegrate]', true)
 AnnieMenu.Auto:Boolean('UseW', 'Use W [Incinerate]', true)
 AnnieMenu.Auto:Boolean('UseE', 'Use E [Molten Shield]', false)
+AnnieMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AnnieMenu:Menu("Combo", "Combo")
 AnnieMenu.Combo:Boolean('UseQ', 'Use Q [Disintegrate]', true)
 AnnieMenu.Combo:Boolean('UseW', 'Use W [Incinerate]', true)
@@ -567,6 +570,7 @@ AnnieMenu:Menu("Harass", "Harass")
 AnnieMenu.Harass:Boolean('UseQ', 'Use Q [Disintegrate]', true)
 AnnieMenu.Harass:Boolean('UseW', 'Use W [Incinerate]', true)
 AnnieMenu.Harass:Boolean('UseE', 'Use E [Molten Shield]', true)
+AnnieMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AnnieMenu:Menu("KillSteal", "KillSteal")
 AnnieMenu.KillSteal:Boolean('UseR', 'Use R [Summon Tibbers]', true)
 AnnieMenu:Menu("LastHit", "LastHit")
@@ -574,6 +578,7 @@ AnnieMenu.LastHit:Boolean('UseQ', 'Use Q [Disintegrate]', true)
 AnnieMenu:Menu("LaneClear", "LaneClear")
 AnnieMenu.LaneClear:Boolean('UseQ', 'Use Q [Disintegrate]', false)
 AnnieMenu.LaneClear:Boolean('UseW', 'Use W [Incinerate]', true)
+AnnieMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AnnieMenu:Menu("JungleClear", "JungleClear")
 AnnieMenu.JungleClear:Boolean('UseQ', 'Use Q [Disintegrate]', true)
 AnnieMenu.JungleClear:Boolean('UseW', 'Use W [Incinerate]', true)
@@ -593,9 +598,6 @@ AnnieMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 AnnieMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 AnnieMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 AnnieMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
-AnnieMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-AnnieMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-AnnieMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local AnnieQ = { range = 625 }
 local AnnieW = { range = 600, angle = 50, radius = 50, width = 100, speed = math.huge, delay = 0.25, type = "cone", collision = false, source = myHero }
@@ -747,7 +749,7 @@ end)
 
 OnTick(function(myHero)
 	if AnnieMenu.Auto.UseQ:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				if ValidTarget(target, AnnieQ.range) then
 					useQ(target)
@@ -756,7 +758,7 @@ OnTick(function(myHero)
 		end
 	end
 	if AnnieMenu.Auto.UseW:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, AnnieW.range) then
 					useW(target)
@@ -765,7 +767,7 @@ OnTick(function(myHero)
 		end
 	end
 	if AnnieMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, 1000) then
 					useE(target)
@@ -819,7 +821,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if AnnieMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, AnnieQ.range) then
 						useQ(target)
@@ -828,7 +830,7 @@ function Harass()
 			end
 		end
 		if AnnieMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					if ValidTarget(target, AnnieW.range) then
 						useW(target)
@@ -837,7 +839,7 @@ function Harass()
 			end
 		end
 		if AnnieMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, 1000) then
 						useE(target)
@@ -907,7 +909,7 @@ function LaneClear()
 		for _,minion in pairs(minionManager.objects) do
 			if GetTeam(minion) == MINION_ENEMY then
 				if AnnieMenu.LaneClear.UseQ:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, AnnieQ.range) then
 							if CanUseSpell(myHero,_Q) == READY then
 								useQ(minion)
@@ -916,7 +918,7 @@ function LaneClear()
 					end
 				end
 				if AnnieMenu.LaneClear.UseW:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Misc.MPW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, AnnieW.range) then
 							if CanUseSpell(myHero,_W) == READY then
 								if MinionsAround(myHero, AnnieW.range) >= 3 then
@@ -1020,14 +1022,17 @@ FizzMenu:Menu("Harass", "Harass")
 FizzMenu.Harass:Boolean('UseQ', 'Use Q [Urchin Strike]', true)
 FizzMenu.Harass:Boolean('UseW', 'Use W [Seastone Trident]', true)
 FizzMenu.Harass:Boolean('UseE', 'Use E [Playful]', true)
+FizzMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 FizzMenu:Menu("KillSteal", "KillSteal")
 FizzMenu.KillSteal:Boolean('UseQ', 'Use Q [Urchin Strike]', true)
 FizzMenu:Menu("LastHit", "LastHit")
 FizzMenu.LastHit:Boolean('UseW', 'Use W [Urchin Strike]', true)
+FizzMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 FizzMenu:Menu("LaneClear", "LaneClear")
 FizzMenu.LaneClear:Boolean('UseQ', 'Use Q [Urchin Strike]', true)
 FizzMenu.LaneClear:Boolean('UseW', 'Use W [Seastone Trident]', false)
 FizzMenu.LaneClear:Boolean('UseE', 'Use E [Playful]', true)
+FizzMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 FizzMenu:Menu("JungleClear", "JungleClear")
 FizzMenu.JungleClear:Boolean('UseQ', 'Use Q [Urchin Strike]', true)
 FizzMenu.JungleClear:Boolean('UseW', 'Use W [Seastone Trident]', true)
@@ -1044,9 +1049,6 @@ FizzMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 FizzMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 6, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 FizzMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 FizzMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
-FizzMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-FizzMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-FizzMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local FizzQ = { range = 550 }
 local FizzE = { range = 400 }
@@ -1234,7 +1236,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if FizzMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, FizzQ.range) then
 						useQ(target)
@@ -1243,7 +1245,7 @@ function Harass()
 			end
 		end
 		if FizzMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					if ValidTarget(target, GetRange(myHero)+150) then
 						useW(target)
@@ -1252,7 +1254,7 @@ function Harass()
 			end
 		end
 		if FizzMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, FizzE.range) then
 						useE(target)
@@ -1288,11 +1290,13 @@ function LastHit()
 			if GetTeam(minion) == MINION_ENEMY then
 				if ValidTarget(minion, GetRange(myHero)+50) then
 					if FizzMenu.LastHit.UseW:Value() then
-						if CanUseSpell(myHero,_W) == READY then
-							local FizzWDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(10*GetCastLevel(myHero,_E)+10)+(0.4*GetBonusAP(myHero))
-							local MinionToLastHit = minion
-							if GetCurrentHP(MinionToLastHit) < FizzWDmg then
-								useW(MinionToLastHit)
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.LastHit.MP:Value() then
+							if CanUseSpell(myHero,_W) == READY then
+								local FizzWDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(10*GetCastLevel(myHero,_E)+10)+(0.4*GetBonusAP(myHero))
+								local MinionToLastHit = minion
+								if GetCurrentHP(MinionToLastHit) < FizzWDmg then
+									useW(MinionToLastHit)
+								end
 							end
 						end
 					end
@@ -1309,7 +1313,7 @@ function LaneClear()
 		for _,minion in pairs(minionManager.objects) do
 			if GetTeam(minion) == MINION_ENEMY then
 				if FizzMenu.LaneClear.UseQ:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Misc.MPQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, FizzQ.range) then
 							if CanUseSpell(myHero,_Q) == READY then
 								useQ(minion)
@@ -1318,7 +1322,7 @@ function LaneClear()
 					end
 				end
 				if FizzMenu.LaneClear.UseW:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Misc.MPW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, GetRange(myHero)+50) then
 							if CanUseSpell(myHero,_W) == READY then
 								useW(minion)
@@ -1327,7 +1331,7 @@ function LaneClear()
 					end
 				end
 				if FizzMenu.LaneClear.UseE:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Misc.MPE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, FizzE.range) then
 							if CanUseSpell(myHero,_E) == READY then
 								if MinionsAround(myHero, FizzE.range) >= 3 then
@@ -1427,6 +1431,7 @@ local JayceMenu = Menu("[T01] Jayce", "[T01] Jayce")
 JayceMenu:Menu("Auto", "Auto")
 JayceMenu.Auto:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
 JayceMenu.Auto:Boolean('UseECannon', 'Use E [Acceleration Gate]', false)
+JayceMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 JayceMenu:Menu("Combo", "Combo")
 JayceMenu.Combo:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
 JayceMenu.Combo:Boolean('UseWCannon', 'Use W [Hyper Charge]', true)
@@ -1439,6 +1444,7 @@ JayceMenu.Harass:Boolean('UseWCannon', 'Use W [Hyper Charge]', true)
 JayceMenu.Harass:Boolean('UseECannon', 'Use E [Acceleration Gate]', true)
 JayceMenu.Harass:Boolean('UseQHammer', 'Use Q [To the Skies!]', true)
 JayceMenu.Harass:Boolean('UseWHammer', 'Use W [Lightning Field]', true)
+JayceMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 JayceMenu:Menu("KillSteal", "KillSteal")
 JayceMenu.KillSteal:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
 JayceMenu.KillSteal:Boolean('UseECannon', 'Use E [Acceleration Gate]', true)
@@ -1450,6 +1456,7 @@ JayceMenu.LaneClear:Boolean('UseECannon', 'Use E [Acceleration Gate]', false)
 JayceMenu.LaneClear:Boolean('UseQHammer', 'Use Q [To the Skies!]', false)
 JayceMenu.LaneClear:Boolean('UseWHammer', 'Use W [Lightning Field]', true)
 JayceMenu.LaneClear:Boolean('UseEHammer', 'Use E [Thundering Blow]', true)
+JayceMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 JayceMenu:Menu("JungleClear", "JungleClear")
 JayceMenu.JungleClear:Boolean('UseQCannon', 'Use Q [Shock Blast]', true)
 JayceMenu.JungleClear:Boolean('UseWCannon', 'Use W [Hyper Charge]', true)
@@ -1471,9 +1478,6 @@ JayceMenu:Menu("Misc", "Misc")
 JayceMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 JayceMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 JayceMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W"})
-JayceMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-JayceMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-JayceMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local JayceQCannon = { range = 1000, radius = 80, width = 160, speed = 1450, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local JayceQExhanced = { range = 1470, radius = 110, width = 220, speed = 1890, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
@@ -1663,7 +1667,7 @@ end
 OnTick(function(myHero)
 	if GetRange(myHero) > 300 then
 		if JayceMenu.Auto.UseECannon:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Auto.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, JayceQExhanced.range) then
 						useEQCannon(target)
@@ -1672,7 +1676,7 @@ OnTick(function(myHero)
 			end
 		end
 		if JayceMenu.Auto.UseQCannon:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Auto.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, JayceQCannon.range) then
 						useQCannon(target)
@@ -1734,7 +1738,7 @@ function Harass()
 	if Mode() == "Harass" then
 		if GetRange(myHero) > 300 then
 			if JayceMenu.Harass.UseECannon:Value() then
-				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Harass.MP:Value() then
 					if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
 						if ValidTarget(target, JayceQExhanced.range) then
 							useEQCannon(target)
@@ -1743,7 +1747,7 @@ function Harass()
 				end
 			end
 			if JayceMenu.Harass.UseQCannon:Value() then
-				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Harass.MP:Value() then
 					if CanUseSpell(myHero,_Q) == READY then
 						if ValidTarget(target, JayceQCannon.range) then
 							useQCannon(target)
@@ -1752,7 +1756,7 @@ function Harass()
 				end
 			end
 			if JayceMenu.Harass.UseWCannon:Value() then
-				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Harass.MP:Value() then
 					if CanUseSpell(myHero,_W) == READY then
 						if ValidTarget(target, GetRange(myHero)+50) then
 							useWCannon(target)
@@ -1762,7 +1766,7 @@ function Harass()
 			end
 		elseif GetRange(myHero) < 300 then
 			if JayceMenu.Harass.UseQHammer:Value() then
-				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Harass.MP:Value() then
 					if CanUseSpell(myHero,_Q) == READY then
 						if ValidTarget(target, JayceQHammer.range) then
 							useQHammer(target)
@@ -1771,7 +1775,7 @@ function Harass()
 				end
 			end
 			if JayceMenu.Harass.UseWHammer:Value() then
-				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Harass.MP:Value() then
 					if CanUseSpell(myHero,_W) == READY then
 						if ValidTarget(target, JayceWHammer.range) then
 							useWHammer(target)
@@ -1831,7 +1835,7 @@ function LaneClear()
 			if GetTeam(minion) == MINION_ENEMY then
 				if GetRange(myHero) > 300 then
 					if JayceMenu.LaneClear.UseECannon:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.LaneClear.MP:Value() then
 							if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
 								if ValidTarget(minion, JayceQExhanced.range) then
 									local EPos = Vector(myHero)-100*(Vector(myHero)-Vector(minion)):normalized()
@@ -1842,7 +1846,7 @@ function LaneClear()
 						end
 					end
 					if JayceMenu.LaneClear.UseQCannon:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.LaneClear.MP:Value() then
 							if CanUseSpell(myHero,_Q) == READY then
 								if ValidTarget(minion, JayceQCannon.range) then
 									CastSkillShot(_Q, GetOrigin(minion))
@@ -1851,7 +1855,7 @@ function LaneClear()
 						end
 					end
 					if JayceMenu.LaneClear.UseWCannon:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.LaneClear.MP:Value() then
 							if CanUseSpell(myHero,_W) == READY then
 								if ValidTarget(minion, GetRange(myHero)+50) then
 									useWCannon(minion)
@@ -1861,7 +1865,7 @@ function LaneClear()
 					end
 				elseif GetRange(myHero) < 300 then
 					if JayceMenu.LaneClear.UseQHammer:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.LaneClear.MP:Value() then
 							if CanUseSpell(myHero,_Q) == READY then
 								if ValidTarget(minion, JayceQHammer.range) then
 									useQHammer(minion)
@@ -1870,7 +1874,7 @@ function LaneClear()
 						end
 					end
 					if JayceMenu.LaneClear.UseWHammer:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPW:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.LaneClear.MP:Value() then
 							if CanUseSpell(myHero,_W) == READY then
 								if ValidTarget(minion, JayceWHammer.range) then
 									useWHammer(minion)
@@ -1879,7 +1883,7 @@ function LaneClear()
 						end
 					end
 					if JayceMenu.LaneClear.UseEHammer:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Misc.MPE:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.LaneClear.MP:Value() then
 							if CanUseSpell(myHero,_E) == READY then
 								if ValidTarget(minion, JayceEHammer.range) then
 									useEHammer(minion)
@@ -2584,11 +2588,13 @@ MasterYiMenu.Combo:Boolean('UseR', 'Use R [Highlander]', true)
 MasterYiMenu:Menu("Harass", "Harass")
 MasterYiMenu.Harass:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
 MasterYiMenu.Harass:Boolean('UseE', 'Use E [Wuju Style]', true)
+MasterYiMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 MasterYiMenu:Menu("KillSteal", "KillSteal")
 MasterYiMenu.KillSteal:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
 MasterYiMenu:Menu("LaneClear", "LaneClear")
 MasterYiMenu.LaneClear:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
 MasterYiMenu.LaneClear:Boolean('UseE', 'Use E [Wuju Style]', true)
+MasterYiMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 MasterYiMenu:Menu("JungleClear", "JungleClear")
 MasterYiMenu.JungleClear:Boolean('UseQ', 'Use Q [Alpha Strike]', true)
 MasterYiMenu.JungleClear:Boolean('UseE', 'Use E [Wuju Style]', true)
@@ -2600,8 +2606,6 @@ MasterYiMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 MasterYiMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 MasterYiMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 MasterYiMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
-MasterYiMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-MasterYiMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local MasterYiQ = { range = 600 }
 
@@ -2682,7 +2686,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if MasterYiMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, MasterYiQ.range) then
 						useQ(target)
@@ -2691,7 +2695,7 @@ function Harass()
 			end
 		end
 		if MasterYiMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, GetRange(myHero)+100) then
 						useE(target)
@@ -2726,7 +2730,7 @@ function LaneClear()
 		for _,minion in pairs(minionManager.objects) do
 			if GetTeam(minion) == MINION_ENEMY then
 				if MasterYiMenu.LaneClear.UseQ:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, MasterYiQ.range) then
 							if CanUseSpell(myHero,_Q) == READY then
 								useQ(minion)
@@ -2735,7 +2739,7 @@ function LaneClear()
 					end
 				end
 				if MasterYiMenu.LaneClear.UseE:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.Misc.MPE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MasterYiMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, GetRange(myHero)+100) then
 							if CanUseSpell(myHero,_E) == READY then
 								useE(minion)
@@ -2867,6 +2871,7 @@ PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'
 local RyzeMenu = Menu("[T01] Ryze", "[T01] Ryze")
 RyzeMenu:Menu("Auto", "Auto")
 RyzeMenu.Auto:Boolean('UseQ', 'Use Q [Overload]', true)
+RyzeMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 RyzeMenu:Menu("Combo", "Combo")
 RyzeMenu.Combo:Boolean('UseQ', 'Use Q [Overload]', true)
 RyzeMenu.Combo:Boolean('UseW', 'Use W [Rune Prison]', true)
@@ -2875,13 +2880,16 @@ RyzeMenu:Menu("Harass", "Harass")
 RyzeMenu.Harass:Boolean('UseQ', 'Use Q [Overload]', true)
 RyzeMenu.Harass:Boolean('UseW', 'Use W [Rune Prison]', true)
 RyzeMenu.Harass:Boolean('UseE', 'Use E [Spell Flux]', true)
+RyzeMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 RyzeMenu:Menu("LastHit", "LastHit")
 RyzeMenu.LastHit:Boolean('UseQ', 'Use Q [Overload]', false)
 RyzeMenu.LastHit:Boolean('UseE', 'Use E [Spell Flux]', true)
+RyzeMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 RyzeMenu:Menu("LaneClear", "LaneClear")
 RyzeMenu.LaneClear:Boolean('UseQ', 'Use Q [Overload]', true)
 RyzeMenu.LaneClear:Boolean('UseW', 'Use W [Rune Prison]', false)
 RyzeMenu.LaneClear:Boolean('UseE', 'Use E [Spell Flux]', false)
+RyzeMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 RyzeMenu:Menu("JungleClear", "JungleClear")
 RyzeMenu.JungleClear:Boolean('UseQ', 'Use Q [Overload]', true)
 RyzeMenu.JungleClear:Boolean('UseW', 'Use W [Rune Prison]', true)
@@ -2901,9 +2909,6 @@ RyzeMenu:Menu("Misc", "Misc")
 RyzeMenu.Misc:Boolean('ST', 'Stack Tear', true)
 RyzeMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 RyzeMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
-RyzeMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-RyzeMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-RyzeMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 RyzeMenu.Misc:Slider("MPT","Mana-Manager: Tear", 80, 0, 100, 5)
 
 local RyzeQ = { range = 1000, radius = 55, width = 110, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
@@ -3009,7 +3014,7 @@ end
 
 OnTick(function(myHero)
 	if RyzeMenu.Auto.UseQ:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				if ValidTarget(target, RyzeQ.range) then
 					useQ(target)
@@ -3052,7 +3057,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if RyzeMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, RyzeQ.range) then
 						useQ(target)
@@ -3061,7 +3066,7 @@ function Harass()
 			end
 		end
 		if RyzeMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					if ValidTarget(target, RyzeW.range) then
 						useW(target)
@@ -3070,7 +3075,7 @@ function Harass()
 			end
 		end
 		if RyzeMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, RyzeE.range) then
 						useE(target)
@@ -3089,7 +3094,7 @@ function LastHit()
 			if GetTeam(minion) == MINION_ENEMY then
 				if ValidTarget(minion, RyzeQ.range) then
 					if RyzeMenu.LastHit.UseQ:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.LastHit.MP:Value() then
 							if CanUseSpell(myHero,_Q) == READY then
 								if GotBuff(minion, "RyzeE") > 0 then
 									local RyzeQBDmg = ((25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero)))*(0.1*GetCastLevel(myHero,_Q)+1.3)
@@ -3114,7 +3119,7 @@ function LastHit()
 				end
 				if ValidTarget(minion, RyzeE.range) then
 					if RyzeMenu.LastHit.UseE:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPE:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.LastHit.MP:Value() then
 							if CanUseSpell(myHero,_E) == READY then
 								local RyzeEDmg = (25*GetCastLevel(myHero,_E)+25)+(0.3*GetBonusAP(myHero))+(0.02*GetMaxMana(myHero))
 								if GetCurrentHP(minion) < RyzeEDmg then
@@ -3136,7 +3141,7 @@ function LaneClear()
 		for _, minion in pairs(minionManager.objects) do
 			if GetTeam(minion) == MINION_ENEMY then
 				if RyzeMenu.LaneClear.UseQ:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, RyzeQ.range) then
 							if RyzeMenu.LaneClear.UseQ:Value() then
 								if CanUseSpell(myHero,_Q) == READY then
@@ -3152,7 +3157,7 @@ function LaneClear()
 					end
 				end
 				if RyzeMenu.LaneClear.UseW:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, RyzeW.range) then
 							if RyzeMenu.LaneClear.UseW:Value() then
 								if CanUseSpell(myHero,_W) == READY then
@@ -3163,7 +3168,7 @@ function LaneClear()
 					end
 				end
 				if RyzeMenu.LaneClear.UseE:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Misc.MPE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, RyzeE.range) then
 							if RyzeMenu.LaneClear.UseE:Value() then
 								if CanUseSpell(myHero,_E) == READY then
@@ -3310,6 +3315,7 @@ SyndraMenu:Menu("Auto", "Auto")
 SyndraMenu.Auto:Boolean('UseQ', 'Use Q [Dark Sphere]', true)
 SyndraMenu.Auto:Boolean('UseW', 'Use W [Force of Will]', false)
 SyndraMenu.Auto:Boolean('UseE', 'Use E [Scatter the Weak]', false)
+SyndraMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 SyndraMenu:Menu("Combo", "Combo")
 SyndraMenu.Combo:Boolean('UseQ', 'Use Q [Dark Sphere]', true)
 SyndraMenu.Combo:Boolean('UseW', 'Use W [Force of Will]', true)
@@ -3319,11 +3325,13 @@ SyndraMenu:Menu("Harass", "Harass")
 SyndraMenu.Harass:Boolean('UseQ', 'Use Q [Dark Sphere]', true)
 SyndraMenu.Harass:Boolean('UseW', 'Use W [Force of Will]', true)
 SyndraMenu.Harass:Boolean('UseE', 'Use E [Scatter the Weak]', false)
+SyndraMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 SyndraMenu:Menu("KillSteal", "KillSteal")
 SyndraMenu.KillSteal:Boolean('UseR', 'Use R [Unleashed Power]', true)
 SyndraMenu:Menu("LaneClear", "LaneClear")
 SyndraMenu.LaneClear:Boolean('UseQ', 'Use Q [Dark Sphere]', true)
 SyndraMenu.LaneClear:Boolean('UseW', 'Use W [Force of Will]', true)
+SyndraMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 SyndraMenu:Menu("JungleClear", "JungleClear")
 SyndraMenu.JungleClear:Boolean('UseQ', 'Use Q [Dark Sphere]', true)
 SyndraMenu.JungleClear:Boolean('UseW', 'Use W [Force of Will]', true)
@@ -3343,9 +3351,6 @@ SyndraMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 SyndraMenu:Menu("Misc", "Misc")
 SyndraMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 SyndraMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
-SyndraMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-SyndraMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-SyndraMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 function Mode()
 	if _G.IOW_Loaded and IOW:Mode() then
@@ -3551,7 +3556,7 @@ end)
 
 OnTick(function(myHero)
 	if SyndraMenu.Auto.UseQ:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				if ValidTarget(target, SyndraQ.range) then
 					useQ(target)
@@ -3560,7 +3565,7 @@ OnTick(function(myHero)
 		end
 	end
 	if SyndraMenu.Auto.UseW:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, SyndraW.range) then
 					useW(target)
@@ -3569,7 +3574,7 @@ OnTick(function(myHero)
 		end
 	end
 	if SyndraMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, SyndraE.range) then
 					useE(target)
@@ -3621,7 +3626,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if SyndraMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, SyndraQ.range) then
 						useQ(target)
@@ -3630,7 +3635,7 @@ function Harass()
 			end
 		end
 		if SyndraMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					if ValidTarget(target, SyndraW.range) then
 						useW(target)
@@ -3639,7 +3644,7 @@ function Harass()
 			end
 		end
 		if SyndraMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, SyndraE.range) then
 						useE(target)
@@ -3673,7 +3678,7 @@ end
 function LaneClear()
 	if Mode() == "LaneClear" then
 		if SyndraMenu.LaneClear.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					local BestPos, BestHit = GetFarmPosition(SyndraQ.range, SyndraQ.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then
@@ -3683,7 +3688,7 @@ function LaneClear()
 			end
 		end
 		if SyndraMenu.LaneClear.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					local BestPos, BestHit = GetFarmPosition(SyndraW.range, SyndraW.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then 
@@ -3828,8 +3833,7 @@ TwistedFateMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
 TwistedFateMenu:Menu("Misc", "Misc")
 TwistedFateMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 TwistedFateMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
-TwistedFateMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-TwistedFateMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
+TwistedFateMenu.Misc:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 
 local TwistedFateQ = { range = 1450, radius = 45, width = 90, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local TwistedFateR = { range = GetCastRange(myHero,_R) }
@@ -3990,7 +3994,7 @@ function Combo()
 								end
 							end
 						elseif TwistedFateMenu.Combo.ModeW:Value() == 2 then
-							if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25)+1 then
+							if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MP:Value() then
 								if EnemiesAround(target, 200) > 1 then
 									if CurrentCard == "Red" then
 										CastSpell(_W)
@@ -4021,66 +4025,62 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if TwistedFateMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MPQ:Value() then
-				if CanUseSpell(myHero,_Q) == READY then
-					if ValidTarget(target, TwistedFateQ.range) then
-						if TwistedFateMenu.Harass.ModeQ:Value() == 1 then
-							useQ(target)
-						elseif TwistedFateMenu.Auto.ModeQ:Value() == 2 then
-							if GotBuff(target, "Stun") > 0 or GotBuff(target, "Taunt") > 0 or GotBuff(target, "Slow") > 0 or GotBuff(target, "Snare") > 0 or GotBuff(target, "Charm") > 0 or GotBuff(target, "Suppression") > 0 or GotBuff(target, "Flee") > 0 or GotBuff(target, "Knockup") > 0 then
-								CastSkillShot(_Q,GetOrigin(target))
-							end
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, TwistedFateQ.range) then
+					if TwistedFateMenu.Harass.ModeQ:Value() == 1 then
+						useQ(target)
+					elseif TwistedFateMenu.Auto.ModeQ:Value() == 2 then
+						if GotBuff(target, "Stun") > 0 or GotBuff(target, "Taunt") > 0 or GotBuff(target, "Slow") > 0 or GotBuff(target, "Snare") > 0 or GotBuff(target, "Charm") > 0 or GotBuff(target, "Suppression") > 0 or GotBuff(target, "Flee") > 0 or GotBuff(target, "Knockup") > 0 then
+							CastSkillShot(_Q,GetOrigin(target))
 						end
 					end
 				end
 			end
 		end
 		if TwistedFateMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MPW:Value() then
-				if CanUseSpell(myHero,_W) == READY then
-					if ValidTarget(target, GetRange(myHero)+500) then
-						if GotBuff(myHero, "pickacard_tracker") == 0 then
-							local TimerW = GetTickCount()
-							if (GlobalTimer + 1000) < TimerW then
-								CastSpell(_W)
-								GlobalTimer = TimerW
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, GetRange(myHero)+500) then
+					if GotBuff(myHero, "pickacard_tracker") == 0 then
+						local TimerW = GetTickCount()
+						if (GlobalTimer + 1000) < TimerW then
+							CastSpell(_W)
+							GlobalTimer = TimerW
+						end
+					else
+						if TwistedFateMenu.Harass.ModeW:Value() == 1 then
+							if TwistedFateMenu.Harass.PickW:Value() == 1 then
+								if CurrentCard == "Blue" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
+							elseif TwistedFateMenu.Harass.PickW:Value() == 2 then
+								if CurrentCard == "Red" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
+							elseif TwistedFateMenu.Harass.PickW:Value() == 3 then
+								if CurrentCard == "Gold" then
+									CastSpell(_W)
+									CurrentCard = "nil"
+								end
 							end
-						else
-							if TwistedFateMenu.Harass.ModeW:Value() == 1 then
-								if TwistedFateMenu.Harass.PickW:Value() == 1 then
-									if CurrentCard == "Blue" then
-										CastSpell(_W)
-										CurrentCard = "nil"
-									end
-								elseif TwistedFateMenu.Harass.PickW:Value() == 2 then
+						elseif TwistedFateMenu.Harass.ModeW:Value() == 2 then
+							if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MP:Value() then
+								if EnemiesAround(target, 200) > 1 then
 									if CurrentCard == "Red" then
 										CastSpell(_W)
 										CurrentCard = "nil"
 									end
-								elseif TwistedFateMenu.Harass.PickW:Value() == 3 then
+								else
 									if CurrentCard == "Gold" then
 										CastSpell(_W)
 										CurrentCard = "nil"
 									end
 								end
-							elseif TwistedFateMenu.Harass.ModeW:Value() == 2 then
-								if GetCurrentMana(myHero) > (15*GetCastLevel(myHero,_W)+25)+1 then
-									if EnemiesAround(target, 200) > 1 then
-										if CurrentCard == "Red" then
-											CastSpell(_W)
-											CurrentCard = "nil"
-										end
-									else
-										if CurrentCard == "Gold" then
-											CastSpell(_W)
-											CurrentCard = "nil"
-										end
-									end
-								else
-									if CurrentCard == "Blue" then
-										CastSpell(_W)
-										CurrentCard = "nil"
-									end
+							else
+								if CurrentCard == "Blue" then
+									CastSpell(_W)
+									CurrentCard = "nil"
 								end
 							end
 						end
@@ -4157,7 +4157,7 @@ end
 function LaneClear()
 	if Mode() == "LaneClear" then
 		if TwistedFateMenu.LaneClear.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					local BestPos, BestHit = GetLineFarmPosition(TwistedFateQ.range, TwistedFateQ.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then
@@ -4297,6 +4297,7 @@ PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'
 local VayneMenu = Menu("[T01] Vayne", "[T01] Vayne")
 VayneMenu:Menu("Auto", "Auto")
 VayneMenu.Auto:Boolean('UseE', 'Use E [Condemn]', true)
+VayneMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VayneMenu:Menu("Combo", "Combo")
 VayneMenu.Combo:Boolean('UseQ', 'Use Q [Tumble]', true)
 VayneMenu.Combo:Boolean('UseE', 'Use E [Condemn]', true)
@@ -4306,13 +4307,16 @@ VayneMenu:Menu("Harass", "Harass")
 VayneMenu.Harass:Boolean('UseQ', 'Use Q [Tumble]', true)
 VayneMenu.Harass:Boolean('UseE', 'Use E [Condemn]', true)
 VayneMenu.Harass:DropDown("ModeQ", "Cast Mode: Q", 1, {"Standard", "On Stack"})
+VayneMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VayneMenu:Menu("KillSteal", "KillSteal")
 VayneMenu.KillSteal:Boolean('UseE', 'Use E [Condemn]', true)
 VayneMenu:Menu("LastHit", "LastHit")
 VayneMenu.LastHit:Boolean('UseQ', 'Use Q [Tumble]', true)
+VayneMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VayneMenu:Menu("LaneClear", "LaneClear")
 VayneMenu.LaneClear:Boolean('UseQ', 'Use Q [Tumble]', false)
 VayneMenu.LaneClear:Boolean('UseE', 'Use E [Condemn]', false)
+VayneMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VayneMenu:Menu("JungleClear", "JungleClear")
 VayneMenu.JungleClear:Boolean('UseQ', 'Use Q [Tumble]', true)
 VayneMenu.JungleClear:Boolean('UseE', 'Use E [Condemn]', true)
@@ -4331,9 +4335,6 @@ VayneMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 VayneMenu.Misc:Slider("ED","Extended Delay: Q", 0.4, 0, 1, 0.05)
 VayneMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 VayneMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
-VayneMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-VayneMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-VayneMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local VayneQ = { range = 300 }
 local VayneE = { range = 550 }
@@ -4362,7 +4363,7 @@ function useQ(target)
 	end
 end
 function useE(target)
-	local VayneEStun = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,550,1,false,true).PredPos
+	local VayneEStun = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,VayneE.range,1,false,true).PredPos
 	local VectorPos = Vector(VayneEStun)
 	for Length = 0, 475, GetHitBox(target) do
 		local TotalPos = VectorPos+Vector(VectorPos-Vector(myHero)):normalized()*Length
@@ -4384,7 +4385,7 @@ end
 
 OnTick(function(myHero)
 	if VayneMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, VayneE.range) then
 					useE(target)
@@ -4433,7 +4434,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if VayneMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
 						if VayneMenu.Harass.ModeQ:Value() == 1 then
@@ -4448,7 +4449,7 @@ function Harass()
 			end
 		end
 		if VayneMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, VayneE.range) then
 						useE(target)
@@ -4484,7 +4485,7 @@ function LastHit()
 			if GetTeam(minion) == MINION_ENEMY then
 				if ValidTarget(minion, GetRange(myHero)) then
 					if VayneMenu.LastHit.UseQ:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.LastHit.MP:Value() then
 							if CanUseSpell(myHero,_Q) == READY then
 								local VayneQDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+((0.05*GetCastLevel(myHero,_Q)+0.45)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
 								local MinionToLastHit = minion
@@ -4518,7 +4519,7 @@ function LaneClear()
 		for _, minion in pairs(minionManager.objects) do
 			if GetTeam(minion) == MINION_ENEMY then
 				if VayneMenu.LaneClear.UseQ:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, GetRange(myHero)) then
 							if CanUseSpell(myHero,_Q) == READY then
 								CastSkillShot(_Q,GetMousePos())
@@ -4527,7 +4528,7 @@ function LaneClear()
 					end
 				end
 				if VayneMenu.LaneClear.UseE:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Misc.MPE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, VayneE.range) then
 							if CanUseSpell(myHero,_E) == READY then
 								CastTargetSpell(minion, _E)
@@ -4686,6 +4687,7 @@ VeigarMenu.Auto:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
 VeigarMenu.Auto:Boolean('UseW', 'Use W [Dark Matter]', true)
 VeigarMenu.Auto:Boolean('UseE', 'Use E [Event Horizon]', false)
 VeigarMenu.Auto:DropDown("ModeW", "Cast Mode: W", 2, {"On Dashing", "On Stunned"})
+VeigarMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VeigarMenu:Menu("Combo", "Combo")
 VeigarMenu.Combo:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
 VeigarMenu.Combo:Boolean('UseW', 'Use W [Dark Matter]', true)
@@ -4696,13 +4698,16 @@ VeigarMenu.Harass:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
 VeigarMenu.Harass:Boolean('UseW', 'Use W [Dark Matter]', true)
 VeigarMenu.Harass:Boolean('UseE', 'Use E [Event Horizon]', true)
 VeigarMenu.Harass:DropDown("ModeW", "Cast Mode: W", 2, {"On Dashing", "On Stunned"})
+VeigarMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VeigarMenu:Menu("KillSteal", "KillSteal")
 VeigarMenu.KillSteal:Boolean('UseR', 'Use R [Primordial Burst]', true)
 VeigarMenu:Menu("LastHit", "LastHit")
 VeigarMenu.LastHit:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
+VeigarMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VeigarMenu:Menu("LaneClear", "LaneClear")
 VeigarMenu.LaneClear:Boolean('UseQ', 'Use Q [Baleful Strike]', false)
 VeigarMenu.LaneClear:Boolean('UseW', 'Use W [Dark Matter]', true)
+VeigarMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 VeigarMenu:Menu("JungleClear", "JungleClear")
 VeigarMenu.JungleClear:Boolean('UseQ', 'Use Q [Baleful Strike]', true)
 VeigarMenu.JungleClear:Boolean('UseW', 'Use W [Dark Matter]', true)
@@ -4721,9 +4726,6 @@ VeigarMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
 VeigarMenu:Menu("Misc", "Misc")
 VeigarMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VeigarMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
-VeigarMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-VeigarMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-VeigarMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local VeigarQ = { range = 950, radius = 70, width = 140, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero }
 local VeigarW = { range = 900, radius = 250, width = 500, speed = math.huge, delay = 1.25, type = "circular", collision = false, source = myHero }
@@ -4884,7 +4886,7 @@ end
 
 OnTick(function(myHero)
 	if VeigarMenu.Auto.UseQ:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				if ValidTarget(target, VeigarQ.range) then
 					useQ(target)
@@ -4893,7 +4895,7 @@ OnTick(function(myHero)
 		end
 	end
 	if VeigarMenu.Auto.UseW:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, VeigarW.range) then
 					if VeigarMenu.Auto.ModeW:Value() == 1 then
@@ -4908,7 +4910,7 @@ OnTick(function(myHero)
 		end
 	end
 	if VeigarMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, VeigarE.range) then
 					useE(target)
@@ -4957,7 +4959,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if VeigarMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, VeigarQ.range) then
 						useQ(target)
@@ -4966,7 +4968,7 @@ function Harass()
 			end
 		end
 		if VeigarMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					if ValidTarget(target, VeigarW.range) then
 						if VeigarMenu.Harass.ModeW:Value() == 1 then
@@ -4981,7 +4983,7 @@ function Harass()
 			end
 		end
 		if VeigarMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, VeigarE.range) then
 						useE(target)
@@ -5017,7 +5019,7 @@ function LastHit()
 			if GetTeam(minion) == MINION_ENEMY then
 				if ValidTarget(minion, VeigarQ.range) then
 					if VeigarMenu.LastHit.UseQ:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.LastHit.MP:Value() then
 							if CanUseSpell(myHero,_Q) == READY then
 								local VeigarQDmg = (40*GetCastLevel(myHero,_Q)+30)+(0.6*GetBonusAP(myHero))
 								if GetCurrentHP(minion) < VeigarQDmg then
@@ -5037,7 +5039,7 @@ end
 function LaneClear()
 	if Mode() == "LaneClear" then
 		if VeigarMenu.LaneClear.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					local BestPos, BestHit = GetLineFarmPosition(VeigarW.range, VeigarW.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then  
@@ -5047,7 +5049,7 @@ function LaneClear()
 			end
 		end
 		if VeigarMenu.LaneClear.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.LaneClear.MP:Value() then
 				for _, minion in pairs(minionManager.objects) do
 					if GetTeam(minion) == MINION_ENEMY then
 						if ValidTarget(minion, VeigarQ.range) then
@@ -5153,6 +5155,7 @@ ViktorMenu:Menu("Auto", "Auto")
 ViktorMenu.Auto:Boolean('UseQ', 'Use Q [Siphon Power]', true)
 ViktorMenu.Auto:Boolean('UseW', 'Use W [Gravity Field]', false)
 ViktorMenu.Auto:Boolean('UseE', 'Use E [Death Ray]', true)
+ViktorMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 ViktorMenu:Menu("Combo", "Combo")
 ViktorMenu.Combo:Boolean('UseQ', 'Use Q [Siphon Power]', true)
 ViktorMenu.Combo:Boolean('UseW', 'Use W [Gravity Field]', true)
@@ -5162,11 +5165,14 @@ ViktorMenu:Menu("Harass", "Harass")
 ViktorMenu.Harass:Boolean('UseQ', 'Use Q [Siphon Power]', true)
 ViktorMenu.Harass:Boolean('UseW', 'Use W [Gravity Field]', true)
 ViktorMenu.Harass:Boolean('UseE', 'Use E [Death Ray]', true)
+ViktorMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 ViktorMenu:Menu("LastHit", "LastHit")
 ViktorMenu.LastHit:Boolean('UseQ', 'Use Q [Siphon Power]', true)
+ViktorMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 ViktorMenu:Menu("LaneClear", "LaneClear")
 ViktorMenu.LaneClear:Boolean('UseQ', 'Use Q [Siphon Power]', false)
 ViktorMenu.LaneClear:Boolean('UseE', 'Use E [Death Ray]', true)
+ViktorMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 ViktorMenu:Menu("JungleClear", "JungleClear")
 ViktorMenu.JungleClear:Boolean('UseQ', 'Use Q [Siphon Power]', true)
 ViktorMenu.JungleClear:Boolean('UseE', 'Use E [Death Ray]', true)
@@ -5187,9 +5193,6 @@ ViktorMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 ViktorMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 ViktorMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ViktorMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
-ViktorMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-ViktorMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-ViktorMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
 local ViktorQ = { range = 600 }
 local ViktorW = { range = 700, radius = 300, width = 600, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
@@ -5366,7 +5369,7 @@ end)
 
 OnTick(function(myHero)
 	if ViktorMenu.Auto.UseQ:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				if ValidTarget(target, ViktorQ.range) then
 					useQ(target)
@@ -5375,7 +5378,7 @@ OnTick(function(myHero)
 		end
 	end
 	if ViktorMenu.Auto.UseW:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, ViktorW.range) then
 					useW(target)
@@ -5384,7 +5387,7 @@ OnTick(function(myHero)
 		end
 	end
 	if ViktorMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, ViktorE.range) then
 					useE(target)
@@ -5438,7 +5441,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if ViktorMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if ValidTarget(target, ViktorQ.range) then
 						useQ(target)
@@ -5447,7 +5450,7 @@ function Harass()
 			end
 		end
 		if ViktorMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					if ValidTarget(target, ViktorW.range) then
 						useW(target)
@@ -5456,7 +5459,7 @@ function Harass()
 			end
 		end
 		if ViktorMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(target, ViktorE.range) then
 						useE(target)
@@ -5475,7 +5478,7 @@ function LastHit()
 			if GetTeam(minion) == MINION_ENEMY then
 				if ValidTarget(minion, ViktorQ.range) then
 					if ViktorMenu.LastHit.UseQ:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.LastHit.MP:Value() then
 							if CanUseSpell(myHero,_Q) == READY then
 								local ViktorQDmg = ((20*GetCastLevel(myHero,_Q)+40)+(0.4*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_Q))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))+(0.5*GetBonusAP(myHero)))
 								local MinionToLastHit = minion
@@ -5496,7 +5499,7 @@ end
 function LaneClear()
 	if Mode() == "LaneClear" then
 		if ViktorMenu.LaneClear.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					local BestPos, BestHit = GetLineFarmPosition(ViktorE.range, ViktorE.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then
@@ -5507,7 +5510,7 @@ function LaneClear()
 			end
 		end
 		if ViktorMenu.LaneClear.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.LaneClear.MP:Value() then
 				for _, minion in pairs(minionManager.objects) do
 					if GetTeam(minion) == MINION_ENEMY then
 						if ValidTarget(minion, ViktorQ.range) then
@@ -6038,6 +6041,7 @@ XerathMenu:Menu("Auto", "Auto")
 XerathMenu.Auto:Boolean('UseQ', 'Use Q [Arcanopulse]', true)
 XerathMenu.Auto:Boolean('UseW', 'Use W [Eye of Destruction]', true)
 XerathMenu.Auto:Boolean('UseE', 'Use E [Shocking Orb]', false)
+XerathMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 XerathMenu:Menu("Combo", "Combo")
 XerathMenu.Combo:Boolean('UseQ', 'Use Q [Arcanopulse]', true)
 XerathMenu.Combo:Boolean('UseW', 'Use W [Eye of Destruction]', true)
@@ -6046,13 +6050,16 @@ XerathMenu:Menu("Harass", "Harass")
 XerathMenu.Harass:Boolean('UseQ', 'Use Q [Arcanopulse]', true)
 XerathMenu.Harass:Boolean('UseW', 'Use W [Eye of Destruction]', false)
 XerathMenu.Harass:Boolean('UseE', 'Use E [Shocking Orb]', false)
+XerathMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 XerathMenu:Menu("KillSteal", "KillSteal")
 XerathMenu.KillSteal:Boolean('UseR', 'Use R [Rite of the Arcane]', true)
 XerathMenu:Menu("LastHit", "LastHit")
 XerathMenu.LastHit:Boolean('UseE', 'Use E [Sweeping Blade]', true)
+XerathMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 XerathMenu:Menu("LaneClear", "LaneClear")
 XerathMenu.LaneClear:Boolean('UseQ', 'Use Q [Arcanopulse]', true)
 XerathMenu.LaneClear:Boolean('UseW', 'Use W [Eye of Destruction]', true)
+XerathMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 XerathMenu:Menu("JungleClear", "JungleClear")
 XerathMenu.JungleClear:Boolean('UseQ', 'Use Q [Arcanopulse]', true)
 XerathMenu.JungleClear:Boolean('UseW', 'Use W [Eye of Destruction]', true)
@@ -6073,16 +6080,13 @@ XerathMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 XerathMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 XerathMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 XerathMenu:Menu("Misc", "Misc")
-XerathMenu.Misc:Key("UseQ", "Casting Q Key", string.byte("A"))
+XerathMenu.Misc:Key("UseQ", "Release Q Key", string.byte("A"))
 XerathMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 XerathMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 XerathMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 XerathMenu.Misc:Slider("ED","Extended Delay: Q", 0.1, 0, 1, 0.05)
-XerathMenu.Misc:Slider("MPQ","Mana-Manager: Q", 40, 0, 100, 5)
-XerathMenu.Misc:Slider("MPW","Mana-Manager: W", 40, 0, 100, 5)
-XerathMenu.Misc:Slider("MPE","Mana-Manager: E", 40, 0, 100, 5)
 
-local XerathQ = { range = 1400, radius = 95, width = 190, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
+local XerathQ = { range = 1400, radius = 72.5, width = 145, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
 local XerathW = { range = 1100, radius = 200, width = 400, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
 local XerathE = { range = 1050, radius = 60, width = 120, speed = 2300, delay = 0.2, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local XerathR = { range = GetCastRange(myHero,_R), radius = 130, width = 260, speed = math.huge, delay = 0.7, type = "circular", collision = false, source = myHero }
@@ -6323,21 +6327,21 @@ end)
 
 OnTick(function(myHero)
 	if XerathMenu.Auto.UseQ:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				useQ(target)
 			end
 		end
 	end
 	if XerathMenu.Auto.UseW:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_W) == READY then
 				useW(target)
 			end
 		end
 	end
 	if XerathMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
 				useE(target)
 			end
@@ -6372,21 +6376,21 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if XerathMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					useQ(target)
 				end
 			end
 		end
 		if XerathMenu.Harass.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					useW(target)
 				end
 			end
 		end
 		if XerathMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					useE(target)
 				end
@@ -6460,7 +6464,7 @@ function LastHit()
 			if GetTeam(minion) == MINION_ENEMY then
 				if ValidTarget(minion, XerathE.range) then
 					if XerathMenu.LastHit.UseE:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPE:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.LastHit.MP:Value() then
 							if CanUseSpell(myHero,_E) == READY then
 								local XerathEDmg = (30*GetCastLevel(myHero,_E)+50)+(0.45*GetBonusAP(myHero))
 								if GetCurrentHP(minion) < XerathEDmg then
@@ -6480,7 +6484,7 @@ end
 function LaneClear()
 	if Mode() == "LaneClear" then
 		if XerathMenu.LaneClear.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					if GotBuff(myHero, "XerathArcanopulseChargeUp") > 0 then
 						local BestPos, BestHit = GetLineFarmPosition(XerathQ.range, XerathQ.radius, MINION_ENEMY)
@@ -6494,7 +6498,7 @@ function LaneClear()
 			end
 		end
 		if XerathMenu.LaneClear.UseW:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Misc.MPW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					local BestPos, BestHit = GetFarmPosition(XerathW.range, XerathW.radius, MINION_ENEMY)
 					if BestPos and BestHit > 2 then 
