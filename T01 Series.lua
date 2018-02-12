@@ -6088,9 +6088,9 @@ XerathMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 XerathMenu.Misc:Slider("ED","Extended Delay: Q", 0.1, 0, 1, 0.05)
 
 local XerathQ = { range = 1400, radius = 72.5, width = 145, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
-local XerathW = { range = 1100, radius = 200, width = 400, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
-local XerathE = { range = 1050, radius = 60, width = 120, speed = 2300, delay = 0.2, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
-local XerathR = { range = GetCastRange(myHero,_R), radius = 130, width = 260, speed = math.huge, delay = 0.7, type = "circular", collision = false, source = myHero }
+local XerathW = { range = 1100, radius = 270, width = 540, speed = math.huge, delay = 0.7, type = "circular", collision = false, source = myHero }
+local XerathE = { range = 1050, radius = 60, width = 120, speed = 1400, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local XerathR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.7, type = "circular", collision = false, source = myHero }
 
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
