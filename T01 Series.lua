@@ -14,6 +14,7 @@
 -- + supports Ahri, Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra,
 --   TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
+-- + extended HP-Manager and Mana-Manager,
 -- + uses offensive items while doing Combo,
 -- + indludes table selection for Auto Level-up,
 -- + 4 predictions to choose and current pos casting,
