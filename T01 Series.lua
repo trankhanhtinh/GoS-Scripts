@@ -8,11 +8,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.4.2
--- Intermediate GoS script which supports currently 16 champions.
+-- Current version: 1.1.5
+-- Intermediate GoS script which supports currently 17 champions.
 -- Features:
--- + supports Ahri, Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra,
---   TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Ryze,
+--   Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + extended HP-Manager and Mana-Manager,
 -- + uses offensive items while doing Combo,
@@ -28,6 +28,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5
+-- + Added Cassiopeia
+-- + Improved LaneClear mode
 -- 1.1.4.2
 -- + Improved Xerath's spell database
 -- 1.1.4.1
@@ -97,7 +100,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.142
+local TSVer = 1.15
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -442,7 +445,7 @@ function LaneClear()
 					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.LaneClear.MP:Value() then
 						if CanUseSpell(myHero,_Q) == READY then
 							local BestPos, BestHit = GetLineFarmPosition(AhriQ.range, AhriQ.radius, MINION_ENEMY)
-							if BestPos and BestHit > 2 then  
+							if BestPos and BestHit > 3 then  
 								CastSkillShot(_Q, BestPos)
 							end
 						end
@@ -504,7 +507,7 @@ end)
 OnTick(function(myHero)
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if AhriMenu.AntiGapcloser.UseE:Value() then
-			if ValidTarget(antigap, 300) then
+			if ValidTarget(antigap, 350) then
 				if CanUseSpell(myHero,_E) == READY then
 					useE(antigap)
 				end
@@ -998,6 +1001,594 @@ OnTick(function(myHero)
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
 		elseif AnnieMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
+-- Cassiopeia
+
+elseif "Cassiopeia" == GetObjectName(myHero) then
+
+require('Interrupter')
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Cassiopeia loaded successfully!")
+local CassiopeiaMenu = Menu("[T01] Cassiopeia", "[T01] Cassiopeia")
+CassiopeiaMenu:Menu("Auto", "Auto")
+CassiopeiaMenu.Auto:Boolean('UseQ', 'Use Q [Noxious Blast]', true)
+CassiopeiaMenu.Auto:Boolean('UseE', 'Use E [Twin Fang]', true)
+CassiopeiaMenu.Auto:DropDown("ModeE", "Cast Mode: E", 2, {"On Dashing", "On Poisoned"})
+CassiopeiaMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+CassiopeiaMenu:Menu("Combo", "Combo")
+CassiopeiaMenu.Combo:Boolean('UseQ', 'Use Q [Noxious Blast]', true)
+CassiopeiaMenu.Combo:Boolean('UseW', 'Use W [Miasma]', true)
+CassiopeiaMenu.Combo:Boolean('UseE', 'Use E [Twin Fang]', true)
+CassiopeiaMenu.Combo:Boolean('UseR', 'Use R [Petrifying Gaze]', true)
+CassiopeiaMenu.Combo:DropDown("ModeE", "Cast Mode: E", 2, {"On Dashing", "On Poisoned"})
+CassiopeiaMenu:Menu("Harass", "Harass")
+CassiopeiaMenu.Harass:Boolean('UseQ', 'Use Q [Noxious Blast]', true)
+CassiopeiaMenu.Harass:Boolean('UseW', 'Use W [Miasma]', true)
+CassiopeiaMenu.Harass:Boolean('UseE', 'Use E [Twin Fang]', true)
+CassiopeiaMenu.Harass:DropDown("ModeE", "Cast Mode: E", 2, {"On Dashing", "On Poisoned"})
+CassiopeiaMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+CassiopeiaMenu:Menu("KillSteal", "KillSteal")
+CassiopeiaMenu.KillSteal:Boolean('UseE', 'Use E [Twin Fang]', true)
+CassiopeiaMenu:Menu("LastHit", "LastHit")
+CassiopeiaMenu.LastHit:Boolean('UseE', 'Use E [Twin Fang]', true)
+CassiopeiaMenu:Menu("LaneClear", "LaneClear")
+CassiopeiaMenu.LaneClear:Boolean('UseQ', 'Use Q [Noxious Blast]', true)
+CassiopeiaMenu.LaneClear:Boolean('UseW', 'Use W [Miasma]', false)
+CassiopeiaMenu.LaneClear:Boolean('UseE', 'Use E [Twin Fang]', false)
+CassiopeiaMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+CassiopeiaMenu:Menu("JungleClear", "JungleClear")
+CassiopeiaMenu.JungleClear:Boolean('UseQ', 'Use Q [Noxious Blast]', true)
+CassiopeiaMenu.JungleClear:Boolean('UseW', 'Use W [Miasma]', true)
+CassiopeiaMenu.JungleClear:Boolean('UseE', 'Use E [Twin Fang]', true)
+CassiopeiaMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+CassiopeiaMenu.AntiGapcloser:Boolean('UseW', 'Use W [Miasma]', true)
+CassiopeiaMenu.AntiGapcloser:Boolean('UseR', 'Use R [Petrifying Gaze]', true)
+CassiopeiaMenu:Menu("Interrupter", "Interrupter")
+CassiopeiaMenu.Interrupter:Boolean('UseR', 'Use R [Petrifying Gaze]', true)
+CassiopeiaMenu:Menu("Prediction", "Prediction")
+CassiopeiaMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+CassiopeiaMenu.Prediction:DropDown("PredictionW", "Prediction: W", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+CassiopeiaMenu.Prediction:DropDown("PredictionR", "Prediction: R", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+CassiopeiaMenu:Menu("Drawings", "Drawings")
+CassiopeiaMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+CassiopeiaMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+CassiopeiaMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+CassiopeiaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+CassiopeiaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+CassiopeiaMenu:Menu("Misc", "Misc")
+CassiopeiaMenu.Misc:Boolean('ST', 'Stack Tear', true)
+CassiopeiaMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
+CassiopeiaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+CassiopeiaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+CassiopeiaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+CassiopeiaMenu.Misc:Slider("MPT","Mana-Manager: Tear", 80, 0, 100, 5)
+
+local CassiopeiaQ = { range = 850, radius = 150, width = 300, speed = math.huge, delay = 0.4, type = "circular", collision = false, source = myHero }
+local CassiopeiaW = { range = 800, radius = 160, width = 320, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
+local CassiopeiaE = { range = 700 }
+local CassiopeiaR = { range = 825, angle = 80, radius = 80, width = 160, speed = math.huge, delay = 0.5, type = "cone", collision = false, source = myHero }
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if CassiopeiaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,CassiopeiaQ.range,1,25,0xff00bfff) end
+if CassiopeiaMenu.Drawings.DrawW:Value() then DrawCircle(pos,CassiopeiaW.range,1,25,0xff4169e1) end
+if CassiopeiaMenu.Drawings.DrawE:Value() then DrawCircle(pos,CassiopeiaE.range,1,25,0xff1e90ff) end
+if CassiopeiaMenu.Drawings.DrawR:Value() then DrawCircle(pos,CassiopeiaR.range,1,25,0xff0000ff) end
+end)
+
+OnDraw(function(myHero)
+	local target = GetCurrentTarget()
+	local QDmg = (45*GetCastLevel(myHero,_Q)+30)+(0.7*GetBonusAP(myHero))
+	local WDmg = (75*GetCastLevel(myHero,_W)+25)+(0.75*GetBonusAP(myHero))
+	local EDmg = ((4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_E)-10)+(0.6*GetBonusAP(myHero)))
+	local RDmg = (100*GetCastLevel(myHero,_R)+50)+(0.5*GetBonusAP(myHero))
+	local ComboDmg = QDmg + WDmg + EDmg + RDmg
+	local WERDmg = WDmg + EDmg + RDmg
+	local QERDmg = QDmg + EDmg + RDmg
+	local QWRDmg = QDmg + WDmg + RDmg
+	local QWEDmg = QDmg + WDmg + EDmg
+	local ERDmg = EDmg + RDmg
+	local WRDmg = WDmg + RDmg
+	local QRDmg = QDmg + RDmg
+	local WEDmg = WDmg + EDmg
+	local QEDmg = QDmg + EDmg
+	local QWDmg = QDmg + WDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if CassiopeiaMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Combo()
+		Harass()
+		KillSteal()
+		LastHit()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	if GetDistance(target) < CassiopeiaQ.range then
+		if CassiopeiaMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif CassiopeiaMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),CassiopeiaQ.speed,CassiopeiaQ.delay*1000,CassiopeiaQ.range,CassiopeiaQ.radius,false,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,CassiopeiaQ,true,false)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="CassiopeiaQ", range=CassiopeiaQ.range, speed=CassiopeiaQ.speed, delay=CassiopeiaQ.delay, width=CassiopeiaQ.radius, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(CassiopeiaQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetCircularAOEPrediction(target,CassiopeiaQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	if GetDistance(target) < CassiopeiaW.range then
+		if CassiopeiaMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif CassiopeiaMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),CassiopeiaW.speed,CassiopeiaW.delay*1000,CassiopeiaW.range,CassiopeiaW.width,false,true)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,CassiopeiaW,true,false)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="CassiopeiaW", range=CassiopeiaW.range, speed=CassiopeiaW.speed, delay=CassiopeiaW.delay, width=CassiopeiaW.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(CassiopeiaW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetCircularAOEPrediction(target,CassiopeiaW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function useE(target)
+	CastTargetSpell(target, _E)
+end
+function useR(target)
+	if GetDistance(target) < CassiopeiaR.range then
+		if CassiopeiaMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif CassiopeiaMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),CassiopeiaR.speed,CassiopeiaR.delay*1000,CassiopeiaR.range,CassiopeiaR.width,false,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,CassiopeiaR,true,false)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="CassiopeiaR", range=CassiopeiaR.range, speed=CassiopeiaR.speed, delay=CassiopeiaR.delay, width=CassiopeiaR.width, type="conic", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(CassiopeiaR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif CassiopeiaMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetConicAOEPrediction(target,CassiopeiaR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+OnTick(function(myHero)
+	if CassiopeiaMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, CassiopeiaQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if CassiopeiaMenu.Auto.UseE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, CassiopeiaE.range) then
+					if CassiopeiaMenu.Auto.ModeE:Value() == 1 then
+						useE(target)
+					elseif CassiopeiaMenu.Auto.ModeE:Value() == 2 then
+						if GotBuff(target, "cassiopeiaqdebuff") > 0 or GotBuff(target, "cassiopeiawpoison") > 0 then
+							useE(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if CassiopeiaMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, CassiopeiaQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if CassiopeiaMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, CassiopeiaW.range) then
+					useW(target)
+				end
+			end
+		end
+		if CassiopeiaMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, CassiopeiaE.range) then
+					if CassiopeiaMenu.Combo.ModeE:Value() == 1 then
+						useE(target)
+					elseif CassiopeiaMenu.Combo.ModeE:Value() == 2 then
+						if GotBuff(target, "cassiopeiaqdebuff") > 0 or GotBuff(target, "cassiopeiawpoison") > 0 then
+							useE(target)
+						end
+					end
+				end
+			end
+		end
+		if CassiopeiaMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, CassiopeiaR.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < CassiopeiaMenu.Misc.HP:Value() then
+						if EnemiesAround(myHero, CassiopeiaR.range) >= CassiopeiaMenu.Misc.X:Value() then
+							useR(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if CassiopeiaMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, CassiopeiaQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if CassiopeiaMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, CassiopeiaW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if CassiopeiaMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, CassiopeiaE.range) then
+						if CassiopeiaMenu.Harass.ModeE:Value() == 1 then
+							useE(target)
+						elseif CassiopeiaMenu.Harass.ModeE:Value() == 2 then
+							if GotBuff(target, "cassiopeiaqdebuff") > 0 or GotBuff(target, "cassiopeiawpoison") > 0 then
+								useE(target)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CassiopeiaMenu.KillSteal.UseE:Value() then
+			if ValidTarget(enemy, CassiopeiaE.range) then
+				if CanUseSpell(myHero,_E) == READY then
+					if GotBuff(enemy, "cassiopeiaqdebuff") > 0 or GotBuff(enemy, "cassiopeiawpoison") > 0 then
+						local CassiopeiaE2Dmg = ((4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_E)-10)+(0.6*GetBonusAP(myHero)))
+						if GetCurrentHP(enemy) < CassiopeiaE2Dmg then
+							CastTargetSpell(enemy, _E)
+						end
+					else
+						local CassiopeiaEDmg = (4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero))
+						if GetCurrentHP(enemy) < CassiopeiaEDmg then
+							CastTargetSpell(enemy, _E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, CassiopeiaE.range) then
+					if CassiopeiaMenu.LastHit.UseE:Value() then
+						if CanUseSpell(myHero,_E) == READY then
+							if GotBuff(minion, "cassiopeiaqdebuff") > 0 or GotBuff(minion, "cassiopeiawpoison") > 0 then
+								local CassiopeiaE2Dmg = ((4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_E)-10)+(0.6*GetBonusAP(myHero)))
+								if GetCurrentHP(minion) < CassiopeiaE2Dmg then
+									BlockInput(true)
+									if _G.IOW then
+										IOW.attacksEnabled = false
+									elseif _G.GoSWalkLoaded then
+										_G.GoSWalk:EnableAttack(false)
+									end
+									CastTargetSpell(minion, _E)
+									BlockInput(false)
+									if _G.IOW then
+										IOW.attacksEnabled = true
+									elseif _G.GoSWalkLoaded then
+										_G.GoSWalk:EnableAttack(true)
+									end
+								end
+							else
+								local CassiopeiaEDmg = (4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero))
+								if GetCurrentHP(minion) < CassiopeiaEDmg then
+									BlockInput(true)
+									if _G.IOW then
+										IOW.attacksEnabled = false
+									elseif _G.GoSWalkLoaded then
+										_G.GoSWalk:EnableAttack(false)
+									end
+									CastTargetSpell(minion, _E)
+									BlockInput(false)
+									if _G.IOW then
+										IOW.attacksEnabled = true
+									elseif _G.GoSWalkLoaded then
+										_G.GoSWalk:EnableAttack(true)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if CassiopeiaMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					local BestPos, BestHit = GetLineFarmPosition(CassiopeiaQ.range, CassiopeiaQ.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then
+						CastSkillShot(_Q, BestPos)
+					end
+				end
+			end
+		end
+		if CassiopeiaMenu.LaneClear.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					local BestPos, BestHit = GetLineFarmPosition(CassiopeiaW.range, CassiopeiaW.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then  
+						CastSkillShot(_W, BestPos)
+					end
+				end
+			end
+		end
+		if CassiopeiaMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.LaneClear.MP:Value() then
+				for _, minion in pairs(minionManager.objects) do
+					if GetTeam(minion) == MINION_ENEMY then
+						if ValidTarget(minion, CassiopeiaE.range) then
+							if CassiopeiaMenu.LaneClear.UseE:Value() then
+								if CanUseSpell(myHero,_E) == READY then
+									useE(minion)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, CassiopeiaQ.range) then
+						if CassiopeiaMenu.JungleClear.UseQ:Value() then
+							CastSkillShot(_Q,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(mob, CassiopeiaW.range) then
+						if CassiopeiaMenu.JungleClear.UseW:Value() then	   
+							CastSkillShot(_W,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, CassiopeiaE.range) then
+						if CassiopeiaMenu.JungleClear.UseE:Value() then	   
+							useE(mob)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if CassiopeiaMenu.AntiGapcloser.UseW:Value() then
+				if ValidTarget(antigap, 500) then
+					CastSkillShot(_W, antigap)
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if CassiopeiaMenu.AntiGapcloser.UseR:Value() then
+				if ValidTarget(antigap, 250) then
+					CastSkillShot(_R, antigap)
+				end
+			end
+		end
+	end
+end)
+
+-- Interrupter
+
+addInterrupterCallback(function(target, spellType, spell)
+	if CassiopeiaMenu.Interrupter.UseR:Value() then
+		if ValidTarget(target, CassiopeiaR.range) then
+			if CanUseSpell(myHero,_R) == READY then
+				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
+					useR(target)
+				end
+			end
+		end
+	end
+end)
+
+-- Misc
+
+OnTick(function(myHero)
+	if CassiopeiaMenu.Misc.ST:Value() then
+		if GotBuff(myHero,"recall") == 0 then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.Misc.MPT:Value() then
+				if EnemiesAround(myHero, 2500) == 0 then
+					if not UnderTurret(myHero, 775) then
+						if GetItemSlot(myHero, 3070) > 0 then
+							if CanUseSpell(myHero,_Q) == READY then
+								DelayAction(function() CastSkillShot(_Q,GetOrigin(myHero)) end, 0.25)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if CassiopeiaMenu.Misc.LvlUp:Value() then
+		if CassiopeiaMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif CassiopeiaMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif CassiopeiaMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif CassiopeiaMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif CassiopeiaMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif CassiopeiaMenu.Misc.AutoLvlUp:Value() == 6 then
 			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -3684,7 +4275,7 @@ function LaneClear()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					local BestPos, BestHit = GetFarmPosition(SyndraQ.range, SyndraQ.radius, MINION_ENEMY)
-					if BestPos and BestHit > 2 then
+					if BestPos and BestHit > 3 then
 						CastSkillShot(_Q, BestPos)
 					end
 				end
@@ -3694,7 +4285,7 @@ function LaneClear()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					local BestPos, BestHit = GetFarmPosition(SyndraW.range, SyndraW.radius, MINION_ENEMY)
-					if BestPos and BestHit > 2 then 
+					if BestPos and BestHit > 3 then 
 						CastSkillShot3(_W, BestPos, GetOrigin(Seed))
 					end
 				end
@@ -3740,7 +4331,7 @@ end
 OnTick(function(myHero)
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if SyndraMenu.AntiGapcloser.UseE:Value() then
-			if ValidTarget(antigap, 150) then
+			if ValidTarget(antigap, 200) then
 				if CanUseSpell(myHero,_E) == READY then
 					CastSkillShot(_E, antigap)
 				end
@@ -4163,7 +4754,7 @@ function LaneClear()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					local BestPos, BestHit = GetLineFarmPosition(TwistedFateQ.range, TwistedFateQ.radius, MINION_ENEMY)
-					if BestPos and BestHit > 2 then
+					if BestPos and BestHit > 3 then
 						CastSkillShot(_Q, BestPos)
 					end
 				end
@@ -5045,7 +5636,7 @@ function LaneClear()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					local BestPos, BestHit = GetLineFarmPosition(VeigarW.range, VeigarW.radius, MINION_ENEMY)
-					if BestPos and BestHit > 2 then  
+					if BestPos and BestHit > 3 then  
 						CastSkillShot(_W, BestPos)
 					end
 				end
@@ -5190,7 +5781,7 @@ ViktorMenu:Menu("Drawings", "Drawings")
 ViktorMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 ViktorMenu.Drawings:Boolean('DrawWR', 'Draw WR Range', true)
 ViktorMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
-ViktorMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+ViktorMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', true)
 ViktorMenu:Menu("Misc", "Misc")
 ViktorMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 ViktorMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
@@ -5350,19 +5941,20 @@ end
 -- Interrupter
 
 addInterrupterCallback(function(target, spellType, spell)
-	if ViktorMenu.Interrupter.UseW:Value() then
-		if ValidTarget(target, ViktorW.range) then
-			if CanUseSpell(myHero,_W) == READY then
+	if CanUseSpell(myHero,_W) == READY then
+		if ViktorMenu.Interrupter.UseW:Value() then
+			if ValidTarget(target, ViktorW.range) then
 				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
 					useW(target)
 				end
 			end
 		end
-	end
-	if ViktorMenu.Interrupter.UseR:Value() then
-		if ValidTarget(target, ViktorR.range) then
-			if CanUseSpell(myHero,_R) == READY and spellType == CHANELLING_SPELLS then
-				useR(target)
+	elseif CanUseSpell(myHero,_R) == READY then
+		if ViktorMenu.Interrupter.UseR:Value() then
+			if ValidTarget(target, ViktorR.range) then
+				if spellType == CHANELLING_SPELLS then
+					useR(target)
+				end
 			end
 		end
 	end
@@ -5505,7 +6097,7 @@ function LaneClear()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					local BestPos, BestHit = GetLineFarmPosition(ViktorE.range, ViktorE.radius, MINION_ENEMY)
-					if BestPos and BestHit > 2 then
+					if BestPos and BestHit > 3 then
 						local StartPos = Vector(myHero)-(ViktorE.range-500)*(Vector(myHero)-Vector(BestPos)):normalized()
 						CastSkillShot3(_E,StartPos,BestPos)
 					end
@@ -6491,7 +7083,7 @@ function LaneClear()
 				if CanUseSpell(myHero,_Q) == READY then
 					if GotBuff(myHero, "XerathArcanopulseChargeUp") > 0 then
 						local BestPos, BestHit = GetLineFarmPosition(XerathQ.range, XerathQ.radius, MINION_ENEMY)
-						if BestPos and BestHit > 2 then
+						if BestPos and BestHit > 3 then
 							DelayAction(function() CastSkillShot2(_Q, BestPos) end, 0.5)
 						end
 					else
@@ -6504,7 +7096,7 @@ function LaneClear()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
 					local BestPos, BestHit = GetFarmPosition(XerathW.range, XerathW.radius, MINION_ENEMY)
-					if BestPos and BestHit > 2 then 
+					if BestPos and BestHit > 3 then 
 						CastSkillShot(_W, BestPos)
 					end
 				end
@@ -7658,7 +8250,7 @@ function LaneClear()
 		if ZedMenu.LaneClear.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				local BestPos, BestHit = GetLineFarmPosition(ZedQ.range, ZedQ.radius, MINION_ENEMY)
-				if BestPos and BestHit > 2 then  
+				if BestPos and BestHit > 3 then  
 					CastSkillShot(_Q, BestPos)
 				end
 			end
