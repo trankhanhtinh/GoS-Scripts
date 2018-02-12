@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.4.1
+-- Current version: 1.1.4.2
 -- Intermediate GoS script which supports currently 16 champions.
 -- Features:
 -- + supports Ahri, Annie, Fizz, Jayce, Katarina, MasterYi, Ryze, Syndra,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.4.2
+-- + Improved Xerath's spell database
 -- 1.1.4.1
 -- + Rebuilt Mana-Manager
 -- 1.1.4
@@ -95,7 +97,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.141
+local TSVer = 1.142
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -4799,7 +4801,7 @@ function useQ(target)
 				CastSkillShot(_Q, QPred.PredPos)
 			end
 		elseif VeigarMenu.Prediction.PredictionQ:Value() == 3 then
-			local qPred = _G.gPred:GetPrediction(target,myHero,VeigarQ,true,true)
+			local qPred = _G.gPred:GetPrediction(target,myHero,VeigarQ,false,true)
 			if qPred and qPred.HitChance >= 3 then
 				CastSkillShot(_Q, qPred.CastPosition)
 			end
@@ -6088,9 +6090,9 @@ XerathMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 XerathMenu.Misc:Slider("ED","Extended Delay: Q", 0.1, 0, 1, 0.05)
 
 local XerathQ = { range = 1400, radius = 72.5, width = 145, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
-local XerathW = { range = 1100, radius = 270, width = 540, speed = math.huge, delay = 0.7, type = "circular", collision = false, source = myHero }
-local XerathE = { range = 1050, radius = 60, width = 120, speed = 1400, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
-local XerathR = { range = GetCastRange(myHero,_R), radius = 130, width = 260, speed = math.huge, delay = 0.7, type = "circular", collision = false, source = myHero }
+local XerathW = { range = 1100, radius = 235, width = 470, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
+local XerathE = { range = 1050, radius = 60, width = 120, speed = 1350, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local XerathR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
 
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
@@ -6552,7 +6554,7 @@ end
 OnTick(function(myHero)
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if XerathMenu.AntiGapcloser.UseE:Value() then
-			if ValidTarget(antigap, 300) then
+			if ValidTarget(antigap, 400) then
 				if CanUseSpell(myHero,_E) == READY then
 					useE(antigap)
 				end
