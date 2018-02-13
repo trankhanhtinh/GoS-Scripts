@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5
+-- Current version: 1.1.5.1
 -- Intermediate GoS script which supports currently 17 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Ryze,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5.1
+-- + Added spell blocking while AA for some champs
 -- 1.1.5
 -- + Added Cassiopeia
 -- + Improved LaneClear mode
@@ -100,7 +102,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.15
+local TSVer = 1.151
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -120,6 +122,18 @@ function Mode()
 		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
 	end
 end
+
+OnProcessSpell(function(unit, spell)
+	if unit == myHero then
+		if spell.name:lower():find("attack") then
+			DelayAction(function()
+				AA = true
+			end, GetWindUp(myHero)+0.01)
+		else
+			AA = false
+		end
+	end
+end)
 
 -- Ahri
 
@@ -756,7 +770,7 @@ end)
 OnTick(function(myHero)
 	if AnnieMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_Q) == READY then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
 				if ValidTarget(target, AnnieQ.range) then
 					useQ(target)
 				end
@@ -765,7 +779,7 @@ OnTick(function(myHero)
 	end
 	if AnnieMenu.Auto.UseW:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_W) == READY then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
 				if ValidTarget(target, AnnieW.range) then
 					useW(target)
 				end
@@ -788,14 +802,14 @@ end)
 function Combo()
 	if Mode() == "Combo" then
 		if AnnieMenu.Combo.UseQ:Value() then
-			if CanUseSpell(myHero,_Q) == READY then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
 				if ValidTarget(target, AnnieQ.range) then
 					useQ(target)
 				end
 			end
 		end
 		if AnnieMenu.Combo.UseW:Value() then
-			if CanUseSpell(myHero,_W) == READY then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
 				if ValidTarget(target, AnnieW.range) then
 					useW(target)
 				end
@@ -828,7 +842,7 @@ function Harass()
 	if Mode() == "Harass" then
 		if AnnieMenu.Harass.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_Q) == READY then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
 					if ValidTarget(target, AnnieQ.range) then
 						useQ(target)
 					end
@@ -837,7 +851,7 @@ function Harass()
 		end
 		if AnnieMenu.Harass.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_W) == READY then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
 					if ValidTarget(target, AnnieW.range) then
 						useW(target)
 					end
@@ -883,22 +897,10 @@ function LastHit()
 			if GetTeam(minion) == MINION_ENEMY then
 				if ValidTarget(minion, AnnieQ.range) then
 					if AnnieMenu.LastHit.UseQ:Value() then
-						if CanUseSpell(myHero,_Q) == READY then
+						if CanUseSpell(myHero,_Q) == READY and AA == true then
 							local AnnieQDmg = (20*GetCastLevel(myHero,_Q)+60)+(0.6*GetBonusAP(myHero))
 							if GetCurrentHP(minion) < AnnieQDmg then
-								BlockInput(true)
-								if _G.IOW then
-									IOW.attacksEnabled = false
-								elseif _G.GoSWalkLoaded then
-									_G.GoSWalk:EnableAttack(false)
-								end
 								useQ(minion)
-								BlockInput(false)
-								if _G.IOW then
-									IOW.attacksEnabled = true
-								elseif _G.GoSWalkLoaded then
-									_G.GoSWalk:EnableAttack(true)
-								end
 							end
 						end
 					end
@@ -917,7 +919,7 @@ function LaneClear()
 				if AnnieMenu.LaneClear.UseQ:Value() then
 					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, AnnieQ.range) then
-							if CanUseSpell(myHero,_Q) == READY then
+							if CanUseSpell(myHero,_Q) == READY and AA == true then
 								useQ(minion)
 							end
 						end
@@ -926,7 +928,7 @@ function LaneClear()
 				if AnnieMenu.LaneClear.UseW:Value() then
 					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, AnnieW.range) then
-							if CanUseSpell(myHero,_W) == READY then
+							if CanUseSpell(myHero,_W) == READY and AA == true then
 								if MinionsAround(myHero, AnnieW.range) >= 3 then
 									CastSkillShot(_W,GetOrigin(minion))
 								end
@@ -945,14 +947,14 @@ function JungleClear()
 	if Mode() == "LaneClear" then
 		for _,mob in pairs(minionManager.objects) do
 			if GetTeam(mob) == 300 then
-				if CanUseSpell(myHero,_Q) == READY then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
 					if ValidTarget(mob, AnnieQ.range) then
 						if AnnieMenu.JungleClear.UseQ:Value() then
 							useQ(mob)
 						end
 					end
 				end
-				if CanUseSpell(myHero,_W) == READY then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
 					if ValidTarget(mob, AnnieW.range) then
 						if AnnieMenu.JungleClear.UseW:Value() then
 							useW(mob)
@@ -1725,18 +1727,12 @@ function useQ(target)
 	CastTargetSpell(target, _Q)
 end
 function useW(target)
-	if GotBuff(target, "fizzwdot") > 0 then
-		if _G.IOW then
-			IOW:ResetAA()
-		elseif _G.GoSWalkLoaded then
-			GoSWalk:ResetAttack()
-		end
+	if GotBuff(target, "fizzwdot") >= 1 then
 		CastSpell(_W)
-		AttackUnit(target)
 		if _G.IOW then
 			IOW:ResetAA()
 		elseif _G.GoSWalkLoaded then
-			GoSWalk:ResetAttack()
+			_G.GoSWalk:ResetAttack()
 		end
 	end
 end
@@ -1798,7 +1794,7 @@ function Combo()
 			end
 		end
 		if FizzMenu.Combo.UseW:Value() then
-			if CanUseSpell(myHero,_W) == READY then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
 				if ValidTarget(target, GetRange(myHero)+150) then
 					useW(target)
 				end
@@ -1840,7 +1836,7 @@ function Harass()
 		end
 		if FizzMenu.Harass.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_W) == READY then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
 					if ValidTarget(target, GetRange(myHero)+150) then
 						useW(target)
 					end
@@ -1885,7 +1881,7 @@ function LastHit()
 				if ValidTarget(minion, GetRange(myHero)+50) then
 					if FizzMenu.LastHit.UseW:Value() then
 						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.LastHit.MP:Value() then
-							if CanUseSpell(myHero,_W) == READY then
+							if CanUseSpell(myHero,_W) == READY and AA == true then
 								local FizzWDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(10*GetCastLevel(myHero,_E)+10)+(0.4*GetBonusAP(myHero))
 								local MinionToLastHit = minion
 								if GetCurrentHP(MinionToLastHit) < FizzWDmg then
@@ -1918,7 +1914,7 @@ function LaneClear()
 				if FizzMenu.LaneClear.UseW:Value() then
 					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > FizzMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, GetRange(myHero)+50) then
-							if CanUseSpell(myHero,_W) == READY then
+							if CanUseSpell(myHero,_W) == READY and AA == true then
 								useW(minion)
 							end
 						end
@@ -1955,7 +1951,7 @@ function JungleClear()
 						end
 					end
 				end
-				if CanUseSpell(myHero,_W) == READY then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
 					if ValidTarget(mob, GetRange(myHero)+50) then
 						if FizzMenu.JungleClear.UseW:Value() then
 							useW(mob)
@@ -3564,7 +3560,7 @@ OnTick(function(myHero)
 end)
 
 function useQ(target)
-	if GetDistance(target) < RyzeQ.range then
+	if GetDistance(target) < RyzeQ.range and AA == true then
 		if RyzeMenu.Prediction.PredictionQ:Value() == 1 then
 			CastSkillShot(_Q,GetOrigin(target))
 		elseif RyzeMenu.Prediction.PredictionQ:Value() == 2 then
@@ -3689,7 +3685,7 @@ function LastHit()
 				if ValidTarget(minion, RyzeQ.range) then
 					if RyzeMenu.LastHit.UseQ:Value() then
 						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.LastHit.MP:Value() then
-							if CanUseSpell(myHero,_Q) == READY then
+							if CanUseSpell(myHero,_Q) == READY and AA == true then
 								if GotBuff(minion, "RyzeE") > 0 then
 									local RyzeQBDmg = ((25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero)))*(0.1*GetCastLevel(myHero,_Q)+1.3)
 									if GetCurrentHP(minion) < RyzeQBDmg then
@@ -3738,7 +3734,7 @@ function LaneClear()
 					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, RyzeQ.range) then
 							if RyzeMenu.LaneClear.UseQ:Value() then
-								if CanUseSpell(myHero,_Q) == READY then
+								if CanUseSpell(myHero,_Q) == READY and AA == true then
 									if GotBuff(minion, "RyzeE") > 0 then
 										local qPredMin = _G.gPred:GetPrediction(minion,myHero,RyzeQ,false,true)
 										if qPredMin and qPredMin.HitChance >= 3 then
@@ -3787,7 +3783,7 @@ function JungleClear()
 	if Mode() == "LaneClear" then
 		for _,mob in pairs(minionManager.objects) do
 			if GetTeam(mob) == 300 then
-				if CanUseSpell(myHero,_Q) == READY then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
 					if ValidTarget(mob, RyzeQ.range) then
 						if RyzeMenu.JungleClear.UseQ:Value() then
 							CastSkillShot(_Q,GetOrigin(mob))
@@ -4950,10 +4946,12 @@ OnTick(function(myHero)
 end)
 
 function useQ(target)
-	if VayneMenu.Misc.ExtraDelay:Value() then
-		DelayAction(function() CastSkillShot(_Q,GetMousePos()) end, VayneMenu.Misc.ED:Value())
-	else
-		CastSkillShot(_Q,GetMousePos())
+	if AA == true then
+		if VayneMenu.Misc.ExtraDelay:Value() then
+			DelayAction(function() CastSkillShot(_Q,GetMousePos()) end, VayneMenu.Misc.ED:Value())
+		else
+			CastSkillShot(_Q,GetMousePos())
+		end
 	end
 end
 function useE(target)
@@ -5115,7 +5113,7 @@ function LaneClear()
 				if VayneMenu.LaneClear.UseQ:Value() then
 					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.LaneClear.MP:Value() then
 						if ValidTarget(minion, GetRange(myHero)) then
-							if CanUseSpell(myHero,_Q) == READY then
+							if CanUseSpell(myHero,_Q) == READY and AA == true then
 								CastSkillShot(_Q,GetMousePos())
 							end
 						end
@@ -5141,7 +5139,7 @@ function JungleClear()
 	if Mode() == "LaneClear" then
 		for _,mob in pairs(minionManager.objects) do
 			if GetTeam(mob) == 300 then
-				if CanUseSpell(myHero,_Q) == READY then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
 					if ValidTarget(mob, GetRange(myHero)) then
 						if VayneMenu.JungleClear.UseQ:Value() then
 							CastSkillShot(_Q,GetMousePos())
