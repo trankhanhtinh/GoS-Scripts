@@ -4781,7 +4781,7 @@ function LaneClear()
 										end
 									end
 								elseif TwistedFateMenu.LaneClear.ModeW:Value() == 2 then
-									if MinionsAround(minion, 200) >= 2 then
+									if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MP:Value() then
 										if CurrentCard == "Red" then
 											CastSpell(_W)
 											CurrentCard = "nil"
