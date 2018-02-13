@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.1
+-- Current version: 1.1.5.2
 -- Intermediate GoS script which supports currently 17 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Ryze,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5.2
+-- + Fixed Xerath's Q LaneClear
 -- 1.1.5.1
 -- + Added spell blocking while AA for some champs
 -- 1.1.5
@@ -102,7 +104,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.151
+local TSVer = 1.152
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -7079,13 +7081,13 @@ function LaneClear()
 		if XerathMenu.LaneClear.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
-					if GotBuff(myHero, "XerathArcanopulseChargeUp") > 0 then
-						local BestPos, BestHit = GetLineFarmPosition(XerathQ.range, XerathQ.radius, MINION_ENEMY)
-						if BestPos and BestHit > 3 then
+					local BestPos, BestHit = GetLineFarmPosition(XerathQ.range, XerathQ.radius, MINION_ENEMY)
+					if BestPos and BestHit > 2 then
+						if GotBuff(myHero, "XerathArcanopulseChargeUp") > 0 then
 							DelayAction(function() CastSkillShot2(_Q, BestPos) end, 0.5)
+						else
+							CastSkillShot(_Q,GetMousePos())
 						end
-					else
-						CastSkillShot(_Q,GetMousePos())
 					end
 				end
 			end
