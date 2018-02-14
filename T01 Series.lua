@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.2
+-- Current version: 1.1.5.3
 -- Intermediate GoS script which supports currently 17 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Ryze,
@@ -28,6 +28,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5.3
+-- + Improved Yasuo
+-- + Minor code optimization
 -- 1.1.5.2
 -- + Fixed Xerath's Q LaneClear
 -- 1.1.5.1
@@ -104,7 +107,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.152
+local TSVer = 1.153
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -259,6 +262,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		LaneClear()
@@ -331,7 +335,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if AhriMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AhriMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -350,7 +354,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -665,6 +669,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -769,7 +774,7 @@ end)
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if AnnieMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY and AA == true then
@@ -797,7 +802,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -1145,6 +1150,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -1249,7 +1255,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if CassiopeiaMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CassiopeiaMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -1274,7 +1280,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -2159,6 +2165,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -2256,7 +2263,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if GetRange(myHero) > 300 then
 		if JayceMenu.Auto.UseECannon:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JayceMenu.Auto.MP:Value() then
@@ -2277,7 +2284,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -2721,6 +2728,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -2862,7 +2870,7 @@ end)
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if KatarinaMenu.Auto.UseQ:Value() then
 		if CanUseSpell(myHero,_Q) == READY then
 			if ValidTarget(target, KatarinaQ.range) then
@@ -2877,7 +2885,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -3554,6 +3562,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		LastHit()
@@ -3604,7 +3613,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if RyzeMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -3614,7 +3623,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -4031,6 +4040,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -4146,7 +4156,7 @@ end)
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if SyndraMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SyndraMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -4174,7 +4184,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -4475,6 +4485,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -4525,7 +4536,7 @@ end)
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if TwistedFateMenu.Auto.UseQ:Value() then
 		if CanUseSpell(myHero,_Q) == READY then
 			if ValidTarget(target, TwistedFateQ.range) then
@@ -4539,7 +4550,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -4939,6 +4950,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -4977,7 +4989,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if VayneMenu.Auto.UseE:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_E) == READY then
@@ -4987,7 +4999,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -5374,6 +5386,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -5478,7 +5491,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if VeigarMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VeigarMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -5512,7 +5525,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -5834,6 +5847,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		LastHit()
@@ -5962,7 +5976,7 @@ end)
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if ViktorMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > ViktorMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -5990,7 +6004,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -6302,6 +6316,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -6381,7 +6396,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if VladimirMenu.Auto.UseQ:Value() then
 		if CanUseSpell(myHero,_Q) == READY then
 			if ValidTarget(target, VladimirQ.range) then
@@ -6396,7 +6411,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 addAntiDSCallback(function()
 	if VladimirMenu.Auto.UseW:Value() then
 		if CanUseSpell(myHero,_W) == READY then
@@ -6756,6 +6771,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -6920,7 +6936,7 @@ end)
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if XerathMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -6942,7 +6958,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -7474,8 +7490,8 @@ YasuoMenu.JungleClear:Boolean('UseE', 'Use E [Sweeping Blade]', true)
 YasuoMenu:Menu("Interrupter", "Interrupter")
 YasuoMenu.Interrupter:Boolean('UseQ3', 'Use Q3 [Gathering Storm]', true)
 YasuoMenu:Menu("Prediction", "Prediction")
-YasuoMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 3, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
-YasuoMenu.Prediction:DropDown("PredictionQ3", "Prediction: Q3", 3, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+YasuoMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+YasuoMenu.Prediction:DropDown("PredictionQ3", "Prediction: Q3", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 YasuoMenu:Menu("Drawings", "Drawings")
 YasuoMenu.Drawings:Boolean('DrawQE', 'Draw QE Range', true)
 YasuoMenu.Drawings:Boolean('DrawQ3', 'Draw Q3 Range', true)
@@ -7521,8 +7537,8 @@ OnProcessSpell(function(unit, spell)
 end)
 -- < #Deftsu
 
-local YasuoQ = { range = 475, radius = 40, width = 80, speed = math.huge, delay = 0.25, type = "line", collision = false, source = myHero }
-local YasuoQ3 = { range = 1000, radius = 90, width = 180, speed = math.huge, delay = 0.25, type = "line", col = {"yasuowall"}, collision = false, source = myHero }
+local YasuoQ = { range = 475, radius = 40, width = 80, speed = math.huge, delay = GetWindUp(myHero), type = "line", collision = false, source = myHero }
+local YasuoQ3 = { range = 1000, radius = 90, width = 180, speed = math.huge, delay = GetWindUp(myHero), type = "line", col = {"yasuowall"}, collision = false, source = myHero }
 local YasuoW = { range = 400 }
 local YasuoE = { range = 475 }
 local YasuoR = { range = 1400 }
@@ -7569,6 +7585,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		KillSteal()
@@ -7611,16 +7628,16 @@ function useQ3(target)
 	if GetCastRange(myHero,_Q) > 600 then
 		if GetDistance(target) < YasuoQ3.range then
 			if YasuoMenu.Prediction.PredictionQ3:Value() == 1 then
-				DelayAction(function() CastSkillShot(_Q,GetOrigin(target)) end, 0.25)
+				CastSkillShot(_Q,GetOrigin(target))
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 2 then
 				local Q3Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),YasuoQ3.speed,YasuoQ3.delay*1000,YasuoQ3.range,YasuoQ3.width,false,true)
 				if Q3Pred.HitChance == 1 then
-					DelayAction(function() CastSkillShot(_Q, Q3Pred.PredPos) end, 0.25)
+					CastSkillShot(_Q, Q3Pred.PredPos)
 				end
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 3 then
 				local q3Pred = _G.gPred:GetPrediction(target,myHero,YasuoQ3,true,false)
 				if q3Pred and q3Pred.HitChance >= 3 then
-					DelayAction(function() CastSkillShot(_Q, q3Pred.CastPosition) end, 0.25)
+					CastSkillShot(_Q, q3Pred.CastPosition)
 				end
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 4 then
 				local Q3Spell = IPrediction.Prediction({name="YasuoQ3W", range=YasuoQ3.range, speed=YasuoQ3.speed, delay=YasuoQ3.delay, width=YasuoQ3.width, type="linear", collision=false})
@@ -7628,12 +7645,12 @@ function useQ3(target)
 				target = ts:GetTarget(YasuoQ3.range)
 				local x, y = Q3Spell:Predict(target)
 				if x > 2 then
-					DelayAction(function() CastSkillShot(_Q, y.x, y.y, y.z) end, 0.25)
+					CastSkillShot(_Q, y.x, y.y, y.z)
 				end
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 5 then
 				local Q3Prediction = GetPrediction(target,YasuoQ3)
 				if Q3Prediction.hitChance > 0.9 then
-					DelayAction(function() CastSkillShot(_Q, Q3Prediction.castPos) end, 0.25)
+					CastSkillShot(_Q, Q3Prediction.castPos)
 				end
 			end
 		end
@@ -7671,18 +7688,18 @@ end)
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if YasuoMenu.Auto.UseQ:Value() then
 		if CanUseSpell(myHero,_Q) == READY then
-			DelayAction(function() useQ(target) end, 0.25)
+			useQ(target)
 		end
 	end
 	if YasuoMenu.Auto.UseQ3:Value() then
 		if CanUseSpell(myHero,_Q) == READY then
-			useQ3(target)
+			DelayAction(function() useQ3(target) end, GetWindUp(myHero))
 		end
 	end
-end)
+end
 
 -- Combo
 
@@ -7695,7 +7712,11 @@ function Combo()
 		end
 		if YasuoMenu.Combo.UseQ3:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				useQ3(target)
+				if YasuoMenu.Auto.UseQ3:Value() then
+					useQ3(target)
+				else
+					DelayAction(function() useQ3(target) end, GetWindUp(myHero))
+				end
 			end
 		end
 		if YasuoMenu.Combo.UseE:Value() then
@@ -7706,8 +7727,8 @@ function Combo()
 					elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > YasuoE.range then
 						for _, minion in pairs(minionManager.objects) do
 							if GetTeam(minion) == MINION_ENEMY and GetDistance(minion) <= YasuoE.range then
-								EPos = Vector(myHero)+(Vector(target)-Vector(myHero)):normalized()*YasuoE.range
-								if GetDistance(EPos,target) < GetDistance(minion,target) then
+								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero, target, minion)
+								if isOnSegment then
 									useE(minion)
 								end
 							end
@@ -7737,7 +7758,11 @@ function Harass()
 		end
 		if YasuoMenu.Harass.UseQ3:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				useQ3(target)
+				if YasuoMenu.Auto.UseQ3:Value() then
+					useQ3(target)
+				else
+					DelayAction(function() useQ3(target) end, GetWindUp(myHero))
+				end
 			end
 		end
 		if YasuoMenu.Harass.UseE:Value() then
@@ -7748,8 +7773,8 @@ function Harass()
 					elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > YasuoE.range then
 						for _, minion in pairs(minionManager.objects) do
 							if GetTeam(minion) == MINION_ENEMY and GetDistance(minion) <= YasuoE.range then
-								EPos = Vector(myHero)+(Vector(target)-Vector(myHero)):normalized()*YasuoE.range
-								if GetDistance(EPos,target) < GetDistance(minion,target) then
+								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero, target, minion)
+								if isOnSegment then
 									useE(minion)
 								end
 							end
@@ -8048,6 +8073,7 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+		Auto()
 		Combo()
 		Harass()
 		LastHit()
@@ -8098,7 +8124,7 @@ end
 
 -- Auto
 
-OnTick(function(myHero)
+function Auto()
 	if ZedMenu.Auto.UseQ:Value() then
 		if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_W) == ONCOOLDOWN then
 			if ValidTarget(target, ZedQ.range) then
@@ -8113,7 +8139,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Combo
 
