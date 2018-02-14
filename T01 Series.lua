@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.3
+-- Current version: 1.1.5.4
 -- Intermediate GoS script which supports currently 17 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Ryze,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5.4
+-- + Improved Syndra's Q+E & R
 -- 1.1.5.3
 -- + Improved Yasuo
 -- + Minor code optimization
@@ -107,7 +109,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.153
+local TSVer = 1.154
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -4124,33 +4126,14 @@ end
 local function CountBalls(table)
 	local count = 0
 	for _ in pairs(table) do 
-		count = count + 1 
+		count = count + 1
 	end
 	return count
 end
-OnCreateObj(function(Object)
-	if GetObjectBaseName(Object) == "Missile" then
+OnCreateObj(function(Object) 
+	if GetObjectBaseName(Object) == "Seed" then
 		table.insert(Seed, Object)
 		DelayAction(function() table.remove(Seed, 1) end, 6)
-	end
-end)
-OnDeleteObj(function(Object)
-	if GetObjectBaseName(Object) == "Missile" then
-		for i,rip in pairs(Seed) do
-			if GetNetworkID(Object) == GetNetworkID(rip) then
-				table.remove(Seed,i)
-			end
-		end
-	end
-end)
-OnObjectLoad(function(Object)
-	if GetObjectBaseName(Object) == "Seed" then
-		Seed = Object
-	end
-end)
-OnCreateObj(function(Object)
-	if GetObjectBaseName(Object) == "Seed" then
-		Seed = Object
 	end
 end)
 
@@ -4214,9 +4197,12 @@ function Combo()
 		if SyndraMenu.Combo.UseQE:Value() then
 			if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, 1250) then
-					local QPos = Vector(myHero)-500*(Vector(myHero)-Vector(target)):normalized()
-					CastSkillShot(_Q, QPos)
-					DelayAction(function() CastSkillShot(_E, QPos) end, 0.25)
+					local QEPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1600,250,1250,60,false,true)
+					if QEPred.HitChance == 1 then
+						local QPos = Vector(myHero)-500*(Vector(myHero)-Vector(QEPred.PredPos)):normalized()
+						CastSkillShot(_Q, QPos)
+						DelayAction(function() CastSkillShot(_E, QPos) end, 0.25)
+					end
 				end
 			end
 		end
@@ -4264,7 +4250,7 @@ function KillSteal()
 		if SyndraMenu.KillSteal.UseR:Value() then
 			if ValidTarget(enemy, SyndraR.range) then
 				if CanUseSpell(myHero,_R) == READY then
-					local RMulti = CountBalls(Seed) < 0 and 3 or CountBalls(Seed) > 0 and 3 + CountBalls(Seed) or 3
+					local RMulti = CountBalls(Seed)+3
 					local SyndraRDmg = ((45*GetCastLevel(myHero,_R)+45)+(0.2*GetBonusAP(myHero)))*RMulti
 					if GetCurrentHP(enemy) < SyndraRDmg then
 						CastTargetSpell(enemy, _R)
