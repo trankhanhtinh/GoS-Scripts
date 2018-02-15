@@ -5002,7 +5002,7 @@ end)
 
 function Auto()
 	if TwistedFateMenu.Auto.UseQ:Value() then
-		if CanUseSpell(myHero,_Q) == READY and AA == true
+		if CanUseSpell(myHero,_Q) == READY and AA == true then
 			if ValidTarget(target, TwistedFateQ.range) then
 				if TwistedFateMenu.Auto.ModeQ:Value() == 1 then
 					useQ(target)
@@ -5021,7 +5021,7 @@ end
 function Combo()
 	if Mode() == "Combo" then
 		if TwistedFateMenu.Combo.UseQ:Value() then
-			if CanUseSpell(myHero,_Q) == READY and AA == true
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
 				if ValidTarget(target, TwistedFateQ.range) then
 					if TwistedFateMenu.Combo.ModeQ:Value() == 1 then
 						useQ(target)
@@ -5092,7 +5092,7 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if TwistedFateMenu.Harass.UseQ:Value() then
-			if CanUseSpell(myHero,_Q) == READY and AA == true
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
 				if ValidTarget(target, TwistedFateQ.range) then
 					if TwistedFateMenu.Harass.ModeQ:Value() == 1 then
 						useQ(target)
@@ -5223,7 +5223,7 @@ end
 
 function LaneClear()
 	if Mode() == "LaneClear" then
-		if TwistedFateMenu.LaneClear.UseQ:Value() and AA == true
+		if TwistedFateMenu.LaneClear.UseQ:Value() and AA == true then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TwistedFateMenu.Misc.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
 					local BestPos, BestHit = GetLineFarmPosition(TwistedFateQ.range, TwistedFateQ.radius, MINION_ENEMY)
@@ -5285,7 +5285,7 @@ function JungleClear()
 	if Mode() == "LaneClear" then
 		for _,mob in pairs(minionManager.objects) do
 			if GetTeam(mob) == 300 then
-				if CanUseSpell(myHero,_Q) == READY and AA == true
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
 					if ValidTarget(mob, TwistedFateQ.range) then
 						if TwistedFateMenu.JungleClear.UseQ:Value() then
 							CastSkillShot(_Q,GetOrigin(mob))
