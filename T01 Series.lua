@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.6.1
+-- Current version: 1.1.6.2
 -- Intermediate GoS script which supports currently 18 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6.2
+-- + Minor changes for Orianna
 -- 1.1.6.1
 -- + Removed LastHit from TwistedFate
 -- 1.1.6
@@ -113,7 +115,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.161
+local TSVer = 1.162
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -3480,7 +3482,7 @@ local OriannaMenu = Menu("[T01] Orianna", "[T01] Orianna")
 OriannaMenu:Menu("Auto", "Auto")
 OriannaMenu.Auto:Boolean('UseQ', 'Use Q [Command Attack]', true)
 OriannaMenu.Auto:Boolean('UseW', 'Use W [Command Dissonance]', true)
-OriannaMenu.Auto:Boolean('UseR', 'Use R [Command Shockwave]', true)
+OriannaMenu.Auto:Boolean('UseR', 'Use R [Command Shockwave]', false)
 OriannaMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 OriannaMenu:Menu("Combo", "Combo")
 OriannaMenu.Combo:Boolean('UseQ', 'Use Q [Command Attack]', true)
@@ -3538,7 +3540,7 @@ end
 
 local OriannaQ = { range = 825, radius = 175, width = 350, speed = 1400, delay = 0.25, type = "linear", collision = false, source = myHero }
 local OriannaW = { range = 250 }
-local OriannaE = { range = 1100, radius = 60 }
+local OriannaE = { range = 1125, radius = 60 }
 local OriannaR = { range = 325 }
 
 OnDraw(function(myHero)
@@ -3705,7 +3707,7 @@ function Auto()
 	if OriannaMenu.Auto.UseW:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_W) == READY then
-				if GetDistance(Ball, target) <= OriannaW.range then
+				if ValidTarget(target, OriannaE.range) and GetDistance(Ball, target) <= OriannaW.range then
 					useW(target)
 				end
 			end
@@ -3740,7 +3742,7 @@ function Combo()
 		end
 		if OriannaMenu.Combo.UseW:Value() then
 			if CanUseSpell(myHero,_W) == READY then
-				if GetDistance(Ball, target) <= OriannaW.range then
+				if ValidTarget(target, OriannaE.range) and GetDistance(Ball, target) <= OriannaW.range then
 					useW(target)
 				end
 			end
@@ -3757,9 +3759,11 @@ function Combo()
 		end
 		if OriannaMenu.Combo.UseR:Value() then
 			if CanUseSpell(myHero,_R) == READY then
-				if 100*GetCurrentHP(target)/GetMaxHP(target) < OriannaMenu.Misc.HP:Value() then
-					if EnemiesAround(GetOrigin(Ball), OriannaR.range) >= OriannaMenu.Misc.X:Value() then
-						useR(target)
+				if ValidTarget(target, OriannaE.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < OriannaMenu.Misc.HP:Value() then
+						if EnemiesAround(GetOrigin(Ball), OriannaR.range) >= OriannaMenu.Misc.X:Value() then
+							useR(target)
+						end
 					end
 				end
 			end
@@ -3783,7 +3787,7 @@ function Harass()
 		if OriannaMenu.Harass.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY then
-					if GetDistance(Ball, target) <= OriannaW.range then
+					if ValidTarget(target, OriannaE.range) and GetDistance(Ball, target) <= OriannaW.range then
 						useW(target)
 					end
 				end
@@ -3810,7 +3814,7 @@ function KillSteal()
 	for i,enemy in pairs(GetEnemyHeroes()) do
 		if CanUseSpell(myHero,_W) == READY then
 			if OriannaMenu.KillSteal.UseW:Value() then
-				if GetDistance(Ball, enemy) <= OriannaW.range then
+				if ValidTarget(enemy, OriannaE.range) and GetDistance(Ball, enemy) <= OriannaW.range then
 					local OriannaWDmg = (45*GetCastLevel(myHero,_W)+15)+(0.7*GetBonusAP(myHero))
 					if GetCurrentHP(enemy) < OriannaWDmg then
 						useR(enemy)
@@ -3819,7 +3823,7 @@ function KillSteal()
 			end
 		elseif CanUseSpell(myHero,_R) == READY then
 			if OriannaMenu.KillSteal.UseR:Value() then
-				if GetDistance(Ball, enemy) <= OriannaR.range then
+				if ValidTarget(enemy, OriannaE.range) and GetDistance(Ball, enemy) <= OriannaR.range then
 					local OriannaRDmg = (75*GetCastLevel(myHero,_R)+75)+(0.7*GetBonusAP(myHero))
 					if GetCurrentHP(enemy) < OriannaRDmg then
 						useR(enemy)
@@ -3895,7 +3899,7 @@ end
 
 addInterrupterCallback(function(target, spellType, spell)
 	if OriannaMenu.Interrupter.UseR:Value() then
-		if GetDistance(Ball, enemy) <= OriannaR.range then
+		if ValidTarget(target, OriannaE.range) and GetDistance(Ball, enemy) <= OriannaR.range then
 			if CanUseSpell(myHero,_R) == READY then
 				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
 					useR(target)
