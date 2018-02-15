@@ -8048,36 +8048,41 @@ function useQ3(target)
 	if GetCastRange(myHero,_Q) > 600 then
 		if GetDistance(target) < YasuoQ3.range then
 			if YasuoMenu.Prediction.PredictionQ3:Value() == 1 then
-				CastSkillShot(_Q,GetOrigin(target))
+				DelayAction(function() CastSkillShot(_Q,GetOrigin(target)) end, GetWindUp(myHero))
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 2 then
-				local Q3Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),YasuoQ3.speed,YasuoQ3.delay*1000,YasuoQ3.range,YasuoQ3.width,false,true)
-				if Q3Pred.HitChance == 1 then
-					CastSkillShot(_Q, Q3Pred.PredPos)
-				end
+				DelayAction(function()
+					local Q3Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),YasuoQ3.speed,YasuoQ3.delay*1000,YasuoQ3.range,YasuoQ3.width,false,true)
+					if Q3Pred.HitChance == 1 then
+						CastSkillShot(_Q, Q3Pred.PredPos)
+					end
+				end, GetWindUp(myHero))
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 3 then
-				local q3Pred = _G.gPred:GetPrediction(target,myHero,YasuoQ3,true,false)
-				if q3Pred and q3Pred.HitChance >= 3 then
-					CastSkillShot(_Q, q3Pred.CastPosition)
-				end
+				DelayAction(function()
+					local q3Pred = _G.gPred:GetPrediction(target,myHero,YasuoQ3,true,false)
+					if q3Pred and q3Pred.HitChance >= 3 then
+						CastSkillShot(_Q, q3Pred.CastPosition)
+					end
+				end, GetWindUp(myHero))
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 4 then
-				local Q3Spell = IPrediction.Prediction({name="YasuoQ3W", range=YasuoQ3.range, speed=YasuoQ3.speed, delay=YasuoQ3.delay, width=YasuoQ3.width, type="linear", collision=false})
-				ts = TargetSelector()
-				target = ts:GetTarget(YasuoQ3.range)
-				local x, y = Q3Spell:Predict(target)
-				if x > 2 then
-					CastSkillShot(_Q, y.x, y.y, y.z)
-				end
+				DelayAction(function()
+					local Q3Spell = IPrediction.Prediction({name="YasuoQ3W", range=YasuoQ3.range, speed=YasuoQ3.speed, delay=YasuoQ3.delay, width=YasuoQ3.width, type="linear", collision=false})
+					ts = TargetSelector()
+					target = ts:GetTarget(YasuoQ3.range)
+					local x, y = Q3Spell:Predict(target)
+					if x > 2 then
+						CastSkillShot(_Q, y.x, y.y, y.z)
+					end
+				end, GetWindUp(myHero))
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 5 then
-				local Q3Prediction = GetPrediction(target,YasuoQ3)
-				if Q3Prediction.hitChance > 0.9 then
-					CastSkillShot(_Q, Q3Prediction.castPos)
-				end
+				DelayAction(function()
+					local Q3Prediction = GetPrediction(target,YasuoQ3)
+					if Q3Prediction.hitChance > 0.9 then
+						CastSkillShot(_Q, Q3Prediction.castPos)
+					end
+				end, GetWindUp(myHero))
 			end
 		end
 	end
-end
-function useW(target)
-	CastSkillShot(_W,GetOrigin(target))
 end
 function useE(target)
 	CastTargetSpell(target, _E)
@@ -8132,11 +8137,7 @@ function Combo()
 		end
 		if YasuoMenu.Combo.UseQ3:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if YasuoMenu.Auto.UseQ3:Value() then
-					useQ3(target)
-				else
-					DelayAction(function() useQ3(target) end, GetWindUp(myHero))
-				end
+				useQ3(target)
 			end
 		end
 		if YasuoMenu.Combo.UseE:Value() then
@@ -8178,11 +8179,7 @@ function Harass()
 		end
 		if YasuoMenu.Harass.UseQ3:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if YasuoMenu.Auto.UseQ3:Value() then
-					useQ3(target)
-				else
-					DelayAction(function() useQ3(target) end, GetWindUp(myHero))
-				end
+				useQ3(target)
 			end
 		end
 		if YasuoMenu.Harass.UseE:Value() then
