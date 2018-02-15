@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.6
+-- Current version: 1.1.6.1
 -- Intermediate GoS script which supports currently 18 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6.1
+-- + Removed LastHit from TwistedFate
 -- 1.1.6
 -- + Added Orianna
 -- 1.1.5.4
@@ -111,7 +113,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.16
+local TSVer = 1.161
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -4862,6 +4864,7 @@ end
 elseif "TwistedFate" == GetObjectName(myHero) then
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>TwistedFate loaded successfully!")
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>TIP: Use IOW orbwalker for perfect AA.")
 local TwistedFateMenu = Menu("[T01] TwistedFate", "[T01] TwistedFate")
 TwistedFateMenu:Menu("Auto", "Auto")
 TwistedFateMenu.Auto:Boolean('UseQ', 'Use Q [Wild Cards]', true)
@@ -4880,8 +4883,6 @@ TwistedFateMenu.Harass:DropDown("ModeW", "Cast Mode: W", 2, {"Priority", "Smart"
 TwistedFateMenu.Harass:DropDown("PickW", "Priority: W", 3, {"Blue", "Red", "Gold"})
 TwistedFateMenu:Menu("KillSteal", "KillSteal")
 TwistedFateMenu.KillSteal:Boolean('UseQ', 'Use Q [Wild Cards]', true)
-TwistedFateMenu:Menu("LastHit", "LastHit")
-TwistedFateMenu.LastHit:Boolean('UseW', 'Use W [Urchin Strike]', true)
 TwistedFateMenu:Menu("LaneClear", "LaneClear")
 TwistedFateMenu.LaneClear:Boolean('UseQ', 'Use Q [Wild Cards]', true)
 TwistedFateMenu.LaneClear:Boolean('UseW', 'Use W [Pick a Card]', false)
@@ -4953,7 +4954,6 @@ OnTick(function(myHero)
 		Combo()
 		Harass()
 		KillSteal()
-		LastHit()
 		LaneClear()
 		JungleClear()
 end)
@@ -5168,50 +5168,6 @@ function KillSteal()
 					local TwistedFateQDmg = (45*GetCastLevel(myHero,_Q)+15)+(0.65*GetBonusAP(myHero))
 					if GetCurrentHP(enemy) < TwistedFateQDmg then
 						useQ(enemy)
-					end
-				end
-			end
-		end
-	end
-end
-
--- LastHit
-
-function LastHit()
-	if Mode() == "LaneClear" then
-		for _, minion in pairs(minionManager.objects) do
-			if GetTeam(minion) == MINION_ENEMY then
-				if ValidTarget(minion, GetRange(myHero)+100) then
-					if TwistedFateMenu.LastHit.UseW:Value() then
-						if CanUseSpell(myHero,_W) == READY then
-							local TwistedFateWDmg = (20*GetCastLevel(myHero,_W)+20)+(0.5*GetBonusAP(myHero))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-							local MinionToLastHit = minion
-							if GetCurrentHP(MinionToLastHit) < TwistedFateWDmg then
-								if GotBuff(myHero, "pickacard_tracker") == 0 then
-									local TimerW = GetTickCount()
-									if (GlobalTimer + 1000) < TimerW then
-										CastSpell(_W)
-										GlobalTimer = TimerW
-									end
-								else
-									if CurrentCard == "Blue" then
-										if _G.IOW then
-											IOW:ResetAA()
-										elseif _G.GoSWalkLoaded then
-											GoSWalk:ResetAttack()
-										end
-										CastSpell(_W)
-										AttackUnit(MinionToLastHit)
-										CurrentCard = "nil"
-										if _G.IOW then
-											IOW:ResetAA()
-										elseif _G.GoSWalkLoaded then
-											GoSWalk:ResetAttack()
-										end
-									end
-								end
-							end
-						end
 					end
 				end
 			end
