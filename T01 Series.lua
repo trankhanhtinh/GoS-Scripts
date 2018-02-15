@@ -8,11 +8,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.4
--- Intermediate GoS script which supports currently 17 champions.
+-- Current version: 1.1.6
+-- Intermediate GoS script which supports currently 18 champions.
 -- Features:
--- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Ryze,
---   Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
+--   Ryze, Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + contains special damage indicator​ over HP bar of enemy,
 -- + extended HP-Manager and Mana-Manager,
 -- + uses offensive items while doing Combo,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6
+-- + Added Orianna
 -- 1.1.5.4
 -- + Improved Syndra's Q+E & R
 -- 1.1.5.3
@@ -109,7 +111,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.154
+local TSVer = 1.16
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -3463,6 +3465,482 @@ OnTick(function(myHero)
 	end
 end)
 
+-- Orianna
+
+elseif "Orianna" == GetObjectName(myHero) then
+
+require('Interrupter')
+
+local Ball = myHero
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Orianna loaded successfully!")
+local OriannaMenu = Menu("[T01] Orianna", "[T01] Orianna")
+OriannaMenu:Menu("Auto", "Auto")
+OriannaMenu.Auto:Boolean('UseQ', 'Use Q [Command Attack]', true)
+OriannaMenu.Auto:Boolean('UseW', 'Use W [Command Dissonance]', true)
+OriannaMenu.Auto:Boolean('UseR', 'Use R [Command Shockwave]', true)
+OriannaMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+OriannaMenu:Menu("Combo", "Combo")
+OriannaMenu.Combo:Boolean('UseQ', 'Use Q [Command Attack]', true)
+OriannaMenu.Combo:Boolean('UseW', 'Use W [Command Dissonance]', true)
+OriannaMenu.Combo:Boolean('UseE', 'Use E [Command Protect]', true)
+OriannaMenu.Combo:Boolean('UseR', 'Use R [Command Shockwave]', true)
+OriannaMenu:Menu("Harass", "Harass")
+OriannaMenu.Harass:Boolean('UseQ', 'Use Q [Command Attack]', true)
+OriannaMenu.Harass:Boolean('UseW', 'Use W [Command Dissonance]', true)
+OriannaMenu.Harass:Boolean('UseE', 'Use E [Command Protect]', true)
+OriannaMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+OriannaMenu:Menu("KillSteal", "KillSteal")
+OriannaMenu.KillSteal:Boolean('UseW', 'Use W [Command Dissonance]', true)
+OriannaMenu.KillSteal:Boolean('UseR', 'Use R [Command Shockwave]', true)
+OriannaMenu:Menu("LaneClear", "LaneClear")
+OriannaMenu.LaneClear:Boolean('UseQ', 'Use Q [Command Attack]', true)
+OriannaMenu.LaneClear:Boolean('UseW', 'Use W [Command Dissonance]', true)
+OriannaMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+OriannaMenu:Menu("JungleClear", "JungleClear")
+OriannaMenu.JungleClear:Boolean('UseQ', 'Use Q [Command Attack]', true)
+OriannaMenu.JungleClear:Boolean('UseW', 'Use W [Command Dissonance]', true)
+OriannaMenu.JungleClear:Boolean('UseE', 'Use E [Command Protect]', true)
+OriannaMenu:Menu("Interrupter", "Interrupter")
+OriannaMenu.Interrupter:Boolean('UseR', 'Use R [Command Shockwave]', true)
+OriannaMenu:Menu("Prediction", "Prediction")
+OriannaMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "IPrediction", "OpenPredict"})
+OriannaMenu:Menu("Drawings", "Drawings")
+OriannaMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+OriannaMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+OriannaMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+OriannaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+OriannaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+OriannaMenu:Menu("Misc", "Misc")
+OriannaMenu.Misc:Key("UseE", "Force E Key", string.byte("A"))
+OriannaMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
+OriannaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+OriannaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+OriannaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+
+function Mode()
+	if _G.IOW_Loaded and IOW:Mode() then
+		return IOW:Mode()
+	elseif _G.PW_Loaded and PW:Mode() then
+		return PW:Mode()
+	elseif _G.DAC_Loaded and DAC:Mode() then
+		return DAC:Mode()
+	elseif _G.AutoCarry_Loaded and DACR:Mode() then
+		return DACR:Mode()
+	elseif _G.SLW_Loaded and SLW:Mode() then
+		return SLW:Mode()
+	elseif GoSWalkLoaded and GoSWalk.CurrentMode then
+		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
+	end
+end
+
+local OriannaQ = { range = 825, radius = 175, width = 350, speed = 1400, delay = 0.25, type = "linear", collision = false, source = myHero }
+local OriannaW = { range = 250 }
+local OriannaE = { range = 1100, radius = 60 }
+local OriannaR = { range = 325 }
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if OriannaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,OriannaQ.range,1,25,0xff00bfff) end
+if OriannaMenu.Drawings.DrawW:Value() then DrawCircle(GetOrigin(Ball),OriannaW.range,1,25,0xff4169e1) end
+if OriannaMenu.Drawings.DrawE:Value() then DrawCircle(pos,OriannaE.range,1,25,0xff1e90ff) end
+if OriannaMenu.Drawings.DrawR:Value() then DrawCircle(GetOrigin(Ball),OriannaR.range,1,25,0xff0000ff) end
+end)
+
+OnDraw(function(myHero)
+	local target = GetCurrentTarget()
+	local QDmg = (30*GetCastLevel(myHero,_Q)+30)+(0.5*GetBonusAP(myHero))
+	local WDmg = (45*GetCastLevel(myHero,_W)+15)+(0.7*GetBonusAP(myHero))
+	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.3*GetBonusAP(myHero))
+	local RDmg = (75*GetCastLevel(myHero,_R)+75)+(0.7*GetBonusAP(myHero))
+	local ComboDmg = QDmg + WDmg + EDmg + RDmg
+	local WERDmg = WDmg + EDmg + RDmg
+	local QERDmg = QDmg + EDmg + RDmg
+	local QWRDmg = QDmg + WDmg + RDmg
+	local QWEDmg = QDmg + WDmg + EDmg
+	local ERDmg = EDmg + RDmg
+	local WRDmg = WDmg + RDmg
+	local QRDmg = QDmg + RDmg
+	local WEDmg = WDmg + EDmg
+	local QEDmg = QDmg + EDmg
+	local QWDmg = QDmg + WDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if OriannaMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Auto()
+		Combo()
+		Harass()
+		KillSteal()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	if GetDistance(target) < OriannaQ.range then
+		if OriannaMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif OriannaMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),OriannaQ.speed,OriannaQ.delay*1000,OriannaQ.range,OriannaQ.width,false,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif OriannaMenu.Prediction.PredictionQ:Value() == 3 then
+			local QSpell = IPrediction.Prediction({name="OrianaIzunaCommand", range=OriannaQ.range, speed=OriannaQ.speed, delay=OriannaQ.delay, width=OriannaQ.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(OriannaQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif OriannaMenu.Prediction.PredictionQ:Value() == 4 then
+			local QPrediction = GetLinearAOEPrediction(target,OriannaQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	CastSpell(_W)
+end
+function useR(target)
+	CastSpell(_R)
+end
+
+local Missiles = {}
+OnCreateObj(function(Object) 
+	if GetObjectBaseName(Object) == "missile" then
+		table.insert(Missiles,Object) 
+	end
+end)
+OnDeleteObj(function(Object)
+	if GetObjectBaseName(Object) == "missile" then
+		for i,rip in pairs(Missiles) do
+			if GetNetworkID(Object) == GetNetworkID(rip) then
+				table.remove(Missiles,i) 
+			end
+		end
+	end
+end)
+OnProcessSpell(function(unit, spell)
+	if unit == myHero and spell.name == "OrianaRedactCommand" then 
+		Ball = spell.target
+	end
+end)
+OnObjectLoad(function(Object)  
+	if GetObjectBaseName(Object) == "Orianna_Base_Q_yomu_ring_green.troy" then
+		Ball = Object
+	end
+end)
+OnCreateObj(function(Object) 
+	if GetObjectBaseName(Object) == "Orianna_Base_Q_yomu_ring_green.troy" then
+		Ball = Object
+	end
+end)
+OnUpdateBuff(function(unit,buff)
+	if unit == myHero and buff.Name == "orianaghostself" then
+		Ball = myHero
+	end
+end)
+OnTick(function(myHero)
+	for _,missile in pairs(Missiles) do
+		if GetObjectSpellOwner(missile) == myHero and GetObjectSpellName(missile) == "orianaizuna" then
+			Ball = missile
+		end
+	end
+end)
+
+-- Auto
+
+function Auto()
+	if OriannaMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, OriannaQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if OriannaMenu.Auto.UseW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if GetDistance(Ball, target) <= OriannaW.range then
+					useW(target)
+				end
+			end
+		end
+	end
+	if OriannaMenu.Auto.UseR:Value() then
+		if CanUseSpell(myHero,_R) == READY then
+			if 100*GetCurrentHP(target)/GetMaxHP(target) < OriannaMenu.Misc.HP:Value() then
+				if EnemiesAround(GetOrigin(Ball), OriannaR.range) >= OriannaMenu.Misc.X:Value() then
+					useR(target)
+				end
+			end
+		end
+	end
+	if OriannaMenu.Misc.UseE:Value() then
+		if CanUseSpell(myHero,_E) == READY then
+			CastTargetSpell(myHero, _E)
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if OriannaMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, OriannaQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if OriannaMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if GetDistance(Ball, target) <= OriannaW.range then
+					useW(target)
+				end
+			end
+		end
+		if OriannaMenu.Combo.UseE:Value() then
+			if Ball ~= myHero and CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, OriannaE.range) then
+					local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(GetOrigin(myHero), GetOrigin(target), Vector(Ball))
+					if pointLine and GetDistance(pointSegment, target) < OriannaE.radius then
+						CastTargetSpell(myHero, _E)
+					end
+				end
+			end
+		end
+		if OriannaMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if 100*GetCurrentHP(target)/GetMaxHP(target) < OriannaMenu.Misc.HP:Value() then
+					if EnemiesAround(GetOrigin(Ball), OriannaR.range) >= OriannaMenu.Misc.X:Value() then
+						useR(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if OriannaMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, OriannaQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if OriannaMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if GetDistance(Ball, target) <= OriannaW.range then
+						useW(target)
+					end
+				end
+			end
+		end
+		if OriannaMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.Harass.MP:Value() then
+				if Ball ~= myHero and CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, OriannaE.range) then
+						local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(GetOrigin(myHero), GetOrigin(target), Vector(Ball))
+						if pointLine and GetDistance(pointSegment, target) < OriannaE.radius then
+							CastTargetSpell(myHero, _E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if OriannaMenu.KillSteal.UseW:Value() then
+				if GetDistance(Ball, enemy) <= OriannaW.range then
+					local OriannaWDmg = (45*GetCastLevel(myHero,_W)+15)+(0.7*GetBonusAP(myHero))
+					if GetCurrentHP(enemy) < OriannaWDmg then
+						useR(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if OriannaMenu.KillSteal.UseR:Value() then
+				if GetDistance(Ball, enemy) <= OriannaR.range then
+					local OriannaRDmg = (75*GetCastLevel(myHero,_R)+75)+(0.7*GetBonusAP(myHero))
+					if GetCurrentHP(enemy) < OriannaRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if OriannaMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					local BestPos, BestHit = GetLineFarmPosition(OriannaQ.range, OriannaQ.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then
+						CastSkillShot(_Q, BestPos)
+					end
+				end
+			end
+		end
+		if OriannaMenu.LaneClear.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > OriannaMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if MinionsAround(GetOrigin(Ball), OriannaW.range) > 2 then
+						CastSpell(_W)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, OriannaQ.range) then
+						if OriannaMenu.JungleClear.UseQ:Value() then
+							CastSkillShot(_Q, mob)
+						end
+					end
+				end
+				if CanUseSpell(myHero,_W) == READY then
+					if GetDistance(Ball, mob) <= OriannaW.range then
+						if OriannaMenu.JungleClear.UseW:Value() then
+							CastSpell(_W)
+						end
+					end
+				end
+				if Ball ~= myHero and CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, OriannaE.range) then
+						if OriannaMenu.JungleClear.UseE:Value() then
+							local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(GetOrigin(myHero), GetOrigin(mob), GetOrigin(Ball))
+							if pointLine and GetDistance(pointSegment, mob) <= OriannaE.radius then
+								CastTargetSpell(myHero, _E)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+addInterrupterCallback(function(target, spellType, spell)
+	if OriannaMenu.Interrupter.UseR:Value() then
+		if GetDistance(Ball, enemy) <= OriannaR.range then
+			if CanUseSpell(myHero,_R) == READY then
+				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
+					useR(target)
+				end
+			end
+		end
+	end
+end)
+
+-- Misc
+
+OnTick(function(myHero)
+	if OriannaMenu.Misc.LvlUp:Value() then
+		if OriannaMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif OriannaMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif OriannaMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif OriannaMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif OriannaMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif OriannaMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
 -- Ryze
 
 elseif "Ryze" == GetObjectName(myHero) then
@@ -3971,7 +4449,7 @@ function Mode()
 	end
 end
 
-local SyndraQ = { range = 800, radius = 150, width = 300, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
+local SyndraQ = { range = 800, radius = 200, width = 400, speed = math.huge, delay = 0.625, type = "circular", collision = false, source = myHero }
 local SyndraW = { range = 950, radius = 225, width = 450, speed = 1450, delay = 0.25, type = "circular", collision = false, source = myHero }
 local SyndraE = { range = 700, angle = 40, radius = 40, width = 80, speed = 2500, delay = 0.25, type = "cone", collision = false, source = myHero }
 local SyndraR = { range = GetCastRange(myHero,_R) }
@@ -4197,7 +4675,7 @@ function Combo()
 		if SyndraMenu.Combo.UseQE:Value() then
 			if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, 1250) then
-					local QEPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1600,250,1250,60,false,true)
+					local QEPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1600,250,1250,50,false,true)
 					if QEPred.HitChance == 1 then
 						local QPos = Vector(myHero)-500*(Vector(myHero)-Vector(QEPred.PredPos)):normalized()
 						CastSkillShot(_Q, QPos)
