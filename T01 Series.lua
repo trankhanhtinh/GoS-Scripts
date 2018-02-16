@@ -7970,6 +7970,7 @@ local YasuoQ3 = { range = 1000, radius = 75, width = 150, speed = 1500, delay = 
 local YasuoW = { range = 400 }
 local YasuoE = { range = 475 }
 local YasuoR = { range = 1400 }
+local ETravelTime = true
 
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
@@ -8097,7 +8098,7 @@ end
 OnSpellCast(function(spell)
 	if spell.spellID == _E then
 		ETravelTime = false
-		DelayAction(function() ETravelTime = true end, 0.57)
+		DelayAction(function() ETravelTime = true end, 0.6)
 	end
 end)
 
@@ -8154,9 +8155,11 @@ function Combo()
 					end
 				elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > GetRange(myHero) then
 					for _, minion in pairs(minionManager.objects) do
-						local Dash = ClosestMinion(GetMousePos(), GetTeam(minion))
-						if GetDistance(Dash) <= YasuoE.range and GotBuff(Dash, "YasuoDashWrapper") == 0 then
-							useE(Dash)
+						if GetDistance(minion) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+							local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(GetOrigin(myHero), GetOrigin(target), GetOrigin(minion))
+							if isOnSegment and GetDistance(pointSegment, minion) < 300 then
+								useE(minion)
+							end
 						end
 					end
 				end
@@ -8194,9 +8197,11 @@ function Harass()
 					end
 				elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > GetRange(myHero) then
 					for _, minion in pairs(minionManager.objects) do
-						local Dash = ClosestMinion(GetMousePos(), GetTeam(minion))
-						if GetDistance(Dash) <= YasuoE.range and GotBuff(Dash, "YasuoDashWrapper") == 0 then
-							useE(Dash)
+						if GetDistance(minion) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+							local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(GetOrigin(myHero), GetOrigin(target), GetOrigin(minion))
+							if isOnSegment and GetDistance(pointSegment, minion) < 300 then
+								useE(minion)
+							end
 						end
 					end
 				end
