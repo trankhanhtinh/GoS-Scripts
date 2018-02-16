@@ -8602,7 +8602,7 @@ function Combo()
 		end
 		if ZedMenu.Combo.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if ValidTarget(target, ZedW.range) then
+				if ValidTarget(target, ZedW.range-10) then
 					DelayAction(function() useQ(target) end, 0.1)
 				end
 			end
@@ -8646,7 +8646,7 @@ function Harass()
 		end
 		if ZedMenu.Harass.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if ValidTarget(target, ZedW.range) then
+				if ValidTarget(target, ZedW.range-10) then
 					DelayAction(function() useQ(target) end, 0.1)
 				end
 			end
