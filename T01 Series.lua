@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.6.2
+-- Current version: 1.1.6.3
 -- Intermediate GoS script which supports currently 18 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6.3
+-- + Corrected spells data
 -- 1.1.6.2
 -- + Minor changes for Orianna
 -- 1.1.6.1
@@ -115,7 +117,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.162
+local TSVer = 1.163
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -1664,7 +1666,7 @@ FizzMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local FizzQ = { range = 550 }
 local FizzE = { range = 400 }
-local FizzR = { range = 1300, radius = 100, width = 200, speed = 1300, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local FizzR = { range = 1300, radius = 120, width = 240, speed = 1300, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
@@ -2691,7 +2693,7 @@ KatarinaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local KatarinaQ = { range = 625 }
 local KatarinaW = { range = 340 }
-local KatarinaE = { range = 725, radius = 100, width = 200, speed = math.huge, delay = 0.15, type = "circular", collision = false, source = myHero }
+local KatarinaE = { range = 725, radius = 150, width = 300, speed = math.huge, delay = 0.15, type = "circular", collision = false, source = myHero }
 local KatarinaR = { range = 550 }
 
 OnDraw(function(myHero)
@@ -3997,7 +3999,7 @@ RyzeMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 RyzeMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 RyzeMenu.Misc:Slider("MPT","Mana-Manager: Tear", 80, 0, 100, 5)
 
-local RyzeQ = { range = 1000, radius = 55, width = 110, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local RyzeQ = { range = 1000, radius = 50, width = 100, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local RyzeW = { range = 615 }
 local RyzeE = { range = 615 }
 local RyzeR = { range = GetCastRange(myHero,_R) }
@@ -4906,7 +4908,7 @@ TwistedFateMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 TwistedFateMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 TwistedFateMenu.Misc:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 
-local TwistedFateQ = { range = 1450, radius = 45, width = 90, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local TwistedFateQ = { range = 1450, radius = 35, width = 70, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local TwistedFateR = { range = GetCastRange(myHero,_R) }
 local GlobalTimer = 0
 
@@ -5757,9 +5759,9 @@ VeigarMenu:Menu("Misc", "Misc")
 VeigarMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VeigarMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 
-local VeigarQ = { range = 950, radius = 70, width = 140, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero }
-local VeigarW = { range = 900, radius = 250, width = 500, speed = math.huge, delay = 1.25, type = "circular", collision = false, source = myHero }
-local VeigarE = { range = 700, radius = 375, width = 750, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
+local VeigarQ = { range = 950, radius = 60, width = 120, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero }
+local VeigarW = { range = 900, radius = 225, width = 450, speed = math.huge, delay = 1.25, type = "circular", collision = false, source = myHero }
+local VeigarE = { range = 700, radius = 375, width = 750, speed = math.huge, delay = 0.75, type = "circular", collision = false, source = myHero }
 local VeigarR = { range = 650 }
 
 OnDraw(function(myHero)
@@ -6226,9 +6228,9 @@ ViktorMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ViktorMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local ViktorQ = { range = 600 }
-local ViktorW = { range = 700, radius = 300, width = 600, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
+local ViktorW = { range = 700, radius = 290, width = 580, speed = math.huge, delay = 1.3, type = "circular", collision = false, source = myHero }
 local ViktorE = { range = 1025, radius = 80, width = 160, speed = 1350, delay = 0, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
-local ViktorR = { range = 700, radius = 300, width = 600, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
+local ViktorR = { range = 700, radius = 290, width = 580, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
 
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
@@ -6673,7 +6675,7 @@ VladimirMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 local VladimirQ = { range = 600 }
 local VladimirW = { range = 300 }
 local VladimirE = { range = 600 }
-local VladimirR = { range = 700, radius = 175, width = 350, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
+local VladimirR = { range = 700, radius = 350, width = 700, speed = math.huge, delay = 0.389, type = "circular", collision = false, source = myHero }
 
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
@@ -7120,7 +7122,7 @@ XerathMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-
 XerathMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 XerathMenu.Misc:Slider("ED","Extended Delay: Q", 0.1, 0, 1, 0.05)
 
-local XerathQ = { range = 1400, radius = 72.5, width = 145, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
+local XerathQ = { range = 1400, radius = 75, width = 150, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
 local XerathW = { range = 1100, radius = 235, width = 470, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
 local XerathE = { range = 1050, radius = 60, width = 120, speed = 1350, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local XerathR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
@@ -7961,8 +7963,8 @@ OnProcessSpell(function(unit, spell)
 end)
 -- < #Deftsu
 
-local YasuoQ = { range = 475, radius = 40, width = 80, speed = math.huge, delay = GetWindUp(myHero), type = "line", collision = false, source = myHero }
-local YasuoQ3 = { range = 1000, radius = 90, width = 180, speed = math.huge, delay = GetWindUp(myHero), type = "line", col = {"yasuowall"}, collision = false, source = myHero }
+local YasuoQ = { range = 475, radius = 45, width = 90, speed = math.huge, delay = GetWindUp(myHero), type = "line", collision = false, source = myHero }
+local YasuoQ3 = { range = 1000, radius = 75, width = 150, speed = 1500, delay = GetWindUp(myHero), type = "line", col = {"yasuowall"}, collision = false, source = myHero }
 local YasuoW = { range = 400 }
 local YasuoE = { range = 475 }
 local YasuoR = { range = 1400 }
@@ -8446,8 +8448,8 @@ ZedMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E",
 ZedMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ZedMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local ZedQ = { range = 900, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
-local ZedW = { range = 650, radius = 80, width = 500, speed = 1750, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local ZedQ = { range = 900, radius = 50, width = 100, speed = 1700, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local ZedW = { range = 650, radius = 40, width = 80, speed = 1750, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local ZedE = { range = 290 }
 local ZedR = { range = 625 }
 local GlobalTimer = 0
