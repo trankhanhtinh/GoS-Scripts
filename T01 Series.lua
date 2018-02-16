@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.6.3
+-- Current version: 1.1.6.4
 -- Intermediate GoS script which supports currently 18 champions.
 -- Features:
 -- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
@@ -28,6 +28,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6.4
+-- + Yet another improvement for Yasuo
 -- 1.1.6.3
 -- + Corrected spells data
 -- 1.1.6.2
@@ -117,7 +119,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.163
+local TSVer = 1.164
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -8054,38 +8056,30 @@ function useQ3(target)
 	if GetCastRange(myHero,_Q) > 600 then
 		if GetDistance(target) < YasuoQ3.range then
 			if YasuoMenu.Prediction.PredictionQ3:Value() == 1 then
-				DelayAction(function() CastSkillShot(_Q,GetOrigin(target)) end, GetWindUp(myHero))
+				CastSkillShot(_Q,GetOrigin(target))
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 2 then
-				DelayAction(function()
-					local Q3Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),YasuoQ3.speed,YasuoQ3.delay*1000,YasuoQ3.range,YasuoQ3.width,false,true)
-					if Q3Pred.HitChance == 1 then
-						CastSkillShot(_Q, Q3Pred.PredPos)
-					end
-				end, GetWindUp(myHero))
+				local Q3Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),YasuoQ3.speed,YasuoQ3.delay*1000,YasuoQ3.range,YasuoQ3.width,false,true)
+				if Q3Pred.HitChance == 1 then
+					CastSkillShot(_Q, Q3Pred.PredPos)
+				end
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 3 then
-				DelayAction(function()
-					local q3Pred = _G.gPred:GetPrediction(target,myHero,YasuoQ3,true,false)
-					if q3Pred and q3Pred.HitChance >= 3 then
-						CastSkillShot(_Q, q3Pred.CastPosition)
-					end
-				end, GetWindUp(myHero))
+				local q3Pred = _G.gPred:GetPrediction(target,myHero,YasuoQ3,true,false)
+				if q3Pred and q3Pred.HitChance >= 3 then
+					CastSkillShot(_Q, q3Pred.CastPosition)
+				end
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 4 then
-				DelayAction(function()
-					local Q3Spell = IPrediction.Prediction({name="YasuoQ3W", range=YasuoQ3.range, speed=YasuoQ3.speed, delay=YasuoQ3.delay, width=YasuoQ3.width, type="linear", collision=false})
-					ts = TargetSelector()
-					target = ts:GetTarget(YasuoQ3.range)
-					local x, y = Q3Spell:Predict(target)
-					if x > 2 then
-						CastSkillShot(_Q, y.x, y.y, y.z)
-					end
-				end, GetWindUp(myHero))
+				local Q3Spell = IPrediction.Prediction({name="YasuoQ3W", range=YasuoQ3.range, speed=YasuoQ3.speed, delay=YasuoQ3.delay, width=YasuoQ3.width, type="linear", collision=false})
+				ts = TargetSelector()
+				target = ts:GetTarget(YasuoQ3.range)
+				local x, y = Q3Spell:Predict(target)
+				if x > 2 then
+					CastSkillShot(_Q, y.x, y.y, y.z)
+				end
 			elseif YasuoMenu.Prediction.PredictionQ3:Value() == 5 then
-				DelayAction(function()
-					local Q3Prediction = GetPrediction(target,YasuoQ3)
-					if Q3Prediction.hitChance > 0.9 then
-						CastSkillShot(_Q, Q3Prediction.castPos)
-					end
-				end, GetWindUp(myHero))
+				local Q3Prediction = GetPrediction(target,YasuoQ3)
+				if Q3Prediction.hitChance > 0.9 then
+					CastSkillShot(_Q, Q3Prediction.castPos)
+				end
 			end
 		end
 	end
@@ -8100,6 +8094,12 @@ function useR(target)
 		end
 	end
 end
+OnSpellCast(function(spell)
+	if spell.spellID == _E then
+		ETravelTime = false
+		DelayAction(function() ETravelTime = true end, 0.55)
+	end
+end)
 
 -- Interrupter
 
@@ -8126,8 +8126,8 @@ function Auto()
 		end
 	end
 	if YasuoMenu.Auto.UseQ3:Value() then
-		if CanUseSpell(myHero,_Q) == READY then
-			DelayAction(function() useQ3(target) end, GetWindUp(myHero))
+		if CanUseSpell(myHero,_Q) == READY and ETravelTime then
+			useQ3(target)
 		end
 	end
 end
@@ -8142,23 +8142,21 @@ function Combo()
 			end
 		end
 		if YasuoMenu.Combo.UseQ3:Value() then
-			if CanUseSpell(myHero,_Q) == READY then
+			if CanUseSpell(myHero,_Q) == READY and ETravelTime then
 				useQ3(target)
 			end
 		end
 		if YasuoMenu.Combo.UseE:Value() then
 			if CanUseSpell(myHero,_E) == READY then
-				if GotBuff(target, "YasuoDashWrapper") == 0 then
-					if GetDistance(target) < YasuoE.range and GetDistance(target) > GetRange(myHero) then
+				if GetDistance(target) < YasuoE.range and GetDistance(target) > GetRange(myHero) then
+					if GotBuff(target, "YasuoDashWrapper") == 0 then
 						useE(target)
-					elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > YasuoE.range then
-						for _, minion in pairs(minionManager.objects) do
-							if GetTeam(minion) == MINION_ENEMY and GetDistance(minion) <= YasuoE.range then
-								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero, target, minion)
-								if isOnSegment then
-									useE(minion)
-								end
-							end
+					end
+				elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > GetRange(myHero) then
+					for _, minion in pairs(minionManager.objects) do
+						local Dash = ClosestMinion(GetMousePos(), GetTeam(minion))
+						if GetDistance(Dash) <= YasuoE.range and GotBuff(Dash, "YasuoDashWrapper") == 0 then
+							useE(Dash)
 						end
 					end
 				end
@@ -8184,23 +8182,21 @@ function Harass()
 			end
 		end
 		if YasuoMenu.Harass.UseQ3:Value() then
-			if CanUseSpell(myHero,_Q) == READY then
+			if CanUseSpell(myHero,_Q) == READY and ETravelTime then
 				useQ3(target)
 			end
 		end
 		if YasuoMenu.Harass.UseE:Value() then
 			if CanUseSpell(myHero,_E) == READY then
-				if GotBuff(target, "YasuoDashWrapper") == 0 then
-					if GetDistance(target) < YasuoE.range and GetDistance(target) > GetRange(myHero) then
+				if GetDistance(target) < YasuoE.range and GetDistance(target) > GetRange(myHero) then
+					if GotBuff(target, "YasuoDashWrapper") == 0 then
 						useE(target)
-					elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > YasuoE.range then
-						for _, minion in pairs(minionManager.objects) do
-							if GetTeam(minion) == MINION_ENEMY and GetDistance(minion) <= YasuoE.range then
-								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero, target, minion)
-								if isOnSegment then
-									useE(minion)
-								end
-							end
+					end
+				elseif GetDistance(target) < YasuoE.range+1300 and GetDistance(target) > GetRange(myHero) then
+					for _, minion in pairs(minionManager.objects) do
+						local Dash = ClosestMinion(GetMousePos(), GetTeam(minion))
+						if GetDistance(Dash) <= YasuoE.range and GotBuff(Dash, "YasuoDashWrapper") == 0 then
+							useE(Dash)
 						end
 					end
 				end
