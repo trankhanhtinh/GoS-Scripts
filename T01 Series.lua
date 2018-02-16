@@ -11,15 +11,18 @@
 -- Current version: 1.1.6.4
 -- Intermediate GoS script which supports currently 18 champions.
 -- Features:
--- + supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
---   Ryze, Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
--- + contains special damage indicator​ over HP bar of enemy,
--- + extended HP-Manager and Mana-Manager,
--- + uses offensive items while doing Combo,
--- + indludes table selection for Auto Level-up,
--- + 4 predictions to choose and current pos casting,
--- + additional features: Auto, Combo, Harass, KillSteal, LastHit, LaneClear,
---   JungleClear, Anti-Gapcloser, Interrupter, Drawings, & Misc..
+-- + Supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
+-- Ryze, Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
+-- + 3 managers (Enemies-around, Mana, HP),
+-- + Configurable casting settings (Auto, Combo, Harass),
+-- + Different types of making combat,
+-- + Advanced farm logic (LastHit, LaneClear, JungleClear)
+-- + Additional Anti-Gapcloser and Interrupter,
+-- + Spell range drawings (circular),
+-- + Special damage indicator over HP bar of enemy,
+-- + Offensive items usage & stacking tear,
+-- + Includes Auto Level-Up with table selection.
 -- ==================
 -- == Requirements ==
 -- ==================
