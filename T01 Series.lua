@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.6.4
+-- Current version: 1.1.6.5
 -- Intermediate GoS script which supports currently 18 champions.
 -- Features:
 -- + Supports Ahri, Annie, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6.5
+-- + Improved Xerath's KillSteal
 -- 1.1.6.4
 -- + Yet another improvement for Yasuo
 -- 1.1.6.3
@@ -122,7 +124,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.164
+local TSVer = 1.165
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -7094,6 +7096,7 @@ XerathMenu.Harass:Boolean('UseE', 'Use E [Shocking Orb]', false)
 XerathMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 XerathMenu:Menu("KillSteal", "KillSteal")
 XerathMenu.KillSteal:Boolean('UseR', 'Use R [Rite of the Arcane]', true)
+XerathMenu.KillSteal:DropDown("ModeR", "Cast Mode: R", 1, {"Auto", "Near Mouse"})
 XerathMenu:Menu("LastHit", "LastHit")
 XerathMenu.LastHit:Boolean('UseE', 'Use E [Sweeping Blade]', true)
 XerathMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
@@ -7368,6 +7371,13 @@ end)
 -- Auto
 
 function Auto()
+	if XerathMenu.Auto.UseE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				useE(target)
+			end
+		end
+	end
 	if XerathMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Auto.MP:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
@@ -7382,19 +7392,17 @@ function Auto()
 			end
 		end
 	end
-	if XerathMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_E) == READY then
-				useE(target)
-			end
-		end
-	end
 end
 
 -- Combo
 
 function Combo()
 	if Mode() == "Combo" then
+		if XerathMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				useE(target)
+			end
+		end
 		if XerathMenu.Combo.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
 				useQ(target)
@@ -7405,11 +7413,6 @@ function Combo()
 				useW(target)
 			end
 		end
-		if XerathMenu.Combo.UseE:Value() then
-			if CanUseSpell(myHero,_E) == READY then
-				useE(target)
-			end
-		end
 	end
 end
 
@@ -7417,6 +7420,13 @@ end
 
 function Harass()
 	if Mode() == "Harass" then
+		if XerathMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					useE(target)
+				end
+			end
+		end
 		if XerathMenu.Harass.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY then
@@ -7431,72 +7441,114 @@ function Harass()
 				end
 			end
 		end
-		if XerathMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > XerathMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_E) == READY then
-					useE(target)
-				end
-			end
-		end
 	end
 end
 
 -- KillSteal
 
-local info = ""
 function KillSteal()
 	for i,enemy in pairs(GetEnemyHeroes()) do
 		if XerathMenu.KillSteal.UseR:Value() then
 			if CanUseSpell(myHero,_R) == READY then
 				if ValidTarget(enemy, XerathR.range) then
-					local XerathRDmg = (360*GetCastLevel(myHero,_R)+240)+((0.43*GetCastLevel(myHero,_R)+0.86)*GetBonusAP(myHero))
-					if GetCurrentHP(enemy) < XerathRDmg then
-						local EnemyToKS = enemy
+					local XerathRDmg = ((40*GetCastLevel(myHero,_R)+160)+(0.43*GetBonusAP(myHero)))*(2+(GetCastLevel(myHero,_R)))
+					if XerathMenu.KillSteal.ModeR:Value() == 1 then
+						if GetCurrentHP(enemy) < XerathRDmg then
+							local EnemyToKS = enemy
+							if GotBuff(myHero, "xerathrshots") > 0 then
+								if XerathMenu.Prediction.PredictionR:Value() == 1 then
+									CastSkillShot(_R,GetOrigin(EnemyToKS))
+								elseif XerathMenu.Prediction.PredictionR:Value() == 2 then
+									local RPred = GetPredictionForPlayer(GetOrigin(myHero),EnemyToKS,GetMoveSpeed(EnemyToKS),XerathR.speed,XerathR.delay*1000,XerathR.range,XerathR.width,false,true)
+									if RPred.HitChance == 1 then
+										CastSkillShot(_R, RPred.PredPos)
+									end
+								elseif XerathMenu.Prediction.PredictionR:Value() == 3 then
+									local RPred = _G.gPred:GetPrediction(EnemyToKS,myHero,XerathR,true,false)
+									if RPred and RPred.HitChance >= 3 then
+										CastSkillShot(_R, RPred.CastPosition)
+									end
+								elseif XerathMenu.Prediction.PredictionR:Value() == 4 then
+									local RSpell = IPrediction.Prediction({name="XerathLocusPulse", range=XerathR.range, speed=XerathR.speed, delay=XerathR.delay, width=XerathR.width, type="circular", collision=false})
+									local x, y = RSpell:Predict(EnemyToKS)
+									if x > 2 then
+										CastSkillShot(_R, y.x, y.y, y.z)
+									end
+								elseif XerathMenu.Prediction.PredictionR:Value() == 5 then
+									local RPrediction = GetCircularAOEPrediction(EnemyToKS,XerathR)
+									if RPrediction.hitChance > 0.9 then
+										CastSkillShot(_R, RPrediction.castPos)
+									end
+								end
+							else
+								DrawCircle(EnemyToKS,XerathR.radius,5,25,0xffffd700)
+							end
+						else
+							if GotBuff(myHero, "xerathrshots") > 0 then
+								if XerathMenu.Prediction.PredictionR:Value() == 1 then
+									CastSkillShot(_R,GetOrigin(enemy))
+								elseif XerathMenu.Prediction.PredictionR:Value() == 2 then
+									local RPred = GetPredictionForPlayer(GetOrigin(myHero),enemy,GetMoveSpeed(enemy),XerathR.speed,XerathR.delay*1000,XerathR.range,XerathR.width,false,true)
+									if RPred.HitChance == 1 then
+										CastSkillShot(_R, RPred.PredPos)
+									end
+								elseif XerathMenu.Prediction.PredictionR:Value() == 3 then
+									local RPred = _G.gPred:GetPrediction(enemy,myHero,XerathR,true,false)
+									if RPred and RPred.HitChance >= 3 then
+										CastSkillShot(_R, RPred.CastPosition)
+									end
+								elseif XerathMenu.Prediction.PredictionR:Value() == 4 then
+									local RSpell = IPrediction.Prediction({name="XerathLocusPulse", range=XerathR.range, speed=XerathR.speed, delay=XerathR.delay, width=XerathR.width, type="circular", collision=false})
+									local x, y = RSpell:Predict(enemy)
+									if x > 2 then
+										CastSkillShot(_R, y.x, y.y, y.z)
+									end
+								elseif XerathMenu.Prediction.PredictionR:Value() == 5 then
+									local RPrediction = GetCircularAOEPrediction(enemy,XerathR)
+									if RPrediction.hitChance > 0.9 then
+										CastSkillShot(_R, RPrediction.castPos)
+									end
+								end
+							end
+						end
+					elseif XerathMenu.KillSteal.ModeR:Value() == 2 then
+						local EnemyToKS2 = ClosestEnemy(GetMousePos())
 						if GotBuff(myHero, "xerathrshots") > 0 then
 							if XerathMenu.Prediction.PredictionR:Value() == 1 then
-								CastSkillShot(_R,GetOrigin(EnemyToKS))
+								CastSkillShot(_R,GetOrigin(EnemyToKS2))
 							elseif XerathMenu.Prediction.PredictionR:Value() == 2 then
-								local RPred = GetPredictionForPlayer(GetOrigin(myHero),EnemyToKS,GetMoveSpeed(EnemyToKS),XerathR.speed,XerathR.delay*1000,XerathR.range,XerathR.width,false,true)
+								local RPred = GetPredictionForPlayer(GetOrigin(myHero),EnemyToKS2,GetMoveSpeed(EnemyToKS2),XerathR.speed,XerathR.delay*1000,XerathR.range,XerathR.width,false,true)
 								if RPred.HitChance == 1 then
 									CastSkillShot(_R, RPred.PredPos)
 								end
 							elseif XerathMenu.Prediction.PredictionR:Value() == 3 then
-								local RPred = _G.gPred:GetPrediction(EnemyToKS,myHero,XerathR,true,false)
+								local RPred = _G.gPred:GetPrediction(EnemyToKS2,myHero,XerathR,true,false)
 								if RPred and RPred.HitChance >= 3 then
 									CastSkillShot(_R, RPred.CastPosition)
 								end
 							elseif XerathMenu.Prediction.PredictionR:Value() == 4 then
 								local RSpell = IPrediction.Prediction({name="XerathLocusPulse", range=XerathR.range, speed=XerathR.speed, delay=XerathR.delay, width=XerathR.width, type="circular", collision=false})
-								local x, y = RSpell:Predict(EnemyToKS)
+								local x, y = RSpell:Predict(EnemyToKS2)
 								if x > 2 then
 									CastSkillShot(_R, y.x, y.y, y.z)
 								end
 							elseif XerathMenu.Prediction.PredictionR:Value() == 5 then
-								local RPrediction = GetCircularAOEPrediction(EnemyToKS,XerathR)
+								local RPrediction = GetCircularAOEPrediction(EnemyToKS2,XerathR)
 								if RPrediction.hitChance > 0.9 then
 									CastSkillShot(_R, RPrediction.castPos)
 								end
 							end
 						else
-							info = info.." Killable detected, use R!\n"
+							if GetCurrentHP(enemy) < XerathRDmg then
+								DrawCircle(enemy,XerathR.radius,5,25,0xffffd700)
+							end
 						end
-					else
-						info = ""
 					end
-				else
-					info = ""
 				end
-			else
-				info = ""
 			end
-		else
-			info = ""
 		end
 	end
 end
-OnDraw(function()
-	DrawText(info,30,450,655,0xff1e90ff)
-end)
 
 -- LastHit
 
