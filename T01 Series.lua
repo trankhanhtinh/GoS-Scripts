@@ -8101,7 +8101,7 @@ end
 OnSpellCast(function(spell)
 	if spell.spellID == _E then
 		ETravelTime = false
-		DelayAction(function() ETravelTime = true end, 0.6)
+		DelayAction(function() ETravelTime = true end, 0.61)
 	end
 end)
 
