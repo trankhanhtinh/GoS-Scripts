@@ -8,10 +8,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.7
--- Intermediate GoS script which supports currently 19 champions.
+-- Current version: 1.1.8
+-- Intermediate GoS script which supports currently 20 champions.
 -- Features:
--- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Jayce, Katarina, MasterYi, Orianna,
+-- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
 -- Ryze, Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.8
+-- + Added Gnar
 -- 1.1.7
 -- + Added Brand
 -- 1.1.6.5
@@ -126,7 +128,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.17
+local TSVer = 1.18
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -224,7 +226,6 @@ if AhriMenu.Drawings.DrawR:Value() then DrawCircle(pos,AhriR.range,1,25,0xff0000
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (50*GetCastLevel(myHero,_Q)+30)+(0.7*GetBonusAP(myHero))
 	local WDmg = (40*GetCastLevel(myHero,_W)+24)+(0.48*GetBonusAP(myHero))
 	local EDmg = (45*GetCastLevel(myHero,_E)+15)+(0.6*GetBonusAP(myHero))
@@ -655,7 +656,6 @@ if AnnieMenu.Drawings.DrawWR:Value() then DrawCircle(pos,AnnieW.range,1,25,0xff4
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (35*GetCastLevel(myHero,_Q)+45)+(0.8*GetBonusAP(myHero))
 	local WDmg = (45*GetCastLevel(myHero,_W)+25)+(0.85*GetBonusAP(myHero))
 	local RDmg = (125*GetCastLevel(myHero,_R)+25)+(0.65*GetBonusAP(myHero))
@@ -1099,7 +1099,6 @@ if BrandMenu.Drawings.DrawR:Value() then DrawCircle(pos,BrandR.range,1,25,0xff00
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (30*GetCastLevel(myHero,_Q)+50)+(0.55*GetBonusAP(myHero))
 	local WDmg = ((45*GetCastLevel(myHero,_W)+30)+(0.6*GetBonusAP(myHero)))*1.25
 	local EDmg = (20*GetCastLevel(myHero,_E)+50)+(0.35*GetBonusAP(myHero))
@@ -1586,7 +1585,6 @@ if CassiopeiaMenu.Drawings.DrawR:Value() then DrawCircle(pos,CassiopeiaR.range,1
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (45*GetCastLevel(myHero,_Q)+30)+(0.7*GetBonusAP(myHero))
 	local WDmg = (75*GetCastLevel(myHero,_W)+25)+(0.75*GetBonusAP(myHero))
 	local EDmg = ((4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_E)-10)+(0.6*GetBonusAP(myHero)))
@@ -2159,7 +2157,6 @@ if FizzMenu.Drawings.DrawR:Value() then DrawCircle(pos,FizzR.range,1,25,0xff0000
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(15*GetCastLevel(myHero,_Q)-5)+(0.55*GetBonusAP(myHero))
 	local WDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(30*GetCastLevel(myHero,_E)+30)+(1.2*GetBonusAP(myHero))
 	local EDmg = (50*GetCastLevel(myHero,_E)+20)+(0.75*GetBonusAP(myHero))
@@ -2511,6 +2508,747 @@ OnTick(function(myHero)
 	end
 end)
 
+-- Gnar
+
+elseif "Gnar" == GetObjectName(myHero) then
+
+require('MapPositionGOS')
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Gnar loaded successfully!")
+local GnarMenu = Menu("[T01] Gnar", "[T01] Gnar")
+GnarMenu:Menu("Auto", "Auto")
+GnarMenu.Auto:Boolean('UseQMini', 'Use Q [Boomerang Throw]', true)
+GnarMenu.Auto:Boolean('UseQMega', 'Use Q [Boulder Toss]', true)
+GnarMenu.Auto:Boolean('UseRMega', 'Use R [GNAR!]', true)
+GnarMenu:Menu("Combo", "Combo")
+GnarMenu.Combo:Boolean('UseQMini', 'Use Q [Boomerang Throw]', true)
+GnarMenu.Combo:Boolean('UseEMini', 'Use E [Hop]', true)
+GnarMenu.Combo:Boolean('UseQMega', 'Use Q [Boulder Toss]', true)
+GnarMenu.Combo:Boolean('UseWMega', 'Use W [Wallop]', true)
+GnarMenu.Combo:Boolean('UseEMega', 'Use E [Crunch]', true)
+GnarMenu.Combo:Boolean('UseRMega', 'Use R [GNAR!]', true)
+GnarMenu:Menu("Harass", "Harass")
+GnarMenu.Harass:Boolean('UseQMini', 'Use Q [Boomerang Throw]', true)
+GnarMenu.Harass:Boolean('UseEMini', 'Use E [Hop]', false)
+GnarMenu.Harass:Boolean('UseQMega', 'Use Q [Boulder Toss]', true)
+GnarMenu.Harass:Boolean('UseWMega', 'Use W [Wallop]', true)
+GnarMenu.Harass:Boolean('UseEMega', 'Use E [Crunch]', false)
+GnarMenu.Harass:Boolean('UseRMega', 'Use R [GNAR!]', true)
+GnarMenu:Menu("KillSteal", "KillSteal")
+GnarMenu.KillSteal:Boolean('UseQMini', 'Use Q [Boomerang Throw]', true)
+GnarMenu.KillSteal:Boolean('UseQMega', 'Use Q [Boulder Toss]', true)
+GnarMenu:Menu("LastHit", "LastHit")
+GnarMenu.LastHit:Boolean('UseQMini', 'Use Q [Boomerang Throw]', true)
+GnarMenu:Menu("LaneClear", "LaneClear")
+GnarMenu.LaneClear:Boolean('UseQMini', 'Use Q [Boomerang Throw]', false)
+GnarMenu.LaneClear:Boolean('UseQMega', 'Use Q [Boulder Toss]', true)
+GnarMenu.LaneClear:Boolean('UseWMega', 'Use W [Wallop]', true)
+GnarMenu.LaneClear:Boolean('UseEMega', 'Use E [Crunch]', false)
+GnarMenu:Menu("JungleClear", "JungleClear")
+GnarMenu.JungleClear:Boolean('UseQMini', 'Use Q [Boomerang Throw]', true)
+GnarMenu.JungleClear:Boolean('UseEMini', 'Use E [Hop]', false)
+GnarMenu.JungleClear:Boolean('UseQMega', 'Use Q [Boulder Toss]', true)
+GnarMenu.JungleClear:Boolean('UseWMega', 'Use W [Wallop]', true)
+GnarMenu.JungleClear:Boolean('UseEMega', 'Use E [Crunch]', true)
+GnarMenu.JungleClear:Boolean('UseRMega', 'Use R [GNAR!]', true)
+GnarMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+GnarMenu.AntiGapcloser:Boolean('UseWMega', 'Use W [Wallop]', true)
+GnarMenu:Menu("Prediction", "Prediction")
+GnarMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 3, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+GnarMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+GnarMenu.Prediction:DropDown("PredictionE", "Prediction: E", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+GnarMenu:Menu("Drawings", "Drawings")
+GnarMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+GnarMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+GnarMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+GnarMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+GnarMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+GnarMenu:Menu("Misc", "Misc")
+GnarMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
+GnarMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
+GnarMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W"})
+GnarMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+
+local GnarQMini = { range = 1100, radius = 55, width = 110, speed = 1700, delay = 0.25, type = "line", collision = false, source = myHero, col = {"minion","yasuowall"}}
+local GnarEMini = { range = 475, radius = 160, width = 320, speed = 900, delay = 0.25, type = "circular", collision = false, source = myHero }
+local GnarQMega = { range = 1100, radius = 90, width = 180, speed = 2100, delay = 0.5, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local GnarWMega = { range = 550, radius = 100, width = 200, speed = math.huge, delay = 0.6, type = "line", collision = false, source = myHero }
+local GnarEMega = { range = 600, radius = 375, width = 750, speed = 800, delay = 0.25, type = "circular", collision = false, source = myHero }
+local GnarRMega = { range = 475 }
+
+OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if GnarMenu.Drawings.DrawQ:Value() then
+		DrawCircle(pos,GnarQMini.range,1,25,0xff00bfff)
+	end
+	if GnarMenu.Drawings.DrawW:Value() then
+		if GetRange(myHero) < 300 then
+			DrawCircle(pos,GnarWMega.range,1,25,0xff4169e1)
+		end
+	end
+	if GnarMenu.Drawings.DrawE:Value() then
+		if GetRange(myHero) > 300 then
+			DrawCircle(pos,GnarEMini.range,1,25,0xff1e90ff)
+		elseif GetRange(myHero) < 300 then
+			DrawCircle(pos,GnarEMega.range,1,25,0xff1e90ff)
+		end
+	end
+	if GnarMenu.Drawings.DrawR:Value() then
+		if GetRange(myHero) < 300 then
+			DrawCircle(pos,GnarRMega.range,1,25,0xff4169e1)
+		end
+	end
+end)
+
+OnDraw(function(myHero)
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if GetRange(myHero) > 300 then
+			local QDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.15*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+			local WDmg = (10*GetCastLevel(myHero,_W))+((0.02*GetCastLevel(myHero,_W)+0.04)*GetMaxHP(enemy))+(GetBonusAP(myHero))
+			local EDmg = (40*GetCastLevel(myHero,_E)-20)+(0.06*GetMaxHP(myHero))
+			local ComboDmg = QDmg + WDmg + EDmg
+			local WEDmg = WDmg + EDmg
+			local QEDmg = QDmg + EDmg
+			local QWDmg = QDmg + WDmg
+			if ValidTarget(enemy) then
+				if GnarMenu.Drawings.DrawDMG:Value() then
+					if Ready(_Q) and Ready(_W) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+					elseif Ready(_W) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+					elseif Ready(_Q) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+					elseif Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+					elseif Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+					end
+				end
+			end
+		elseif GetRange(myHero) < 300 then
+			local QDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.2*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+			local WDmg = (20*GetCastLevel(myHero,_W)+5)+(GetBaseDamage(myHero)+GetBonusDmg(myHero))
+			local EDmg = (40*GetCastLevel(myHero,_E)-20)+(0.06*GetMaxHP(myHero))
+			local RDmg = (150*GetCastLevel(myHero,_R)+150)+(0.3*GetBonusDmg(myHero))+(0.75*GetBonusAP(myHero))
+			local ComboDmg = QDmg + WDmg + EDmg + RDmg
+			local WERDmg = WDmg + EDmg + RDmg
+			local QERDmg = QDmg + EDmg + RDmg
+			local QWRDmg = QDmg + WDmg + RDmg
+			local QWEDmg = QDmg + WDmg + EDmg
+			local ERDmg = EDmg + RDmg
+			local WRDmg = WDmg + RDmg
+			local QRDmg = QDmg + RDmg
+			local WEDmg = WDmg + EDmg
+			local QEDmg = QDmg + EDmg
+			local QWDmg = QDmg + WDmg
+			if ValidTarget(enemy) then
+				if GnarMenu.Drawings.DrawDMG:Value() then
+					if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+					elseif Ready(_W) and Ready(_E) and Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+					elseif Ready(_E) and Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+					elseif Ready(_W) and Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+					elseif Ready(_W) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+					elseif Ready(_Q) and Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+					elseif Ready(_Q) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+					elseif Ready(_W) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+					elseif Ready(_E) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+					elseif Ready(_R) then
+						DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+					end
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Auto()
+		Combo()
+		Harass()
+		LastHit()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQMini(target)
+	if GetDistance(target) < GnarQMini.range then
+		if GnarMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),GnarQMini.speed,GnarQMini.delay*1000,GnarQMini.range,GnarQMini.radius,true,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,GnarQMini,false,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="GnarQ", range=GnarQMini.range, speed=GnarQMini.speed, delay=GnarQMini.delay, width=GnarQMini.radius, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(GnarQMini.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,GnarQMini)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useQMega(target)
+	if GetDistance(target) < GnarQMega.range then
+		if GnarMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),GnarQMega.speed,GnarQMega.delay*1000,GnarQMega.range,GnarQMega.radius,true,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,GnarQMega,false,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="GnarBigQ", range=GnarQMega.range, speed=GnarQMega.speed, delay=GnarQMega.delay, width=GnarQMega.radius, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(GnarQMega.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif GnarMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,GnarQMega)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useWMega(target)
+	if GetDistance(target) < GnarWMega.range then
+		if GnarMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif GnarMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),GnarWMega.speed,GnarWMega.delay*1000,GnarWMega.range,GnarWMega.radius,false,true)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif GnarMenu.Prediction.PredictionW:Value() == 3 then
+			local wPred = _G.gPred:GetPrediction(target,myHero,GnarWMega,true,false)
+			if wPred and wPred.HitChance >= 3 then
+				CastSkillShot(_W, wPred.CastPosition)
+			end
+		elseif GnarMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="GnarBigW", range=GnarWMega.range, speed=GnarWMega.speed, delay=GnarWMega.delay, width=GnarWMega.radius, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(GnarWMega.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif GnarMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetLinearAOEPrediction(target,GnarWMega)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function useEMini(target)
+	if GetDistance(target) < GnarEMini.range then
+		if GnarMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif GnarMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),GnarEMini.speed,GnarEMini.delay*1000,GnarEMini.range,GnarEMini.width,false,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif GnarMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,GnarEMini,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_E, EPred.CastPosition)
+			end
+		elseif GnarMenu.Prediction.PredictionE:Value() == 4 then
+			local ESpell = IPrediction.Prediction({name="GnarE", range=GnarEMini.range, speed=GnarEMini.speed, delay=GnarEMini.delay, width=GnarEMini.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(GnarEMini.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif GnarMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetCircularAOEPrediction(target,GnarEMini)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+function useEMega(target)
+	if GetDistance(target) < GnarEMega.range then
+		if GnarMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif GnarMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),GnarEMega.speed,GnarEMega.delay*1000,GnarEMega.range,GnarEMega.width,false,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif GnarMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,GnarEMega,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_E, EPred.CastPosition)
+			end
+		elseif GnarMenu.Prediction.PredictionE:Value() == 4 then
+			local ESpell = IPrediction.Prediction({name="GnarBigE", range=GnarEMega.range, speed=GnarEMega.speed, delay=GnarEMega.delay, width=GnarEMega.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(GnarEMega.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif GnarMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetCircularAOEPrediction(target,GnarEMega)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+function useRMega(target)
+	for _,unit in pairs(GetEnemyHeroes()) do
+		local Distance = GnarRMega.range-GetDistance(myHero,unit)
+		local RPred = GetPredictionForPlayer(GetOrigin(myHero),unit,GetMoveSpeed(unit),3000,0.25,GnarRMega.range,GnarRMega.range,false,true)
+		local PredPos = Vector(RPred.PredPos)
+		local HeroPos = Vector(myHero)
+		local MaximumRRange = PredPos-(PredPos-HeroPos)*(-Distance/GetDistance(RPred.PredPos))
+		local Shoot = LineSegment(Point(PredPos.x, PredPos.y, PredPos.z), Point(MaximumRRange.x, MaximumRRange.y, MaximumRRange.z))
+		for i, Pos in pairs(Shoot:__getPoints()) do
+			if MapPosition:inWall(Pos) then
+				CastSkillShot(_R,RPred.PredPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if GetRange(myHero) > 300 then
+		if GnarMenu.Auto.UseQMini:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, GnarQMini.range) then
+					useQMini(target)
+				end
+			end
+		end
+	elseif GetRange(myHero) < 300 then
+		if GnarMenu.Auto.UseQMega:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, GnarQMega.range) then
+					useQMega(target)
+				end
+			end
+		end
+		if GnarMenu.Auto.UseRMega:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, GnarRMega.range) then
+					if EnemiesAround(myHero, GnarRMega.range) >= GnarMenu.Misc.X:Value() then
+						useRMega(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if GetRange(myHero) > 300 then
+			if GnarMenu.Combo.UseQMini:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, GnarQMini.range) then
+						useQMini(target)
+					end
+				end
+			end
+			if GnarMenu.Combo.UseEMini:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, GnarEMini.range) then
+						useEMini(target)
+					end
+				end
+			end
+		elseif GetRange(myHero) < 300 then
+			if GnarMenu.Combo.UseQMega:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, GnarQMega.range) then
+						useQMega(target)
+					end
+				end
+			end
+			if GnarMenu.Combo.UseWMega:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, GnarWMega.range) then
+						useWMega(target)
+					end
+				end
+			end
+			if GnarMenu.Combo.UseEMega:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, GnarEMega.range) then
+						useEMega(target)
+					end
+				end
+			end
+			if GnarMenu.Combo.UseRMega:Value() then
+				if CanUseSpell(myHero,_R) == READY then
+					if ValidTarget(target, GnarRMega.range) then
+						if EnemiesAround(myHero, GnarRMega.range) >= GnarMenu.Misc.X:Value() then
+							useRMega(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if GetRange(myHero) > 300 then
+			if GnarMenu.Harass.UseQMini:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, GnarQMini.range) then
+						useQMini(target)
+					end
+				end
+			end
+			if GnarMenu.Harass.UseEMini:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, GnarEMini.range) then
+						useEMini(target)
+					end
+				end
+			end
+		elseif GetRange(myHero) < 300 then
+			if GnarMenu.Harass.UseQMega:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, GnarQMega.range) then
+						useQMega(target)
+					end
+				end
+			end
+			if GnarMenu.Harass.UseWMega:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, GnarWMega.range) then
+						useWMega(target)
+					end
+				end
+			end
+			if GnarMenu.Harass.UseEMega:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, GnarEMega.range) then
+						useEMega(target)
+					end
+				end
+			end
+			if GnarMenu.Harass.UseRMega:Value() then
+				if CanUseSpell(myHero,_R) == READY then
+					if ValidTarget(target, GnarRMega.range) then
+						if EnemiesAround(myHero, GnarRMega.range) >= GnarMenu.Misc.X:Value() then
+							useRMega(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if GetRange(myHero) > 300 then
+			if GnarMenu.KillSteal.UseQMini:Value() then
+				if ValidTarget(enemy, GnarQMini.range) then
+					if CanUseSpell(myHero,_Q) == READY then
+						local GnarQMiniDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.15*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+						if GetCurrentHP(enemy) < GnarQMiniDmg then
+							useQMini(enemy)
+						end
+					end
+				end
+			end
+		elseif GetRange(myHero) < 300 then
+			if GnarMenu.KillSteal.UseQMega:Value() then
+				if ValidTarget(enemy, GnarQMega.range) then
+					if CanUseSpell(myHero,_Q) == READY then
+						local GnarQMegaDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.2*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+						if GetCurrentHP(enemy) < GnarQMegaDmg then
+							useQMega(enemy)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, GnarQMini.range) then
+					if GnarMenu.LastHit.UseQMini:Value() then
+						if CanUseSpell(myHero,_Q) == READY then
+							local GnarQMiniDmg = (20*GetCastLevel(myHero,_Q)-17.5)+(0.575*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+							if GetCurrentHP(minion) < GnarQMiniDmg then
+								CastSkillShot(_Q,GetOrigin(minion))
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if GetRange(myHero) < 300 then
+			if GnarMenu.LaneClear.UseWMega:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					local BestPos, BestHit = GetLineFarmPosition(GnarWMega.range, GnarWMega.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then  
+						CastSkillShot(_W, BestPos)
+					end
+				end
+			end
+			if GnarMenu.LaneClear.UseEMega:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					local BestPos, BestHit = GetFarmPosition(GnarEMega.range, GnarEMega.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then  
+						CastSkillShot(_E, BestPos)
+					end
+				end
+			end
+		end
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if GetRange(myHero) > 300 then
+					if GnarMenu.LaneClear.UseQMini:Value() then
+						if ValidTarget(minion, GnarQMini.range) then
+							if CanUseSpell(myHero,_Q) == READY then
+								CastSkillShot(_Q,GetOrigin(minion))
+							end
+						end
+					end
+				elseif GetRange(myHero) < 300 then
+					if GnarMenu.LaneClear.UseQMega:Value() then
+						if ValidTarget(minion, GnarQMega.range) then
+							if CanUseSpell(myHero,_Q) == READY then
+								CastSkillShot(_Q,GetOrigin(minion))
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if GetRange(myHero) > 300 then
+					if GnarMenu.JungleClear.UseQMini:Value() then
+						if CanUseSpell(myHero,_Q) == READY then
+							if ValidTarget(mob, GnarQMini.range) then
+								CastSkillShot(_Q, GetOrigin(mob))
+							end
+						end
+					end
+					if GnarMenu.JungleClear.UseEMini:Value() then
+						if CanUseSpell(myHero,_E) == READY then
+							if ValidTarget(mob, GnarEMini.range) then
+								CastSkillShot(_E, GetOrigin(mob))
+							end
+						end
+					end
+				elseif GetRange(myHero) < 300 then
+					if GnarMenu.JungleClear.UseQMega:Value() then
+						if CanUseSpell(myHero,_Q) == READY then
+							if ValidTarget(mob, GnarQMega.range) then
+								CastSkillShot(_Q, GetOrigin(mob))
+							end
+						end
+					end
+					if GnarMenu.JungleClear.UseWMega:Value() then
+						if CanUseSpell(myHero,_W) == READY then
+							if ValidTarget(mob, GnarWMega.range) then
+								CastSkillShot(_W, GetOrigin(mob))
+							end
+						end
+					end
+					if GnarMenu.JungleClear.UseEMega:Value() then
+						if CanUseSpell(myHero,_E) == READY then
+							if ValidTarget(mob, GnarEMega.range) then
+								CastSkillShot(_E, GetOrigin(mob))
+							end
+						end
+					end
+					if GnarMenu.JungleClear.UseEMega:Value() then
+						if CanUseSpell(myHero,_E) == READY then
+							if ValidTarget(mob, GnarEMega.range) then
+								useEMega(mob)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+OnTick(function(myHero)
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if GnarMenu.AntiGapcloser.UseWMega:Value() then
+			if ValidTarget(antigap, GnarWMega.range) then
+				if CanUseSpell(myHero,_W) == READY then
+					useWMega(antigap)
+				end
+			end
+		end
+	end
+end)
+
+-- Misc
+
+OnTick(function(myHero)
+	if Mode() == "Combo" then
+		if GnarMenu.Misc.UI:Value() then
+			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
+					CastSpell(GetItemSlot(myHero, 3074))
+				end -- Ravenous Hydra
+			end
+			if GetItemSlot(myHero, 3077) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3077)) == READY then
+					CastSpell(GetItemSlot(myHero, 3077))
+				end -- Tiamat
+			end
+			if GetItemSlot(myHero, 3144) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3144)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3144))
+					end -- Bilgewater Cutlass
+				end
+			end
+			if GetItemSlot(myHero, 3146) >= 1 and ValidTarget(target, 700) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3146)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3146))
+					end -- Hextech Gunblade
+				end
+			end
+			if GetItemSlot(myHero, 3153) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3153)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3153))
+					end -- BOTRK
+				end
+			end
+			if GetItemSlot(myHero, 3748) >= 1 and ValidTarget(target, 300) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero,GetItemSlot(myHero, 3748)) == READY then
+						CastSpell(GetItemSlot(myHero, 3748))
+					end -- Titanic Hydra
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if GnarMenu.Misc.LvlUp:Value() then
+		if GnarMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif GnarMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif GnarMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif GnarMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif GnarMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif GnarMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
 -- Jayce
 
 elseif "Jayce" == GetObjectName(myHero) then
@@ -2606,7 +3344,6 @@ end)
 
 OnTick(function(myHero)
 	if GetRange(myHero) > 300 then
-		local target = GetCurrentTarget()
 		local QDmg = (70*GetCastLevel(myHero,_Q)+28)+(1.68*GetBonusDmg(myHero))
 		local WDmg = ((0.08*GetCastLevel(myHero,_W)+0.62)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))*3
 		local ComboDmg = QDmg + WDmg
@@ -2624,7 +3361,6 @@ OnTick(function(myHero)
 			end
 		end
 	elseif GetRange(myHero) < 300 then
-		local target = GetCurrentTarget()
 		local QDmg = (35*GetCastLevel(myHero,_Q)+10)+(1.2*GetBonusDmg(myHero))
 		local WDmg = (60*GetCastLevel(myHero,_W)+40)+GetBonusAP(myHero)
 		local EDmg = ((0.024*GetCastLevel(myHero,_E)+0.056)*GetMaxHP(target))+GetBonusDmg(myHero)
@@ -3082,7 +3818,6 @@ end)
 OnTick(function(myHero)
 	if Mode() == "Combo" then
 		if JayceMenu.Misc.UI:Value() then
-			local target = GetCurrentTarget()
 			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
 				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
 					CastSpell(GetItemSlot(myHero, 3074))
@@ -3188,7 +3923,6 @@ if KatarinaMenu.Drawings.DrawR:Value() then DrawCircle(pos,KatarinaR.range,1,25,
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (30*GetCastLevel(myHero,_Q)+45)+(0.3*GetBonusAP(myHero))
 	local EDmg = (15*GetCastLevel(myHero,_E))+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.25*GetBonusAP(myHero))
 	local RDmg = (187.5*GetCastLevel(myHero,_R)+187.5)+(3.3*GetBonusDmg(myHero))+(2.85*GetBonusAP(myHero))
@@ -3578,7 +4312,6 @@ end
 OnTick(function(myHero)
 	if Mode() == "Combo" then
 		if KatarinaMenu.Misc.UI:Value() then
-			local target = GetCurrentTarget()
 			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
 				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
 					CastSpell(GetItemSlot(myHero, 3074))
@@ -3875,7 +4608,6 @@ end
 OnTick(function(myHero)
 	if Mode() == "Combo" then
 		if MasterYiMenu.Misc.UI:Value() then
-			local target = GetCurrentTarget()
 			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
 				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
 					CastSpell(GetItemSlot(myHero, 3074))
@@ -4037,7 +4769,6 @@ if OriannaMenu.Drawings.DrawR:Value() then DrawCircle(GetOrigin(Ball),OriannaR.r
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (30*GetCastLevel(myHero,_Q)+30)+(0.5*GetBonusAP(myHero))
 	local WDmg = (45*GetCastLevel(myHero,_W)+15)+(0.7*GetBonusAP(myHero))
 	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.3*GetBonusAP(myHero))
@@ -4499,7 +5230,6 @@ if RyzeMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,RyzeR.range,0,255,
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero))
 	local QBDmg = QDmg*(0.1*GetCastLevel(myHero,_Q)+1.3)
 	local WDmg = (20*GetCastLevel(myHero,_W)+60)+(0.6*GetBonusAP(myHero))+(0.01*GetMaxMana(myHero))
@@ -4954,7 +5684,6 @@ if SyndraMenu.Drawings.DrawR:Value() then DrawCircle(pos,SyndraR.range,1,25,0xff
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (45*GetCastLevel(myHero,_Q)+5)+(0.65*GetBonusAP(myHero))
 	local WDmg = (40*GetCastLevel(myHero,_W)+30)+(0.7*GetBonusAP(myHero))
 	local EDmg = (45*GetCastLevel(myHero,_E)+25)+(0.6*GetBonusAP(myHero))
@@ -5406,7 +6135,6 @@ if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,TwistedFate
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (45*GetCastLevel(myHero,_Q)+15)+(0.65*GetBonusAP(myHero))
 	local WDmg = (7.5*GetCastLevel(myHero,_W)+7.5)+(0.5*GetBonusAP(myHero))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
 	local EDmg = (25*GetCastLevel(myHero,_E)+30)+(0.5*GetBonusAP(myHero))
@@ -6112,7 +6840,6 @@ end)
 OnTick(function(myHero)
 	if Mode() == "Combo" then
 		if VayneMenu.Misc.UI:Value() then
-			local target = GetCurrentTarget()
 			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
 				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
 					CastSpell(GetItemSlot(myHero, 3074))
@@ -6262,7 +6989,6 @@ function getMin(x, y)
 	return y
 end
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (40*GetCastLevel(myHero,_Q)+30)+(0.6*GetBonusAP(myHero))
 	local WDmg = (50*GetCastLevel(myHero,_W)+50)+(GetBonusAP(myHero))
 	local RDmg = (75*GetCastLevel(myHero,_R)+100)+(0.75*GetBonusAP(myHero))+getMin(2,-1/67*((GetCurrentHP(target)/GetMaxHP(target))*100)+2.49)
@@ -6390,7 +7116,7 @@ function useE(target)
 				CastSkillShot(_E, y.x, y.y, y.z)
 			end
 		elseif VeigarMenu.Prediction.PredictionE:Value() == 5 then
-			local EPrediction = GetConicAOEPrediction(target,VeigarE)
+			local EPrediction = GetCircularAOEPrediction(target,VeigarE)
 			if EPrediction.hitChance > 0.9 then
 				CastSkillShot(_E, EPrediction.castPos)
 			end
@@ -6723,7 +7449,6 @@ if ViktorMenu.Drawings.DrawE:Value() then DrawCircle(pos,ViktorE.range,1,25,0xff
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = ((20*GetCastLevel(myHero,_Q)+40)+(0.4*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_Q))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))+(0.5*GetBonusAP(myHero)))
 	local EDmg = (60*GetCastLevel(myHero,_E)+30)+(1.2*GetBonusAP(myHero))
 	local RDmg = (375*GetCastLevel(myHero,_R)+175)+(2.3*GetBonusAP(myHero))
@@ -7168,7 +7893,6 @@ if VladimirMenu.Drawings.DrawR:Value() then DrawCircle(pos,VladimirR.range,1,25,
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (20*GetCastLevel(myHero,_Q)+60)+(0.6*GetBonusAP(myHero))
 	local WDmg = 55*GetCastLevel(myHero,_W)+25
 	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.06*GetMaxHP(myHero))+GetBonusAP(myHero)
@@ -7624,7 +8348,6 @@ if XerathMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,XerathR.range,0,
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (40*GetCastLevel(myHero,_Q)+40)+(0.75*GetBonusAP(myHero))
 	local WDmg = (45*GetCastLevel(myHero,_W)+45)+(0.9*GetBonusAP(myHero))
 	local EDmg = (30*GetCastLevel(myHero,_E)+50)+(0.45*GetBonusAP(myHero))
@@ -8512,7 +9235,6 @@ if YasuoMenu.Drawings.DrawR:Value() then DrawCircle(pos,YasuoR.range,1,25,0xff00
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (25*GetCastLevel(myHero,_Q)-5)+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
 	local EDmg = (10*GetCastLevel(myHero,_E)+50)+(0.2*GetBonusDmg(myHero))+(0.6*GetBonusAP(myHero))
 	local RDmg = (100*GetCastLevel(myHero,_R)+100)+(1.5*GetBonusDmg(myHero))
@@ -8856,7 +9578,6 @@ end
 OnTick(function(myHero)
 	if Mode() == "Combo" then
 		if YasuoMenu.Misc.UI:Value() then
-			local target = GetCurrentTarget()
 			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
 				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
 					CastSpell(GetItemSlot(myHero, 3074))
@@ -8995,7 +9716,6 @@ if ZedMenu.Drawings.DrawR:Value() then DrawCircle(pos,ZedR.range,1,25,0xff0000ff
 end)
 
 OnDraw(function(myHero)
-	local target = GetCurrentTarget()
 	local QDmg = (35*GetCastLevel(myHero,_Q)+45)+(0.9*GetBonusDmg(myHero))+(26.25*GetCastLevel(myHero,_Q)+33.75)+(0.675*GetBonusDmg(myHero))
 	local EDmg = (25*GetCastLevel(myHero,_E)+45)+(0.8*GetBonusDmg(myHero))
 	local RDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+((0.1*GetCastLevel(myHero,_R)+0.15)*(QDmg+EDmg))
@@ -9289,7 +10009,6 @@ end
 OnTick(function(myHero)
 	if Mode() == "Combo" then
 		if ZedMenu.Misc.UI:Value() then
-			local target = GetCurrentTarget()
 			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
 				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
 					CastSpell(GetItemSlot(myHero, 3074))
