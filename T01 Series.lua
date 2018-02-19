@@ -3436,6 +3436,7 @@ OnTick(function(myHero)
 			end
 		end
 	elseif GetRange(myHero) < 300 then
+		local target = GetCurrentTarget()
 		local QDmg = (35*GetCastLevel(myHero,_Q)+10)+(1.2*GetBonusDmg(myHero))
 		local WDmg = (60*GetCastLevel(myHero,_W)+40)+GetBonusAP(myHero)
 		local EDmg = ((0.024*GetCastLevel(myHero,_E)+0.056)*GetMaxHP(target))+GetBonusDmg(myHero)
