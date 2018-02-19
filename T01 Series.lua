@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.8
+-- Current version: 1.2 BETA
 -- Intermediate GoS script which supports currently 20 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2 BETA
+-- + Removed outdated Interrupter / Integrated a new one
 -- 1.1.8
 -- + Added Gnar
 -- 1.1.7
@@ -128,7 +130,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.18
+local TSVer = 1.2
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -161,11 +163,98 @@ OnProcessSpell(function(unit, spell)
 	end
 end)
 
+CHANELLING_SPELLS = {
+    ["Caitlyn"]                     = {_R},
+    ["Darius"]                      = {_R},
+    ["FiddleSticks"]                = {_W, _R},
+    ["Galio"]                       = {_W},
+    ["Gragas"]                      = {_W},
+    ["Janna"]                       = {_R},
+    ["Karthus"]                     = {_R},
+    ["Katarina"]                    = {_R},
+    ["Lucian"]                      = {_R},
+    ["Malzahar"]                    = {_R},
+    ["MasterYi"]                    = {_W},
+    ["MissFortune"]                 = {_R},
+    ["Nunu"]                        = {_R},
+    ["Pantheon"]                    = {_E, _R},
+    ["Shen"]                        = {_R},
+    ["Sion"]                        = {_Q},
+    ["TahmKench"]                   = {_R},
+    ["TwistedFate"]                 = {_R},
+    ["Warwick"]                     = {_R},
+    ["Varus"]                       = {_Q},
+    ["VelKoz"]                      = {_R},
+    ["Vi"]                          = {_Q},
+    ["Xerath"]                      = {_Q, _R},
+    ["Zac"]                         = {_E},
+}
+
+GAPCLOSER_SPELLS = {
+    ["Aatrox"]                      = {_Q},
+    ["Akali"]                       = {_R},
+    ["Alistar"]                     = {_W},
+    ["Amumu"]                       = {_Q},
+    ["Corki"]                       = {_W},
+    ["Diana"]                       = {_R},
+    ["Elise"]                       = {_Q, _E},
+    ["FiddleSticks"]                = {_R},
+    ["Ezreal"]                      = {_E},
+    ["Fiora"]                       = {_Q},
+    ["Fizz"]                        = {_Q},
+    ["Galio"]                       = {_E},
+    ["Gnar"]                        = {_E},
+    ["Gragas"]                      = {_E},
+    ["Graves"]                      = {_E},
+    ["Hecarim"]                     = {_R},
+    ["Irelia"]                      = {_Q},
+    ["JarvanIV"]                    = {_Q, _R},
+    ["Jax"]                         = {_Q},
+    ["Jayce"]                       = {_Q},
+    ["Katarina"]                    = {_E},
+    ["Kassadin"]                    = {_R},
+    ["Kennen"]                      = {_E},
+    ["KhaZix"]                      = {_E},
+    ["Lissandra"]                   = {_E},
+    ["LeBlanc"]                     = {_W, _R},
+    ["LeeSin"]                      = {_Q, _W},
+    ["Leona"]                       = {_E},
+    ["Lucian"]                      = {_E},
+    ["Malphite"]                    = {_R},
+    ["MasterYi"]                    = {_Q},
+    ["MonkeyKing"]                  = {_E},
+    ["Nautilus"]                    = {_Q},
+    ["Nocturne"]                    = {_R},
+    ["Olaf"]                        = {_R},
+    ["Ornn"]                        = {_E},
+    ["Pantheon"]                    = {_W, _R},
+    ["Poppy"]                       = {_E},
+    ["RekSai"]                      = {_E},
+    ["Renekton"]                    = {_E},
+    ["Riven"]                       = {_Q, _E},
+    ["Rengar"]                      = {_R},
+    ["Sejuani"]                     = {_Q},
+    ["Sion"]                        = {_R},
+    ["Shen"]                        = {_E},
+    ["Shyvana"]                     = {_R},
+    ["Talon"]                       = {_E},
+    ["Thresh"]                      = {_Q},
+    ["Tristana"]                    = {_W},
+    ["Tryndamere"]                  = {_E},
+    ["Udyr"]                        = {_E},
+    ["Urgot"]                       = {_E},
+    ["Volibear"]                    = {_Q},
+    ["Vi"]                          = {_Q},
+    ["XinZhao"]                     = {_E},
+    ["Yasuo"]                       = {_E},
+    ["Zac"]                         = {_E},
+    ["Ziggs"]                       = {_W},
+    ["Zoe"]                         = {_R},
+}
+
 -- Ahri
 
 if "Ahri" == GetObjectName(myHero) then
-
-require('Interrupter')
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Ahri loaded successfully!")
 local AhriMenu = Menu("[T01] Ahri", "[T01] Ahri")
@@ -530,16 +619,27 @@ end
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if AhriMenu.Interrupter.UseE:Value() then
-		if ValidTarget(target, AhriE.range) then
-			if CanUseSpell(myHero,_E) == READY then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					useE(target)
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, AhriE.range) then
+				if CanUseSpell(myHero,_E) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
+						end
+					end
 				end
 			end
 		end
-	end
+    end
 end)
 
 -- Anti-Gapcloser
@@ -598,8 +698,6 @@ end)
 
 elseif "Annie" == GetObjectName(myHero) then
 
-require('Interrupter')
-
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Annie loaded successfully!")
 local AnnieMenu = Menu("[T01] Annie", "[T01] Annie")
 AnnieMenu:Menu("Auto", "Auto")
@@ -629,9 +727,6 @@ AnnieMenu:Menu("JungleClear", "JungleClear")
 AnnieMenu.JungleClear:Boolean('UseQ', 'Use Q [Disintegrate]', true)
 AnnieMenu.JungleClear:Boolean('UseW', 'Use W [Incinerate]', true)
 AnnieMenu.JungleClear:Boolean('UseE', 'Use E [Molten Shield]', true)
-AnnieMenu:Menu("Interrupter", "Interrupter")
-AnnieMenu.Interrupter:Boolean('UseQ', 'Use Q [Disintegrate]', true)
-AnnieMenu.Interrupter:Boolean('UseW', 'Use W [Incinerate]', true)
 AnnieMenu:Menu("Prediction", "Prediction")
 AnnieMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 AnnieMenu.Prediction:DropDown("PredictionR", "Prediction: R", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
@@ -763,33 +858,6 @@ function useR(target)
 		end
 	end
 end
-
--- Interrupter
-
-addInterrupterCallback(function(target, spellType, spell)
-	if AnnieMenu.Interrupter.UseQ:Value() then
-		if ValidTarget(target, AnnieQ.range) then
-			if CanUseSpell(myHero,_Q) == READY then
-				if GotBuff(myHero, "pyromaniastun") > 0 then
-					if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-						useQ(target)
-					end
-				end
-			end
-		end
-	end
-	if AnnieMenu.Interrupter.UseW:Value() then
-		if ValidTarget(target, AnnieW.range) then
-			if CanUseSpell(myHero,_W) == READY then
-				if GotBuff(myHero, "pyromaniastun") > 0 then
-					if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-						useW(target)
-					end
-				end
-			end
-		end
-	end
-end)
 
 -- Auto
 
@@ -1514,8 +1582,6 @@ end)
 
 elseif "Cassiopeia" == GetObjectName(myHero) then
 
-require('Interrupter')
-
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Cassiopeia loaded successfully!")
 local CassiopeiaMenu = Menu("[T01] Cassiopeia", "[T01] Cassiopeia")
 CassiopeiaMenu:Menu("Auto", "Auto")
@@ -2030,16 +2096,27 @@ end)
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if CassiopeiaMenu.Interrupter.UseR:Value() then
-		if ValidTarget(target, CassiopeiaR.range) then
-			if CanUseSpell(myHero,_R) == READY then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					useR(target)
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, CassiopeiaR.range) then
+				if CanUseSpell(myHero,_R) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useR(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useR(enemy) end
+						end
+					end
 				end
 			end
 		end
-	end
+    end
 end)
 
 -- Misc
@@ -3253,8 +3330,6 @@ end)
 
 elseif "Jayce" == GetObjectName(myHero) then
 
-require('Interrupter')
-
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Jayce loaded successfully!")
 local JayceMenu = Menu("[T01] Jayce", "[T01] Jayce")
 JayceMenu:Menu("Auto", "Auto")
@@ -3785,16 +3860,27 @@ end
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if JayceMenu.Interrupter.UseEHammer:Value() then
-		if ValidTarget(target, JayceEHammer.range) then
-			if CanUseSpell(myHero,_E) == READY then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					useEHammer(target)
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, JayceEHammer.range) then
+				if CanUseSpell(myHero,_E) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useEHammer(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useEHammer(enemy) end
+						end
+					end
 				end
 			end
 		end
-	end
+    end
 end)
 
 -- Misc
@@ -4690,8 +4776,6 @@ end)
 
 elseif "Orianna" == GetObjectName(myHero) then
 
-require('Interrupter')
-
 local Ball = myHero
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Orianna loaded successfully!")
@@ -5113,16 +5197,27 @@ end
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if OriannaMenu.Interrupter.UseR:Value() then
-		if ValidTarget(target, OriannaE.range) and GetDistance(Ball, enemy) <= OriannaR.range then
-			if CanUseSpell(myHero,_R) == READY then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					useR(target)
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, OriannaE.range) and GetDistance(Ball, enemy) <= OriannaR.range then
+				if CanUseSpell(myHero,_R) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useR(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useR(enemy) end
+						end
+					end
 				end
 			end
 		end
-	end
+    end
 end)
 
 -- Misc
@@ -5166,8 +5261,6 @@ end)
 -- Ryze
 
 elseif "Ryze" == GetObjectName(myHero) then
-
-require('Interrupter')
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Ryze loaded successfully!")
 local RyzeMenu = Menu("[T01] Ryze", "[T01] Ryze")
@@ -5523,16 +5616,23 @@ end
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if RyzeMenu.Interrupter.UseW:Value() then
-		if ValidTarget(target, RyzeW.range) then
-			if CanUseSpell(myHero,_W) == READY then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					CastTargetSpell(target, _W)
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, RyzeW.range) then
+				if CanUseSpell(myHero,_W) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then CastTargetSpell(enemy, _W) end
+						end
+					end
 				end
 			end
 		end
-	end
+    end
 end)
 
 -- Anti-Gapcloser
@@ -6530,7 +6630,6 @@ end)
 
 elseif "Vayne" == GetObjectName(myHero) then
 
-require('Interrupter')
 require('MapPositionGOS')
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Vayne loaded successfully!")
@@ -6823,16 +6922,27 @@ end)
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if VayneMenu.Interrupter.UseE:Value() then
-		if ValidTarget(target, VayneE.range) then
-			if CanUseSpell(myHero,_E) == READY then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					CastTargetSpell(target, _E)
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, VayneE.range) then
+				if CanUseSpell(myHero,_E) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then CastTargetSpell(enemy, _E) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then CastTargetSpell(enemy, _E) end
+						end
+					end
 				end
 			end
 		end
-	end
+    end
 end)
 
 -- Misc
@@ -7389,8 +7499,6 @@ end)
 
 elseif "Viktor" == GetObjectName(myHero) then
 
-require('Interrupter')
-
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Viktor loaded successfully!")
 local ViktorMenu = Menu("[T01] Viktor", "[T01] Viktor")
 ViktorMenu:Menu("Auto", "Auto")
@@ -7588,20 +7696,38 @@ end
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if CanUseSpell(myHero,_W) == READY then
 		if ViktorMenu.Interrupter.UseW:Value() then
-			if ValidTarget(target, ViktorW.range) then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					useW(target)
+			for _, enemy in pairs(GetEnemyHeroes()) do
+				if ValidTarget(enemy, ViktorW.range) then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useW(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useW(enemy) end
+						end
+					end
 				end
 			end
 		end
-	elseif CanUseSpell(myHero,_R) == READY then
+    elseif CanUseSpell(myHero,_R) == READY then
 		if ViktorMenu.Interrupter.UseR:Value() then
-			if ValidTarget(target, ViktorR.range) then
-				if spellType == CHANELLING_SPELLS then
-					useR(target)
+			for _, enemy in pairs(GetEnemyHeroes()) do
+				if ValidTarget(enemy, ViktorR.range) then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useR(enemy) end
+						end
+					end
 				end
 			end
 		end
@@ -8276,8 +8402,6 @@ end)
 
 elseif "Xerath" == GetObjectName(myHero) then
 
-require('Interrupter')
-
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Xerath loaded successfully!")
 local XerathMenu = Menu("[T01] Xerath", "[T01] Xerath")
 XerathMenu:Menu("Auto", "Auto")
@@ -8555,12 +8679,23 @@ end
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if XerathMenu.Interrupter.UseE:Value() then
-		if ValidTarget(target, XerathE.range) then
+		for _, enemy in pairs(GetEnemyHeroes()) do
 			if CanUseSpell(myHero,_E) == READY then
-				if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-					useE(target)
+				if ValidTarget(enemy, XerathE.range) then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
+						end
+					end
 				end
 			end
 		end
@@ -8894,8 +9029,6 @@ end)
 -- Yasuo
 
 elseif "Yasuo" == GetObjectName(myHero) then
-
-require('Interrupter')
 
 WALL_SPELLS = { 
     ["Aatrox"]                      = {_E},
@@ -9357,13 +9490,22 @@ end)
 
 -- Interrupter
 
-addInterrupterCallback(function(target, spellType, spell)
+OnProcessSpell(function(unit, spell)
 	if YasuoMenu.Interrupter.UseQ3:Value() then
-		if ValidTarget(target, YasuoQ3.range) then
-			if GetCastRange(myHero,_Q) > 500 then
-				if CanUseSpell(myHero,_Q) == READY then
-					if spellType == GAPCLOSER_SPELLS or spellType == CHANELLING_SPELLS then
-						CastSkillShot(_Q,GetOrigin(target))
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if CanUseSpell(myHero,_Q) == READY and GetCastRange(myHero,_Q) > 500 then
+				if ValidTarget(enemy, YasuoQ3.range) then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useQ3(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useQ3(enemy) end
+						end
 					end
 				end
 			end
