@@ -8,16 +8,16 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2 BETA
--- Intermediate GoS script which supports currently 20 champions.
+-- Current version: 1.2.1
+-- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
--- Ryze, Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- Riven, Ryze, Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
 -- + Different types of making combat,
--- + Advanced farm logic (LastHit, LaneClear, JungleClear)
+-- + Advanced farm logic (LastHit, LaneClear, JungleClear).
 -- + Additional Anti-Gapcloser and Interrupter,
 -- + Spell range drawings (circular),
 -- + Special damage indicator over HP bar of enemy,
@@ -31,6 +31,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1
+-- + Added Riven
+-- + Fixed Veigar's R damage
 -- 1.2 BETA
 -- + Removed outdated Interrupter / Integrated a new one
 -- 1.1.8
@@ -130,7 +133,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.2
+local TSVer = 1.21
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -5259,6 +5262,395 @@ OnTick(function(myHero)
 	end
 end)
 
+-- Riven
+
+elseif "Riven" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Riven loaded successfully!")
+local RivenMenu = Menu("[T01] Riven", "[T01] Riven")
+RivenMenu:Menu("Auto", "Auto")
+RivenMenu.Auto:Boolean('UseW', 'Use W [Ki Burst]', true)
+RivenMenu:Menu("Combo", "Combo")
+RivenMenu.Combo:Boolean('UseQ', 'Use Q [Broken Wings]', true)
+RivenMenu.Combo:Boolean('UseW', 'Use W [Ki Burst]', true)
+RivenMenu.Combo:Boolean('UseE', 'Use E [Valor]', true)
+RivenMenu:Menu("Harass", "Harass")
+RivenMenu.Harass:Boolean('UseQ', 'Use Q [Broken Wings]', true)
+RivenMenu.Harass:Boolean('UseW', 'Use W [Ki Burst]', true)
+RivenMenu.Harass:Boolean('UseE', 'Use E [Valor]', true)
+RivenMenu:Menu("KillSteal", "KillSteal")
+RivenMenu.KillSteal:Boolean('UseR', 'Use R [Blade of the Exile]', true)
+RivenMenu:Menu("LaneClear", "LaneClear")
+RivenMenu.LaneClear:Boolean('UseQ', 'Use Q [Broken Wings]', true)
+RivenMenu.LaneClear:Boolean('UseW', 'Use W [Ki Burst]', true)
+RivenMenu:Menu("JungleClear", "JungleClear")
+RivenMenu.JungleClear:Boolean('UseQ', 'Use Q [Broken Wings]', true)
+RivenMenu.JungleClear:Boolean('UseW', 'Use W [Ki Burst]', true)
+RivenMenu.JungleClear:Boolean('UseE', 'Use E [Valor]', true)
+RivenMenu:Menu("Prediction", "Prediction")
+RivenMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+RivenMenu.Prediction:DropDown("PredictionR", "Prediction: R", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+RivenMenu:Menu("Drawings", "Drawings")
+RivenMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+RivenMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+RivenMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+RivenMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+RivenMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
+RivenMenu:Menu("Misc", "Misc")
+RivenMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
+RivenMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
+RivenMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+RivenMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+RivenMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+
+local RivenQ = { range = 260, radius = 150, width = 300, speed = math.huge, delay = 0, type = "line", collision = false, source = myHero }
+local RivenW = { range = 270 }
+local RivenE = { range = 325, radius = 100, width = 200, speed = 1100, delay = 0, type = "line", collision = false, source = myHero }
+local RivenR = { range = 900, angle = 50, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "cone", collision = false, source = myHero }
+
+OnDraw(function(myHero)
+local pos = GetOrigin(myHero)
+if RivenMenu.Drawings.DrawQ:Value() then DrawCircle(pos,260,1,25,0xff00bfff) end
+if RivenMenu.Drawings.DrawW:Value() then DrawCircle(pos,RivenW.range,1,25,0xff4169e1) end
+if RivenMenu.Drawings.DrawE:Value() then DrawCircle(pos,RivenE.range,1,25,0xff1e90ff) end
+if RivenMenu.Drawings.DrawR:Value() then DrawCircle(pos,RivenR.range,1,25,0xff0000ff) end
+end)
+
+OnDraw(function(myHero)
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (60*GetCastLevel(myHero,_Q)-15)+((0.15*GetCastLevel(myHero,_Q)+1.2)*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+		local WDmg = (30*GetCastLevel(myHero,_W)+25)+(GetBonusDmg(myHero))
+		local Fraction = 8/300
+		local RDmg = ((50*GetCastLevel(myHero,_R)+50)+(0.6*GetBonusDmg(myHero)))*math.max(Fraction*math.min(200-GetPercentHP(enemy),75),1)
+		local ComboDmg = QDmg + WDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local QRDmg = QDmg + RDmg
+		local QWDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if RivenMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+		Auto()
+		Combo()
+		Harass()
+		KillSteal()
+		LaneClear()
+		JungleClear()
+end)
+
+function useQ(target)
+	if GetDistance(target) < RivenQ.range then
+		if RivenMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif RivenMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),RivenQ.speed,RivenQ.delay*1000,RivenQ.range,RivenQ.radius,false,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif RivenMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,RivenQ,true,false)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif RivenMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="RivenTriCleave", range=RivenQ.range, speed=RivenQ.speed, delay=RivenQ.delay, width=RivenQ.radius, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(RivenQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif RivenMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,RivenQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	CastSkillShot(_W,GetOrigin(target))
+end
+function useE(target)
+	CastSkillShot(_E,GetOrigin(target))
+end
+function useR(target)
+	if GetDistance(target) < RivenR.range then
+		if RivenMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif RivenMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),RivenR.speed,RivenR.delay*1000,RivenR.range,RivenR.width,false,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif RivenMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,RivenR,true,false)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif RivenMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="RivenIzunaBlade", range=RivenR.range, speed=RivenR.speed, delay=RivenR.delay, width=RivenR.width, type="conic", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(RivenR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif RivenMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetConicAOEPrediction(target,RivenR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if RivenMenu.Auto.UseW:Value() then
+		if CanUseSpell(myHero,_W) == READY then
+			if ValidTarget(target, RivenW.range) then
+				useW(target)
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if RivenMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, RivenE.range+GetRange(myHero)+GetHitBox(myHero)) then
+					useE(target)
+				end
+			end
+		end
+		if RivenMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, RivenQ.range+GetRange(myHero)+GetHitBox(myHero)) then
+					useQ(target)
+				end
+			end
+		end
+		if RivenMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, RivenW.range) then
+					useW(target)
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if RivenMenu.Harass.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, RivenE.range+GetRange(myHero)+GetHitBox(myHero)) then
+					useE(target)
+				end
+			end
+		end
+		if RivenMenu.Harass.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, RivenQ.range+GetRange(myHero)+GetHitBox(myHero)) then
+					useQ(target)
+				end
+			end
+		end
+		if RivenMenu.Harass.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, RivenW.range) then
+					useW(target)
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if RivenMenu.KillSteal.UseR:Value() then
+			if ValidTarget(enemy, RivenR.range) then
+				if GetRange(myHero) > 150 then
+					if CanUseSpell(myHero,_R) == READY then
+						local Fraction = 8/300
+						local RivenRDmg = ((50*GetCastLevel(myHero,_R)+50)+(0.6*GetBonusDmg(myHero)))*math.max(Fraction*math.min(200-GetPercentHP(enemy),75),1)
+						if GetCurrentHP(enemy) < RivenRDmg then
+							useR(enemy)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if RivenMenu.LaneClear.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				local BestPos, BestHit = GetLineFarmPosition(RivenQ.range, RivenQ.radius, MINION_ENEMY)
+				if BestPos and BestHit > 2 then
+					CastSkillShot(_Q, BestPos)
+				end
+			end
+		end
+		if RivenMenu.LaneClear.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				local BestPos, BestHit = GetLineFarmPosition(RivenW.range, RivenW.range, MINION_ENEMY)
+				if BestPos and BestHit > 2 then
+					CastSkillShot(_W, BestPos)
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, RivenE.range) then
+						if RivenMenu.JungleClear.UseE:Value() then	   
+							CastSkillShot(_E,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(mob, RivenW.range) then
+						if RivenMenu.JungleClear.UseW:Value() then	   
+							CastSkillShot(_W,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(mob, RivenQ.range) then
+						if RivenMenu.JungleClear.UseQ:Value() then
+							CastSkillShot(_Q,GetOrigin(mob))
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Misc
+
+OnTick(function(myHero)
+	if Mode() == "Combo" then
+		if RivenMenu.Misc.UI:Value() then
+			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
+					CastSpell(GetItemSlot(myHero, 3074))
+				end -- Ravenous Hydra
+			end
+			if GetItemSlot(myHero, 3077) >= 1 and ValidTarget(target, 400) then
+				if CanUseSpell(myHero, GetItemSlot(myHero, 3077)) == READY then
+					CastSpell(GetItemSlot(myHero, 3077))
+				end -- Tiamat
+			end
+			if GetItemSlot(myHero, 3144) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3144)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3144))
+					end -- Bilgewater Cutlass
+				end
+			end
+			if GetItemSlot(myHero, 3146) >= 1 and ValidTarget(target, 700) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3146)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3146))
+					end -- Hextech Gunblade
+				end
+			end
+			if GetItemSlot(myHero, 3153) >= 1 and ValidTarget(target, 550) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero, GetItemSlot(myHero, 3153)) == READY then
+						CastTargetSpell(target, GetItemSlot(myHero, 3153))
+					end -- BOTRK
+				end
+			end
+			if GetItemSlot(myHero, 3748) >= 1 and ValidTarget(target, 300) then
+				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
+					if CanUseSpell(myHero,GetItemSlot(myHero, 3748)) == READY then
+						CastSpell(GetItemSlot(myHero, 3748))
+					end -- Titanic Hydra
+				end
+			end
+		end
+	end
+end)
+
+OnTick(function(myHero)
+	if RivenMenu.Misc.LvlUp:Value() then
+		if RivenMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RivenMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RivenMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RivenMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RivenMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif RivenMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
+end)
+
 -- Ryze
 
 elseif "Ryze" == GetObjectName(myHero) then
@@ -6050,7 +6442,7 @@ function KillSteal()
 			if ValidTarget(enemy, SyndraR.range) then
 				if CanUseSpell(myHero,_R) == READY then
 					local RMulti = CountBalls(Seed)+3
-					local SyndraRDmg = ((45*GetCastLevel(myHero,_R)+45)+(0.2*GetBonusAP(myHero)))*RMulti
+					local SyndraRDmg = (((45*GetCastLevel(myHero,_R)+45)+(0.2*GetBonusAP(myHero)))*RMulti)-(GetBonusDmg(myHero)+GetBaseDamage(myHero))
 					if GetCurrentHP(enemy) < SyndraRDmg then
 						CastTargetSpell(enemy, _R)
 					end
@@ -7093,21 +7485,16 @@ if VeigarMenu.Drawings.DrawE:Value() then DrawCircle(pos,VeigarE.range,1,25,0xff
 if VeigarMenu.Drawings.DrawR:Value() then DrawCircle(pos,VeigarR.range,1,25,0xff0000ff) end
 end)
 
-function getMin(x, y)
-	if x<y then
-		return x
-	end
-	return y
-end
 OnDraw(function(myHero)
-	local QDmg = (40*GetCastLevel(myHero,_Q)+30)+(0.6*GetBonusAP(myHero))
-	local WDmg = (50*GetCastLevel(myHero,_W)+50)+(GetBonusAP(myHero))
-	local RDmg = (75*GetCastLevel(myHero,_R)+100)+(0.75*GetBonusAP(myHero))+getMin(2,-1/67*((GetCurrentHP(target)/GetMaxHP(target))*100)+2.49)
-	local ComboDmg = QDmg + WDmg + RDmg
-	local WRDmg = WDmg + RDmg
-	local QRDmg = QDmg + RDmg
-	local QWDmg = QDmg + WDmg
 	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (40*GetCastLevel(myHero,_Q)+30)+(0.6*GetBonusAP(myHero))
+		local WDmg = (50*GetCastLevel(myHero,_W)+50)+(GetBonusAP(myHero))
+		local InitialRDmg = GetPercentHP(enemy) > 33.3 and (75*GetCastLevel(myHero,_R)+100)+(0.75*GetBonusAP(myHero)) or (150*GetCastLevel(myHero,_R)+200)+(1.5*GetBonusAP(myHero))
+		local RDmg = InitialRDmg+((0.015*InitialRDmg)*(100-((GetCurrentHP(enemy)/GetMaxHP(enemy))*100)))
+		local ComboDmg = QDmg + WDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local QRDmg = QDmg + RDmg
+		local QWDmg = QDmg + WDmg
 		if ValidTarget(enemy) then
 			if VeigarMenu.Drawings.DrawDMG:Value() then
 				if Ready(_Q) and Ready(_W) and Ready(_R) then
@@ -7354,7 +7741,8 @@ function KillSteal()
 		if VeigarMenu.KillSteal.UseR:Value() then
 			if ValidTarget(enemy, VeigarR.range) then
 				if CanUseSpell(myHero,_R) == READY then
-					local VeigarRDmg = (75*GetCastLevel(myHero,_R)+100)+(0.75*GetBonusAP(myHero))+getMin(2,-1/67*((GetCurrentHP(enemy)/GetMaxHP(enemy))*100)+2.49)
+					local InitRDmg = GetPercentHP(enemy) > 33.3 and (75*GetCastLevel(myHero,_R)+100)+(0.75*GetBonusAP(myHero)) or (150*GetCastLevel(myHero,_R)+200)+(1.5*GetBonusAP(myHero))
+					local VeigarRDmg = InitRDmg+((0.015*InitRDmg)*(100-((GetCurrentHP(enemy)/GetMaxHP(enemy))*100)))-(GetBonusDmg(myHero)+GetBaseDamage(myHero))
 					if GetCurrentHP(enemy) < VeigarRDmg then
 						CastTargetSpell(enemy, _R)
 					end
