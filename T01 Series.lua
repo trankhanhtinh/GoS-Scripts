@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1
+-- Current version: 1.2.1.1
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1.1
+-- + Improved damage calculation for KS
 -- 1.2.1
 -- + Added Riven
 -- + Fixed Veigar's R damage
@@ -133,7 +135,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.21
+local TSVer = 1.211
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -867,7 +869,7 @@ end
 function Auto()
 	if AnnieMenu.Auto.UseQ:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_Q) == READY and AA == true then
+			if CanUseSpell(myHero,_Q) == READY then
 				if ValidTarget(target, AnnieQ.range) then
 					useQ(target)
 				end
@@ -876,7 +878,7 @@ function Auto()
 	end
 	if AnnieMenu.Auto.UseW:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > AnnieMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_W) == READY and AA == true then
+			if CanUseSpell(myHero,_W) == READY then
 				if ValidTarget(target, AnnieW.range) then
 					useW(target)
 				end
@@ -976,7 +978,7 @@ function KillSteal()
 				if CanUseSpell(myHero,_R) == READY then
 					if AlliesAround(myHero, 1000) == 0 then
 						local AnnieRDmg = (125*GetCastLevel(myHero,_R)+25)+(0.65*GetBonusAP(myHero))
-						if GetCurrentHP(enemy) < AnnieRDmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < AnnieRDmg then
 							useR(enemy)
 						end
 					end
@@ -1470,7 +1472,7 @@ function KillSteal()
 			if ValidTarget(enemy, BrandW.range) then
 				if CanUseSpell(myHero,_W) == READY then
 					local BrandWDmg = (45*GetCastLevel(myHero,_W)+30)+(0.6*GetBonusAP(myHero))
-					if GetCurrentHP(enemy) < BrandWDmg then
+					if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < BrandWDmg then
 						useW(enemy)
 					end
 				end
@@ -1936,12 +1938,12 @@ function KillSteal()
 				if CanUseSpell(myHero,_E) == READY then
 					if GotBuff(enemy, "cassiopeiaqdebuff") > 0 or GotBuff(enemy, "cassiopeiawpoison") > 0 then
 						local CassiopeiaE2Dmg = ((4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_E)-10)+(0.6*GetBonusAP(myHero)))
-						if GetCurrentHP(enemy) < CassiopeiaE2Dmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < CassiopeiaE2Dmg then
 							CastTargetSpell(enemy, _E)
 						end
 					else
 						local CassiopeiaEDmg = (4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero))
-						if GetCurrentHP(enemy) < CassiopeiaEDmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < CassiopeiaEDmg then
 							CastTargetSpell(enemy, _E)
 						end
 					end
@@ -2441,7 +2443,7 @@ function KillSteal()
 			if ValidTarget(enemy, FizzQ.range) then
 				if CanUseSpell(myHero,_Q) == READY then
 					local FizzQDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(15*GetCastLevel(myHero,_Q)-5)+(0.55*GetBonusAP(myHero))
-					if GetCurrentHP(enemy) < FizzQDmg then
+					if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < FizzQDmg then
 						useQ(enemy)
 					end
 				end
@@ -3088,7 +3090,7 @@ function KillSteal()
 				if ValidTarget(enemy, GnarQMini.range) then
 					if CanUseSpell(myHero,_Q) == READY then
 						local GnarQMiniDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.15*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
-						if GetCurrentHP(enemy) < GnarQMiniDmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < GnarQMiniDmg then
 							useQMini(enemy)
 						end
 					end
@@ -3099,7 +3101,7 @@ function KillSteal()
 				if ValidTarget(enemy, GnarQMega.range) then
 					if CanUseSpell(myHero,_Q) == READY then
 						local GnarQMegaDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.2*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
-						if GetCurrentHP(enemy) < GnarQMegaDmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < GnarQMegaDmg then
 							useQMega(enemy)
 						end
 					end
@@ -3703,7 +3705,7 @@ function KillSteal()
 				if ValidTarget(enemy, JayceQExhanced.range) then
 					if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
 						local JayceEQDmg = (70*GetCastLevel(myHero,_Q)+28)+(1.68*GetBonusDmg(myHero))
-						if GetCurrentHP(enemy) < JayceEQDmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < JayceEQDmg then
 							useEQCannon(enemy)
 						end
 					end
@@ -3713,7 +3715,7 @@ function KillSteal()
 				if ValidTarget(enemy, JayceQCannon.range) then
 					if CanUseSpell(myHero,_Q) == READY then
 						local JayceQDmg = (50*GetCastLevel(myHero,_Q)+20)+(1.2*GetBonusDmg(myHero))
-						if GetCurrentHP(enemy) < JayceQDmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < JayceQDmg then
 							useQCannon(enemy)
 						end
 					end
@@ -3724,7 +3726,7 @@ function KillSteal()
 				if ValidTarget(enemy, JayceEHammer.range) then
 					if CanUseSpell(myHero,_E) == READY then
 						local JayceEDmg = ((0.024*GetCastLevel(myHero,_E)+0.056)*GetMaxHP(target))+GetBonusDmg(myHero)
-						if GetCurrentHP(enemy) < JayceEDmg then
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < JayceEDmg then
 							useEHammer(enemy)
 						end
 					end
@@ -4297,7 +4299,7 @@ function KillSteal()
 			if ValidTarget(enemy, KatarinaE.range) then
 				if CanUseSpell(myHero,_E) == READY then
 					local KatarinaEDmg = (15*GetCastLevel(myHero,_E))+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.25*GetBonusAP(myHero))
-					if GetCurrentHP(enemy) < KatarinaEDmg then
+					if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < KatarinaEDmg then
 						useE(enemy)
 					end
 				end
@@ -4630,7 +4632,7 @@ function KillSteal()
 			if ValidTarget(enemy, MasterYiQ.range) then
 				if CanUseSpell(myHero,_Q) == READY then
 					local MasterYiQDmg = (35*GetCastLevel(myHero,_Q)-10)+(GetBonusDmg(myHero)+GetBaseDamage(myHero))+0.6*(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-					if GetCurrentHP(enemy) < MasterYiQDmg then
+					if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < MasterYiQDmg then
 						useQ(enemy)
 					end
 				end
@@ -5120,7 +5122,7 @@ function KillSteal()
 			if OriannaMenu.KillSteal.UseW:Value() then
 				if ValidTarget(enemy, OriannaE.range) and GetDistance(Ball, enemy) <= OriannaW.range then
 					local OriannaWDmg = (45*GetCastLevel(myHero,_W)+15)+(0.7*GetBonusAP(myHero))
-					if GetCurrentHP(enemy) < OriannaWDmg then
+					if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < OriannaWDmg then
 						useR(enemy)
 					end
 				end
@@ -5129,7 +5131,7 @@ function KillSteal()
 			if OriannaMenu.KillSteal.UseR:Value() then
 				if ValidTarget(enemy, OriannaE.range) and GetDistance(Ball, enemy) <= OriannaR.range then
 					local OriannaRDmg = (75*GetCastLevel(myHero,_R)+75)+(0.7*GetBonusAP(myHero))
-					if GetCurrentHP(enemy) < OriannaRDmg then
+					if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < OriannaRDmg then
 						useR(enemy)
 					end
 				end
@@ -5320,8 +5322,7 @@ OnDraw(function(myHero)
 	for _, enemy in pairs(GetEnemyHeroes()) do
 		local QDmg = (60*GetCastLevel(myHero,_Q)-15)+((0.15*GetCastLevel(myHero,_Q)+1.2)*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
 		local WDmg = (30*GetCastLevel(myHero,_W)+25)+(GetBonusDmg(myHero))
-		local Fraction = 8/300
-		local RDmg = ((50*GetCastLevel(myHero,_R)+50)+(0.6*GetBonusDmg(myHero)))*math.max(Fraction*math.min(200-GetPercentHP(enemy),75),1)
+		local RDmg = ((50*GetCastLevel(myHero,_R)+50)+(0.6*GetBonusDmg(myHero)))*math.max(0.04*math.min(100-GetPercentHP(enemy),75),1)
 		local ComboDmg = QDmg + WDmg + RDmg
 		local WRDmg = WDmg + RDmg
 		local QRDmg = QDmg + RDmg
@@ -5501,9 +5502,8 @@ function KillSteal()
 			if ValidTarget(enemy, RivenR.range) then
 				if GetRange(myHero) > 150 then
 					if CanUseSpell(myHero,_R) == READY then
-						local Fraction = 8/300
-						local RivenRDmg = ((50*GetCastLevel(myHero,_R)+50)+(0.6*GetBonusDmg(myHero)))*math.max(Fraction*math.min(200-GetPercentHP(enemy),75),1)
-						if GetCurrentHP(enemy) < RivenRDmg then
+						local RivenRDmg = ((50*GetCastLevel(myHero,_R)+50)+(0.6*GetBonusDmg(myHero)))*math.max(0.04*math.min(100-GetPercentHP(enemy),75),1)
+						if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < RivenRDmg then
 							useR(enemy)
 						end
 					end
@@ -6443,7 +6443,7 @@ function KillSteal()
 				if CanUseSpell(myHero,_R) == READY then
 					local RMulti = CountBalls(Seed)+3
 					local SyndraRDmg = (((45*GetCastLevel(myHero,_R)+45)+(0.2*GetBonusAP(myHero)))*RMulti)-(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-					if GetCurrentHP(enemy) < SyndraRDmg then
+					if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < SyndraRDmg then
 						CastTargetSpell(enemy, _R)
 					end
 				end
@@ -6876,7 +6876,7 @@ function KillSteal()
 			if ValidTarget(enemy, TwistedFateQ.range) then
 				if CanUseSpell(myHero,_Q) == READY then
 					local TwistedFateQDmg = (45*GetCastLevel(myHero,_Q)+15)+(0.65*GetBonusAP(myHero))
-					if GetCurrentHP(enemy) < TwistedFateQDmg then
+					if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < TwistedFateQDmg then
 						useQ(enemy)
 					end
 				end
@@ -7203,7 +7203,7 @@ function KillSteal()
 			if ValidTarget(enemy, VayneE.range) then
 				if CanUseSpell(myHero,_E) == READY then
 					local VayneEDmg = (40*GetCastLevel(myHero,_E)+10)+(0.5*GetBonusDmg(myHero))
-					if GetCurrentHP(enemy) < VayneEDmg then
+					if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < VayneEDmg then
 						CastTargetSpell(enemy, _E)
 					end
 				end
@@ -7743,7 +7743,7 @@ function KillSteal()
 				if CanUseSpell(myHero,_R) == READY then
 					local InitRDmg = GetPercentHP(enemy) > 33.3 and (75*GetCastLevel(myHero,_R)+100)+(0.75*GetBonusAP(myHero)) or (150*GetCastLevel(myHero,_R)+200)+(1.5*GetBonusAP(myHero))
 					local VeigarRDmg = InitRDmg+((0.015*InitRDmg)*(100-((GetCurrentHP(enemy)/GetMaxHP(enemy))*100)))-(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-					if GetCurrentHP(enemy) < VeigarRDmg then
+					if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < VeigarRDmg then
 						CastTargetSpell(enemy, _R)
 					end
 				end
@@ -8630,7 +8630,7 @@ function KillSteal()
 				if CanUseSpell(myHero,_R) == READY then
 					if AlliesAround(myHero, 1000) == 0 then
 						local VladimirRDmg = (100*GetCastLevel(myHero,_R)+50)+(0.7*GetBonusAP(myHero))
-						if GetCurrentHP(enemy) < VladimirRDmg then
+						if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < VladimirRDmg then
 							CastTargetSpell(enemy, _R)
 						end
 					end
@@ -9176,7 +9176,7 @@ function KillSteal()
 				if ValidTarget(enemy, XerathR.range) then
 					local XerathRDmg = ((40*GetCastLevel(myHero,_R)+160)+(0.43*GetBonusAP(myHero)))*(2+(GetCastLevel(myHero,_R)))
 					if XerathMenu.KillSteal.ModeR:Value() == 1 then
-						if GetCurrentHP(enemy) < XerathRDmg then
+						if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < XerathRDmg then
 							local EnemyToKS = enemy
 							if GotBuff(myHero, "xerathrshots") > 0 then
 								if XerathMenu.Prediction.PredictionR:Value() == 1 then
@@ -9262,7 +9262,7 @@ function KillSteal()
 								end
 							end
 						else
-							if GetCurrentHP(enemy) < XerathRDmg then
+							if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < XerathRDmg then
 								DrawCircle(enemy,XerathR.radius,5,25,0xffffd700)
 							end
 						end
@@ -10002,7 +10002,7 @@ function KillSteal()
 			if ValidTarget(enemy, YasuoR.range) then
 				if CanUseSpell(myHero,_R) == READY then
 					local YasuoRDmg = (100*GetCastLevel(myHero,_R)+100)+(1.5*GetBonusDmg(myHero))
-					if GetCurrentHP(enemy) < YasuoRDmg then
+					if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < YasuoRDmg then
 						CastTargetSpell(enemy, _R)
 					end
 				end
