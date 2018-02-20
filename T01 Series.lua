@@ -6442,7 +6442,7 @@ function KillSteal()
 			if ValidTarget(enemy, SyndraR.range) then
 				if CanUseSpell(myHero,_R) == READY then
 					local RMulti = CountBalls(Seed)+3
-					local SyndraRDmg = (((45*GetCastLevel(myHero,_R)+45)+(0.2*GetBonusAP(myHero)))*RMulti)-(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+					local SyndraRDmg = (((45*GetCastLevel(myHero,_R)+45)+(0.2*GetBonusAP(myHero)))*RMulti)
 					if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < SyndraRDmg then
 						CastTargetSpell(enemy, _R)
 					end
@@ -7742,7 +7742,7 @@ function KillSteal()
 			if ValidTarget(enemy, VeigarR.range) then
 				if CanUseSpell(myHero,_R) == READY then
 					local InitRDmg = GetPercentHP(enemy) > 33.3 and (75*GetCastLevel(myHero,_R)+100)+(0.75*GetBonusAP(myHero)) or (150*GetCastLevel(myHero,_R)+200)+(1.5*GetBonusAP(myHero))
-					local VeigarRDmg = InitRDmg+((0.015*InitRDmg)*(100-((GetCurrentHP(enemy)/GetMaxHP(enemy))*100)))-(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+					local VeigarRDmg = InitRDmg+((0.015*InitRDmg)*(100-((GetCurrentHP(enemy)/GetMaxHP(enemy))*100)))
 					if GetCurrentHP(enemy)+GetDmgShield(enemy)+GetMagicResist(enemy)+GetMagicShield(enemy)+GetHPRegen(enemy)*2 < VeigarRDmg then
 						CastTargetSpell(enemy, _R)
 					end
