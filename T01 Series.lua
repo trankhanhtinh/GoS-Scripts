@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.1
+-- Current version: 1.2.1.2
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1.2
+-- + Minor changes in Riven's Q
 -- 1.2.1.1
 -- + Improved damage calculation for KS
 -- 1.2.1
@@ -135,7 +137,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.211
+local TSVer = 1.212
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -5305,7 +5307,7 @@ RivenMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E
 RivenMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 RivenMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local RivenQ = { range = 260, radius = 150, width = 300, speed = math.huge, delay = 0, type = "line", collision = false, source = myHero }
+local RivenQ = { range = 460, radius = 150, width = 300, speed = math.huge, delay = 0, type = "line", collision = false, source = myHero }
 local RivenW = { range = 270 }
 local RivenE = { range = 325, radius = 100, width = 200, speed = 1100, delay = 0, type = "line", collision = false, source = myHero }
 local RivenR = { range = 900, angle = 50, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "cone", collision = false, source = myHero }
@@ -5444,14 +5446,14 @@ function Combo()
 	if Mode() == "Combo" then
 		if RivenMenu.Combo.UseE:Value() then
 			if CanUseSpell(myHero,_E) == READY then
-				if ValidTarget(target, RivenE.range+GetRange(myHero)+GetHitBox(myHero)) then
+				if ValidTarget(target, RivenE.range+GetRange(myHero)+GetHitBox(myHero)+100) then
 					useE(target)
 				end
 			end
 		end
 		if RivenMenu.Combo.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY and AA == true then
-				if ValidTarget(target, RivenQ.range+GetRange(myHero)+GetHitBox(myHero)) then
+				if ValidTarget(target, RivenQ.range+GetRange(myHero)+GetHitBox(myHero)+100) then
 					useQ(target)
 				end
 			end
@@ -5472,14 +5474,14 @@ function Harass()
 	if Mode() == "Harass" then
 		if RivenMenu.Harass.UseE:Value() then
 			if CanUseSpell(myHero,_E) == READY then
-				if ValidTarget(target, RivenE.range+GetRange(myHero)+GetHitBox(myHero)) then
+				if ValidTarget(target, RivenE.range+GetRange(myHero)+GetHitBox(myHero)+100) then
 					useE(target)
 				end
 			end
 		end
 		if RivenMenu.Harass.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY and AA == true then
-				if ValidTarget(target, RivenQ.range+GetRange(myHero)+GetHitBox(myHero)) then
+				if ValidTarget(target, RivenQ.range+GetRange(myHero)+GetHitBox(myHero)+100) then
 					useQ(target)
 				end
 			end
