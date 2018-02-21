@@ -16,8 +16,7 @@
 -- ===============
 -- == Changelog ==
 -- ===============
--- 1.0
--- + Initial release for patch 8.3
+-- [16-02] Initial release for patch 8.3
 
 Spells = {
 	["AatroxQ"]={charName="Aatrox",slot=_Q,type="circular",speed=450,range=650,delay=0.25,radius=275,hitbox=true,aoe=true,cc=true,collision=false},
@@ -313,7 +312,7 @@ Spells = {
 	["XerathMageSpearMissile"]={charName="Xerath",slot=_E,type="linear",speed=1350,range=1050,delay=0.25,radius=60,hitbox=true,aoe=false,cc=true,collision=true},
 	["XerathRMissileWrapper"]={charName="Xerath",slot=_R,type="circular",speed=math.huge,range=6160,delay=0.6,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
 	["XinZhaoW"]={charName="XinZhao",slot=_W,type="conic",speed=math.huge,range=125,delay=0,angle=180,hitbox=false,aoe=true,cc=false,collision=false},
-	["XinZhaoW"]={charName="XinZhao",slot=_W,type="linear",speed=math.huge,range=900,delay=0.6,radius=45,hitbox=true,aoe=true,cc=true,collision=false},
+	["XinZhaoW"]={charName="XinZhao",slot=_W,type="linear",speed=math.huge,range=900,delay=0.5,radius=45,hitbox=true,aoe=true,cc=true,collision=false},
 	["XinZhaoR"]={charName="XinZhao",slot=_R,type="circular",speed=math.huge,range=0,delay=0.325,radius=550,hitbox=false,aoe=true,cc=true,collision=false},
 	["YasuoQ"]={charName="Yasuo",slot=_Q,type="linear",speed=math.huge,range=475,delay=0.339,radius=45,hitbox=true,aoe=true,cc=false,collision=false},
 	["YasuoQ3"]={charName="Yasuo",slot=_Q,type="linear",speed=1500,range=1000,delay=0.339,radius=75,hitbox=true,aoe=true,cc=true,collision=false},
