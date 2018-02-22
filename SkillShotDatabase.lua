@@ -16,6 +16,7 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [22-02] Updated for patch 8.4
 -- [16-02] Initial release for patch 8.3
 
 Spells = {
@@ -226,7 +227,6 @@ Spells = {
 	["RekSaiQBurrowed"]={charName="RekSai",slot=_Q,type="linear",speed=2100,range=1650,delay=0.125,radius=50,hitbox=true,aoe=false,cc=false,collision=true},
 	["RenektonCleave"]={charName="Renekton",slot=_Q,type="circular",speed=math.huge,range=0,delay=0.25,radius=325,hitbox=false,aoe=true,cc=false,collision=false},
 	["RenektonSliceAndDice"]={charName="Renekton",slot=_E,type="linear",speed=1125,range=450,delay=0.25,radius=45,hitbox=true,aoe=true,cc=false,collision=false},
-	["RengarQ"]={charName="Rengar",slot=_Q,type="linear",speed=math.huge,range=450,delay=0.325,radius=50,hitbox=true,aoe=true,cc=false,collision=false},
 	["RengarW"]={charName="Rengar",slot=_W,type="circular",speed=math.huge,range=0,delay=0.25,radius=450,hitbox=false,aoe=true,cc=false,collision=false},
 	["RengarE"]={charName="Rengar",slot=_E,type="linear",speed=1500,range=1000,delay=0.25,radius=60,hitbox=true,aoe=false,cc=true,collision=true},
 	["RivenTriCleave"]={charName="Riven",slot=_Q,type="linear",speed=1100,range=260,delay=0.25,radius=200,hitbox=true,aoe=true,cc=true,collision=false},
