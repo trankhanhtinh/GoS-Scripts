@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.2
+-- Current version: 1.2.1.3
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1.3
+-- + Corrected Gnar's E damage
 -- 1.2.1.2
 -- + Minor changes in Riven's Q
 -- 1.2.1.1
@@ -137,7 +139,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.212
+local TSVer = 1.213
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -2689,7 +2691,7 @@ OnDraw(function(myHero)
 		if GetRange(myHero) > 300 then
 			local QDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.15*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
 			local WDmg = (10*GetCastLevel(myHero,_W))+((0.02*GetCastLevel(myHero,_W)+0.04)*GetMaxHP(enemy))+(GetBonusAP(myHero))
-			local EDmg = (40*GetCastLevel(myHero,_E)-20)+(0.06*GetMaxHP(myHero))
+			local EDmg = (35*GetCastLevel(myHero,_E)+15)+(0.06*GetMaxHP(myHero))
 			local ComboDmg = QDmg + WDmg + EDmg
 			local WEDmg = WDmg + EDmg
 			local QEDmg = QDmg + EDmg
@@ -2716,7 +2718,7 @@ OnDraw(function(myHero)
 		elseif GetRange(myHero) < 300 then
 			local QDmg = (40*GetCastLevel(myHero,_Q)-35)+(1.2*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
 			local WDmg = (20*GetCastLevel(myHero,_W)+5)+(GetBaseDamage(myHero)+GetBonusDmg(myHero))
-			local EDmg = (40*GetCastLevel(myHero,_E)-20)+(0.06*GetMaxHP(myHero))
+			local EDmg = (35*GetCastLevel(myHero,_E)+15)+(0.06*GetMaxHP(myHero))
 			local RDmg = (150*GetCastLevel(myHero,_R)+150)+(0.3*GetBonusDmg(myHero))+(0.75*GetBonusAP(myHero))
 			local ComboDmg = QDmg + WDmg + EDmg + RDmg
 			local WERDmg = WDmg + EDmg + RDmg
