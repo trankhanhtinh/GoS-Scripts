@@ -189,21 +189,20 @@ Barrier = (GetCastName(myHero,SUMMONER_1):lower():find("summonerbarrier") and SU
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
-	Draws()
 	Items()
 	LevelUp()
 	SS()
 end)
 
-function Draws()
+OnDraw(function(myHero)
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy) then
+		if ValidTarget(enemy, 2000) then
 			DrawAA = WorldToScreen(1,GetOrigin(enemy).x, GetOrigin(enemy).y, GetOrigin(enemy).z)
 			AALeft = (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy))/(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-			DrawText("AA Left: "..tostring(math.ceil(AALeft)), 17, DrawAA.x-37, DrawAA.y+28, 0xff00bfff)
+			DrawText("AA Left: "..tostring(math.ceil(AALeft)), 17, DrawAA.x-33, DrawAA.y+10, 0xff00bfff)
 		end
 	end
-end
+end)
 
 function Items()
 	if Mode() == "Combo" then
