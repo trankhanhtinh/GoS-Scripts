@@ -539,7 +539,7 @@ function KillSteal()
 			if AsheMenu.KillSteal.UseW:Value() then
 				if ValidTarget(enemy, AsheW.range) then
 					local AsheWDmg = (15*GetCastLevel(myHero,_W)+5)+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)) < AsheWDmg then
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < AsheWDmg then
 						useW(enemy)
 					end
 				end
@@ -548,7 +548,7 @@ function KillSteal()
 			if AsheMenu.KillSteal.UseR:Value() then
 				if ValidTarget(enemy, AsheMenu.KillSteal.Distance:Value()) then
 					local AsheRDmg = (200*GetCastLevel(myHero,_R))+(GetBonusAP(myHero))
-					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)) < AsheRDmg then
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < AsheRDmg then
 						useR(enemy)
 					end
 				end
@@ -990,7 +990,7 @@ function KillSteal()
 			if CaitlynMenu.KillSteal.UseR:Value() then
 				if ValidTarget(enemy, CaitlynR.range) then
 					local CaitlynRDmg = (225*GetCastLevel(myHero,_R)+25)+(2*GetBonusDmg(myHero))
-					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)) < CaitlynRDmg then
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < CaitlynRDmg then
 						DrawCircle(enemy,200,5,25,0xffffd700)
 					end
 				end
@@ -999,7 +999,7 @@ function KillSteal()
 			if CaitlynMenu.KillSteal.UseQ:Value() then
 				if ValidTarget(enemy, CaitlynQ.range) then
 					local CaitlynQDmg = ((40*GetCastLevel(myHero,_Q)-10)+((0.1*GetCastLevel(myHero,_Q)+1.2)*(GetBonusDmg(myHero)+GetBaseDamage(myHero))))/3
-					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)) < CaitlynQDmg then
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < CaitlynQDmg then
 						useQ(enemy)
 					end
 				end
