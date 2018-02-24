@@ -201,7 +201,7 @@ OnDraw(function(myHero)
 		if ValidTarget(enemy) then
 			DrawAA = WorldToScreen(1,GetOrigin(enemy).x, GetOrigin(enemy).y, GetOrigin(enemy).z)
 			AALeft = (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy))/(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-			DrawText("AA Left: "..tostring(math.ceil(AALeft)), 17, DrawAA.x-33, DrawAA.y+10, 0xff00bfff)
+			DrawText("AA Left: "..tostring(math.ceil(AALeft)), 17, DrawAA.x-38, DrawAA.y+10, 0xff00bfff)
 		end
 	end
 end)
