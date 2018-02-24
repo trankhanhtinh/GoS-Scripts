@@ -297,7 +297,7 @@ end
 
 if "Ashe" == GetObjectName(myHero) then
 
-PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U v1.0<font color='#1E90FF'>] <font color='#00BFFF'>Ashe loaded successfully!")
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Ashe loaded successfully!")
 local AsheMenu = Menu("[GoS-U] Ashe", "[GoS-U] Ashe")
 AsheMenu:Menu("Auto", "Auto")
 AsheMenu.Auto:Boolean('UseQ', 'Use Q [Rangers Focus]', true)
@@ -636,7 +636,7 @@ end)
 
 elseif "Caitlyn" == GetObjectName(myHero) then
 
-PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U v1.0<font color='#1E90FF'>] <font color='#00BFFF'>Caitlyn loaded successfully!")
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Caitlyn loaded successfully!")
 local CaitlynMenu = Menu("[GoS-U] Caitlyn", "[GoS-U] Caitlyn")
 CaitlynMenu:Menu("Auto", "Auto")
 CaitlynMenu.Auto:Boolean('UseQ', 'Use Q [Piltover Peacemaker]', true)
