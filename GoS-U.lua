@@ -634,32 +634,6 @@ end)
 
 -- Caitlyn
 
-require('Inspired')
-require('IPrediction')
-require('OpenPredict')
-
-function Mode()
-	if _G.IOW_Loaded and IOW:Mode() then
-		return IOW:Mode()
-	elseif GoSWalkLoaded and GoSWalk.CurrentMode then
-		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
-	end
-end
-
-OnProcessSpell(function(unit, spell)
-	if unit == myHero then
-		if spell.name:lower():find("attack") then
-			DelayAction(function()
-				AA = true
-			end, GetWindUp(myHero)+0.01)
-		else
-			AA = false
-		end
-	end
-end)
-
--- Caitlyn
-
 elseif "Caitlyn" == GetObjectName(myHero) then
 
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U v1.0<font color='#1E90FF'>] <font color='#00BFFF'>Caitlyn loaded successfully!")
