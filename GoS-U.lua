@@ -1423,7 +1423,7 @@ function LaneClear()
 		if CorkiMenu.LaneClear.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY and AA == true then
-					local BestPos, BestHit = GetFarmPosition(CorkiW.range, CorkiQ.radius, MINION_ENEMY)
+					local BestPos, BestHit = GetFarmPosition(CorkiQ.range, CorkiQ.radius, MINION_ENEMY)
 					if BestPos and BestHit > 3 then
 						CastSkillShot(_Q, BestPos)
 					end
