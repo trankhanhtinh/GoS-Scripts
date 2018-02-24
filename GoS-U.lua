@@ -45,11 +45,11 @@ function AutoUpdate(data)
 	if num > GSVer then
 		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>New version found! " .. data)
 		PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Downloading update, please wait...")
-		DownloadFileAsync("", SCRIPT_PATH .. "GoS-U.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Successfully updated. Please 2x F6!") return end)
+		DownloadFileAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U.lua", SCRIPT_PATH .. "GoS-U.lua", function() PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Successfully updated. Please 2x F6!") return end)
     end
 end
 
-GetWebResultAsync("", AutoUpdate)
+GetWebResultAsync("https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U.version", AutoUpdate)
 
 require('Inspired')
 require('IPrediction')
