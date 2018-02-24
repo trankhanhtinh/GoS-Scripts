@@ -12,10 +12,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.1
+-- Current version: 1.0.2
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn
+-- + Supports Ashe, Caitlyn, Corki
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,13 +34,15 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2
+-- + Added Corki
 -- 1.0.1
 -- + Added Caitlyn
 -- 1.0
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.01
+local GSVer = 1.02
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -261,6 +263,11 @@ function LevelUp()
 			end
 		elseif "Caitlyn" == GetObjectName(myHero) then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif "Corki" == GetObjectName(myHero) then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
@@ -1066,4 +1073,385 @@ OnProcessSpell(function(unit, spell)
 		end
     end
 end)
+
+-- Corki
+
+elseif "Corki" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Corki loaded successfully!")
+local CorkiMenu = Menu("[GoS-U] Corki", "[GoS-U] Corki")
+CorkiMenu:Menu("Auto", "Auto")
+CorkiMenu.Auto:Boolean('UseQ', 'Use Q [Phosphorus Bomb]', true)
+CorkiMenu.Auto:Boolean('UseR', 'Use R [Missile Barrage]', true)
+CorkiMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+CorkiMenu:Menu("Combo", "Combo")
+CorkiMenu.Combo:Boolean('UseQ', 'Use Q [Phosphorus Bomb]', true)
+CorkiMenu.Combo:Boolean('UseW', 'Use W [Valkyrie]', true)
+CorkiMenu.Combo:Boolean('UseE', 'Use E [Gatling Gun]', true)
+CorkiMenu.Combo:Boolean('UseR', 'Use R [Missile Barrage]', true)
+CorkiMenu:Menu("Harass", "Harass")
+CorkiMenu.Harass:Boolean('UseQ', 'Use Q [Phosphorus Bomb]', true)
+CorkiMenu.Harass:Boolean('UseW', 'Use W [Valkyrie]', true)
+CorkiMenu.Harass:Boolean('UseE', 'Use E [Gatling Gun]', true)
+CorkiMenu.Harass:Boolean('UseR', 'Use R [Missile Barrage]', true)
+CorkiMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+CorkiMenu:Menu("KillSteal", "KillSteal")
+CorkiMenu.KillSteal:Boolean('UseQ', 'Use Q [Phosphorus Bomb]', true)
+CorkiMenu.KillSteal:Boolean('UseR', 'Use R [Missile Barrage]', true)
+CorkiMenu:Menu("LaneClear", "LaneClear")
+CorkiMenu.LaneClear:Boolean('UseQ', 'Use Q [Phosphorus Bomb]', true)
+CorkiMenu.LaneClear:Boolean('UseE', 'Use E [Gatling Gun]', true)
+CorkiMenu.LaneClear:Boolean('UseR', 'Use R [Missile Barrage]', true)
+CorkiMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+CorkiMenu:Menu("Prediction", "Prediction")
+CorkiMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+CorkiMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+CorkiMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+CorkiMenu:Menu("Drawings", "Drawings")
+CorkiMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+CorkiMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+CorkiMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+CorkiMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+CorkiMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+
+local CorkiQ = { range = 825, radius = 250, width = 500, speed = 1000, delay = 0.25, type = "circular", collision = false, source = myHero }
+local CorkiW = { range = GetCastRange(myHero,_W), radius = 100, width = 200, speed = 1500, delay = 0, type = "line", collision = false, source = myHero }
+local CorkiE = { range = 600 }
+local CorkiR = { range = 1225, radius = 35, width = 70, speed = 1950, delay = 0.175, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if CorkiMenu.Drawings.DrawQ:Value() then DrawCircle(pos,CorkiQ.range,1,25,0xff00bfff) end
+if CorkiMenu.Drawings.DrawW:Value() then DrawCircle(pos,CorkiW.range,1,25,0xff4169e1) end
+if CorkiMenu.Drawings.DrawE:Value() then DrawCircle(pos,CorkiE.range,1,25,0xff1e90ff) end
+if CorkiMenu.Drawings.DrawR:Value() then DrawCircle(pos,CorkiR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (45*GetCastLevel(myHero,_Q)+30)+(0.5*GetBonusDmg(myHero))+(0.5*GetBonusAP(myHero))
+		local WDmg = (75*GetCastLevel(myHero,_W)+75)+GetBonusAP(myHero)
+		local EDmg = (60*GetCastLevel(myHero,_E)+20)+(1.6*GetBonusDmg(myHero))
+		local RDmg = (50*GetCastLevel(myHero,_R)+100)+((0.6*GetCastLevel(myHero,_R)-0.3)*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))+(0.4*GetBonusAP(myHero))
+		local ComboDmg = QDmg + WDmg + EDmg + RDmg
+		local WERDmg = WDmg + EDmg + RDmg
+		local QERDmg = QDmg + EDmg + RDmg
+		local QWRDmg = QDmg + WDmg + RDmg
+		local QWEDmg = QDmg + WDmg + EDmg
+		local ERDmg = EDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local QRDmg = QDmg + RDmg
+		local WEDmg = WDmg + EDmg
+		local QEDmg = QDmg + EDmg
+		local QWDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if CorkiMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	if GetDistance(target) < CorkiQ.range then
+		if CorkiMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif CorkiMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),CorkiQ.speed,CorkiQ.delay*1000,CorkiQ.range,CorkiQ.radius,false,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif CorkiMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,CorkiQ,true,false)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif CorkiMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="PhosphorusBomb", range=CorkiQ.range, speed=CorkiQ.speed, delay=CorkiQ.delay, width=CorkiQ.radius, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(CorkiQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif CorkiMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetCircularAOEPrediction(target,CorkiQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	if GetDistance(target) < CorkiW.range then
+		if CorkiMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif CorkiMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),CorkiW.speed,CorkiW.delay*1000,CorkiW.range,CorkiW.width,false,true)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif CorkiMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,CorkiW,true,false)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif CorkiMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="CarpetBomb", range=CorkiW.range, speed=CorkiW.speed, delay=CorkiW.delay, width=CorkiW.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(CorkiW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif CorkiMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetLinearAOEPrediction(target,CorkiW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function useE(target)
+	CastSkillShot(_E, GetOrigin(target))
+end
+function useR(target)
+	if GetDistance(target) < CorkiR.range then
+		if CorkiMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif CorkiMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),CorkiR.speed,CorkiR.delay*1000,CorkiR.range,CorkiR.width,true,false)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif CorkiMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,CorkiR,false,true)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif CorkiMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="MissileBarrageMissile", range=CorkiR.range, speed=CorkiR.speed, delay=CorkiR.delay, width=CorkiR.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(CorkiR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif CorkiMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetLinearAOEPrediction(target,CorkiR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if CorkiMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, CorkiQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if CorkiMenu.Auto.UseR:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, CorkiR.range) then
+					useR(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if CorkiMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, CorkiQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if CorkiMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, CorkiW.range) then
+					useW(target)
+				end
+			end
+		end
+		if CorkiMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, CorkiE.range) then
+					useE(target)
+				end
+			end
+		end
+		if CorkiMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY and AA == true then
+				if ValidTarget(target, CorkiR.range) then
+					useR(target)
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if CorkiMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, CorkiQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if CorkiMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, CorkiW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if CorkiMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, CorkiE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+		if CorkiMenu.Harass.UseR:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_R) == READY and AA == true then
+					if ValidTarget(target, CorkiR.range) then
+						useR(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_Q) == READY then
+			if CorkiMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, CorkiQ.range) then
+					local CorkiQDmg = (45*GetCastLevel(myHero,_Q)+30)+(0.5*GetBonusDmg(myHero))+(0.5*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < CorkiQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if CorkiMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, CorkiR.range) then
+					local CorkiRDmg = (25*GetCastLevel(myHero,_R)+50)+((0.3*GetCastLevel(myHero,_R)-0.15)*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))+(0.2*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < CorkiRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if CorkiMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					local BestPos, BestHit = GetFarmPosition(CorkiW.range, CorkiQ.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then
+						CastSkillShot(_Q, BestPos)
+					end
+				end
+			end
+		end
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if CorkiMenu.LaneClear.UseE:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, CorkiE.range) then
+							if CanUseSpell(myHero,_E) == READY then
+								CastSkillShot(_E, GetOrigin(minion))
+							end
+						end
+					end
+				end
+				if CorkiMenu.LaneClear.UseR:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CorkiMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, CorkiR.range) then
+							if CanUseSpell(myHero,_R) == READY then
+								CastSkillShot(_R, GetOrigin(minion))
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
 end
