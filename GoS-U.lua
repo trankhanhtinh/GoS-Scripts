@@ -337,7 +337,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) then
+		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) or "Jhin" == GetObjectName(myHero) then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -2305,6 +2305,7 @@ local JhinQ = { range = 550 }
 local JhinW = { range = 3000, radius = 40, width = 80, speed = 5000, delay = 0.75, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local JhinE = { range = 750, radius = 140, width = 280, speed = 1650, delay = 0.25, type = "circular", collision = false, source = myHero }
 local JhinR = { range = 3500, radius = 80, width = 160, speed = 5000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local UsingR = false
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -2422,6 +2423,12 @@ function useE(target)
 		end
 	end
 end
+OnSpellCast(function(spell)
+	if spell.spellID == _R then
+		UsingR = true
+		DelayAction(function() UsingR = false end, 2)
+	end
+end)
 
 -- Auto
 
@@ -2447,7 +2454,7 @@ function Auto()
 	end
 	if JhinMenu.Auto.UseW:Value() then
 		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_W) == READY then
+			if CanUseSpell(myHero,_W) == READY and UsingR == false then
 				if ValidTarget(target, JhinW.range) then
 					useW(target)
 				end
