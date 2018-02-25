@@ -2561,26 +2561,27 @@ function KillSteal()
 		elseif CanUseSpell(myHero,_R) == READY then
 			if ValidTarget(enemy, JhinR.range) then
 				if JhinMenu.KillSteal.UseR:Value() then
+					local EnemyToHit = ClosestEnemy(GetMousePos())
 					if JhinMenu.Prediction.PredictionR:Value() == 1 then
-						CastSkillShot(_R,GetOrigin(target))
+						CastSkillShot(_R,GetOrigin(EnemyToHit))
 					elseif JhinMenu.Prediction.PredictionR:Value() == 2 then
-						local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JhinR.speed,JhinR.delay*1000,JhinR.range,JhinR.width,false,true)
+						local RPred = GetPredictionForPlayer(GetOrigin(myHero),EnemyToHit,GetMoveSpeed(EnemyToHit),JhinR.speed,JhinR.delay*1000,JhinR.range,JhinR.width,false,true)
 						if RPred.HitChance == 1 then
 							CastSkillShot(_R, RPred.PredPos)
 						end
 					elseif JhinMenu.Prediction.PredictionR:Value() == 3 then
-						local RPred = _G.gPred:GetPrediction(target,myHero,JhinR,false,false)
+						local RPred = _G.gPred:GetPrediction(EnemyToHit,myHero,JhinR,false,false)
 						if RPred and RPred.HitChance >= 3 then
 							CastSkillShot(_R, RPred.CastPosition)
 						end
 					elseif JhinMenu.Prediction.PredictionR:Value() == 4 then
 						local RSpell = IPrediction.Prediction({name="JhinRCast", range=JhinR.range, speed=JhinR.speed, delay=JhinR.delay, width=JhinR.width, type="linear", collision=false})
-						local x, y = RSpell:Predict(target)
+						local x, y = RSpell:Predict(EnemyToHit)
 						if x > 2 then
 							CastSkillShot(_R, y.x, y.y, y.z)
 						end
 					elseif JhinMenu.Prediction.PredictionR:Value() == 5 then
-						local RPrediction = GetCircularAOEPrediction(target,JhinR)
+						local RPrediction = GetCircularAOEPrediction(EnemyToHit,JhinR)
 						if RPrediction.hitChance > 0.9 then
 							CastSkillShot(_R, RPrediction.castPos)
 						end
