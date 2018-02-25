@@ -354,12 +354,11 @@ function SS()
 		if Heal then
 			if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.HealMe:Value() then
 				CastSpell(Heal)
-			else
-				for _, ally in pairs(GetAllyHeroes()) do
-					if ValidTarget(ally, 850) then
-						if (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= UtilityMenu.SS.HealAlly:Value() then
-							CastTargetSpell(ally, Heal)
-						end
+			end
+			for _, ally in pairs(GetAllyHeroes()) do
+				if ValidTarget(ally, 850) then
+					if (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= UtilityMenu.SS.HealAlly:Value() then
+						CastTargetSpell(ally, Heal)
 					end
 				end
 			end
@@ -2103,7 +2102,7 @@ function Combo()
 		if EzrealMenu.Combo.UseW:Value() then
 			if CanUseSpell(myHero,_W) == READY and AA == true then
 				if EzrealMenu.Combo.ModeW:Value() == 1 then
-					for _,ally in pairs(GetAllyHeroes()) do
+					for _, ally in pairs(GetAllyHeroes()) do
 						if ValidTarget(ally, EzrealW.range) then
 							useW(ally)
 						else
@@ -2155,7 +2154,7 @@ function Harass()
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY and AA == true then
 					if EzrealMenu.Harass.ModeW:Value() == 1 then
-						for _,ally in pairs(GetAllyHeroes()) do
+						for _, ally in pairs(GetAllyHeroes()) do
 							if ValidTarget(ally, EzrealW.range) then
 								useW(ally)
 							else
