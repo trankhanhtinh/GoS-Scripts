@@ -12,10 +12,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.3
+-- Current version: 1.0.4
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,6 +34,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.4
+-- + Added Ezreal
 -- 1.0.3
 -- + Added Draven & BaseUlt
 -- 1.0.2
@@ -44,7 +46,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.03
+local GSVer = 1.04
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -211,7 +213,7 @@ function BaseUlt()
 			for i, recall in pairs(Recalling) do
 				if GetObjectName(myHero) == "Ashe" then
 					local AsheRDmg = (200*GetCastLevel(myHero,_R))+GetBonusAP(myHero)
-					if AsheRDmg >= (GetCurrentHP(recall.champ)+GetMagicResist(recall.champ)+GetHPRegen(recall.champ)*7) and SpawnPos ~= nil then
+					if AsheRDmg >= (GetCurrentHP(recall.champ)+GetMagicResist(recall.champ)+GetHPRegen(recall.champ)*20) and SpawnPos ~= nil then
 						local RecallTime = recall.duration-(GetGameTimer()-recall.start)+GetLatency()/2000
 						local HitTime = 0.25+GetDistance(SpawnPos)/1600+GetLatency()/2000
 						if RecallTime < HitTime and HitTime < 7.8 and HitTime-RecallTime < 1.5 then
@@ -220,7 +222,7 @@ function BaseUlt()
 					end
 				elseif GetObjectName(myHero) == "Draven" then
 					local DravenRDmg = (80*GetCastLevel(myHero,_R)+60)+(0.88*GetBonusDmg(myHero))
-					if DravenRDmg >= (GetCurrentHP(recall.champ)+GetArmor(recall.champ)+GetHPRegen(recall.champ)*7) and SpawnPos ~= nil then
+					if DravenRDmg >= (GetCurrentHP(recall.champ)+GetArmor(recall.champ)+GetHPRegen(recall.champ)*20) and SpawnPos ~= nil then
 						local RecallTime = recall.duration-(GetGameTimer()-recall.start)+GetLatency()/2000
 						local HitTime = 0.5+GetDistance(SpawnPos)/2000+GetLatency()/2000
 						if RecallTime < HitTime and HitTime < 7.8 and HitTime-RecallTime < 1.5 then
@@ -229,6 +231,15 @@ function BaseUlt()
 								CastSkillShot(_R, GetOrigin(SpawnPos))
 								GlobalTimer = Timer
 							end
+						end
+					end
+				elseif GetObjectName(myHero) == "Ezreal" then
+					local EzrealRDmg = (150*GetCastLevel(myHero,_R)+200)+GetBonusDmg(myHero)+(0.9*GetBonusAP(myHero))
+					if EzrealRDmg >= (GetCurrentHP(recall.champ)+GetMagicResist(recall.champ)+GetHPRegen(recall.champ)*20) and SpawnPos ~= nil then
+						local RecallTime = recall.duration-(GetGameTimer()-recall.start)+GetLatency()/2000
+						local HitTime = 1+GetDistance(SpawnPos)/2000+GetLatency()/2000
+						if RecallTime < HitTime and HitTime < 7.8 and HitTime-RecallTime < 1.5 then
+							CastSkillShot(_R, GetOrigin(SpawnPos))
 						end
 					end
 				end
@@ -329,7 +340,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Corki" == GetObjectName(myHero) then
+		elseif "Corki" == GetObjectName(myHero) or "Ezreal" == GetObjectName(myHero) then
 			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -1845,4 +1856,399 @@ OnProcessSpell(function(unit, spell)
 		end
     end
 end)
+
+-- Ezreal
+
+elseif "Ezreal" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Ezreal loaded successfully!")
+local EzrealMenu = Menu("[GoS-U] Ezreal", "[GoS-U] Ezreal")
+EzrealMenu:Menu("Auto", "Auto")
+EzrealMenu.Auto:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
+EzrealMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+EzrealMenu:Menu("Combo", "Combo")
+EzrealMenu.Combo:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
+EzrealMenu.Combo:Boolean('UseW', 'Use W [Essence Flux]', true)
+EzrealMenu.Combo:Boolean('UseE', 'Use E [Arcane Shift]', true)
+EzrealMenu.Combo:Boolean('UseR', 'Use R [Trueshot Barrage]', true)
+EzrealMenu.Combo:DropDown("ModeW", "Cast Mode: W", 2, {"On Ally", "On Enemy"})
+EzrealMenu.Combo:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
+EzrealMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+EzrealMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+EzrealMenu:Menu("Harass", "Harass")
+EzrealMenu.Harass:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
+EzrealMenu.Harass:Boolean('UseW', 'Use W [Essence Flux]', true)
+EzrealMenu.Harass:Boolean('UseE', 'Use E [Arcane Shift]', true)
+EzrealMenu.Harass:DropDown("ModeW", "Cast Mode: W", 1, {"On Ally", "On Enemy"})
+EzrealMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+EzrealMenu:Menu("KillSteal", "KillSteal")
+EzrealMenu.KillSteal:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
+EzrealMenu.KillSteal:Boolean('UseR', 'Use R [Trueshot Barrage]', true)
+EzrealMenu.KillSteal:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
+EzrealMenu:Menu("LastHit", "LastHit")
+EzrealMenu.LastHit:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
+EzrealMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+EzrealMenu:Menu("LaneClear", "LaneClear")
+EzrealMenu.LaneClear:Boolean('UseQ', 'Use Q [Mystic Shot]', false)
+EzrealMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+EzrealMenu:Menu("Prediction", "Prediction")
+EzrealMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+EzrealMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+EzrealMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+EzrealMenu:Menu("Drawings", "Drawings")
+EzrealMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+EzrealMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+EzrealMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+EzrealMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+
+local EzrealQ = { range = 1150, radius = 60, width = 120, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
+local EzrealW = { range = 1000, radius = 80, width = 160, speed = 1550, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local EzrealE = { range = 475 }
+local EzrealR = { range = EzrealMenu.Combo.Distance:Value(), radius = 160, width = 320, speed = 2000, delay = 1, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if EzrealMenu.Drawings.DrawQ:Value() then DrawCircle(pos,EzrealQ.range,1,25,0xff00bfff) end
+if EzrealMenu.Drawings.DrawW:Value() then DrawCircle(pos,EzrealW.range,1,25,0xff4169e1) end
+if EzrealMenu.Drawings.DrawE:Value() then DrawCircle(pos,EzrealE.range,1,25,0xff1e90ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (25*GetCastLevel(myHero,_Q)-10)+(1.1*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))+(0.4*GetBonusAP(myHero))
+		local WDmg = (45*GetCastLevel(myHero,_W)+25)+(0.8*GetBonusAP(myHero))
+		local EDmg = (50*GetCastLevel(myHero,_E)+30)+(0.5*GetBonusDmg(myHero))+(0.75*GetBonusAP(myHero))
+		local RDmg = (150*GetCastLevel(myHero,_R)+200)+GetBonusDmg(myHero)+(0.9*GetBonusAP(myHero))
+		local ComboDmg = QDmg + WDmg + EDmg + RDmg
+		local WERDmg = WDmg + EDmg + RDmg
+		local QERDmg = QDmg + EDmg + RDmg
+		local QWRDmg = QDmg + WDmg + RDmg
+		local QWEDmg = QDmg + WDmg + EDmg
+		local ERDmg = EDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local QRDmg = QDmg + RDmg
+		local WEDmg = WDmg + EDmg
+		local QEDmg = QDmg + EDmg
+		local QWDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if EzrealMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	if GetDistance(target) < EzrealQ.range then
+		if EzrealMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif EzrealMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),EzrealQ.speed,EzrealQ.delay*1000,EzrealQ.range,EzrealQ.width,true,false)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif EzrealMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,EzrealQ,false,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif EzrealMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="EzrealMysticShot", range=EzrealQ.range, speed=EzrealQ.speed, delay=EzrealQ.delay, width=EzrealQ.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(EzrealQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif EzrealMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,EzrealQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	if GetDistance(target) < EzrealW.range then
+		if EzrealMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif EzrealMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),EzrealW.speed,EzrealW.delay*1000,EzrealW.range,EzrealW.width,false,true)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif EzrealMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,EzrealW,false,true)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif EzrealMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="EzrealEssenceFlux", range=EzrealW.range, speed=EzrealW.speed, delay=EzrealW.delay, width=EzrealW.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(EzrealW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif EzrealMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetLinearAOEPrediction(target,EzrealW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function useR(target)
+	if GetDistance(target) < EzrealR.range then
+		if EzrealMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif EzrealMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),EzrealR.speed,EzrealR.delay*1000,EzrealR.range,EzrealR.width,false,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif EzrealMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,EzrealR,false,true)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif EzrealMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="EzrealTrueshotBarrage", range=EzrealR.range, speed=EzrealR.speed, delay=EzrealR.delay, width=EzrealR.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(EzrealR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif EzrealMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetLinearAOEPrediction(target,EzrealR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if EzrealMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, EzrealQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if EzrealMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, EzrealQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if EzrealMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
+				if EzrealMenu.Combo.ModeW:Value() == 1 then
+					for _,ally in pairs(GetAllyHeroes()) do
+						if ValidTarget(ally, EzrealW.range) then
+							useW(ally)
+						else
+							useW(target)
+						end
+					end
+				elseif EzrealMenu.Combo.ModeW:Value() == 2 then
+					if ValidTarget(target, EzrealW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if EzrealMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, EzrealE.range+GetRange(myHero)) then
+					CastSkillShot(_E, GetMousePos())
+				end
+			end
+		end
+		if EzrealMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, EzrealR.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < EzrealMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, EzrealR.range+GetRange(myHero)) >= EzrealMenu.Combo.X:Value() then
+							useR(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if EzrealMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, EzrealQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if EzrealMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
+					if EzrealMenu.Harass.ModeW:Value() == 1 then
+						for _,ally in pairs(GetAllyHeroes()) do
+							if ValidTarget(ally, EzrealW.range) then
+								useW(ally)
+							else
+								useW(target)
+							end
+						end
+					elseif EzrealMenu.Harass.ModeW:Value() == 2 then
+						if ValidTarget(target, EzrealW.range) then
+							useW(target)
+						end
+					end
+				end
+			end
+		end
+		if EzrealMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, EzrealE.range+GetRange(myHero)) then
+						CastSkillShot(_E, GetMousePos())
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_Q) == READY then
+			if EzrealMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, EzrealQ.range) then
+					local EzrealQDmg = (25*GetCastLevel(myHero,_Q)-10)+(1.1*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))+(0.4*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < EzrealQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if EzrealMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, EzrealMenu.KillSteal.Distance:Value()) then
+					local EzrealRDmg = (45*GetCastLevel(myHero,_R)+60)+(0.3*GetBonusDmg(myHero))+(0.27*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < EzrealRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, EzrealQ.range) then
+					if EzrealMenu.LastHit.UseQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.LastHit.MP:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								local EzrealQDmg = (25*GetCastLevel(myHero,_Q)-10)+(1.1*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))+(0.4*GetBonusAP(myHero))
+								if GetCurrentHP(minion) < EzrealQDmg then
+									local QPredMin = GetLinearAOEPrediction(minion,EzrealQ)
+									if QPredMin.hitChance > 0.9 then
+										CastSkillShot(_Q, QPredMin.castPos)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if EzrealMenu.LaneClear.UseQ:Value() then
+			for _, minion in pairs(minionManager.objects) do
+				if GetTeam(minion) == MINION_ENEMY then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, EzrealQ.range) then
+							if CanUseSpell(myHero,_Q) == READY and AA == true then
+								CastSkillShot(_Q, GetOrigin(minion))
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
 end
