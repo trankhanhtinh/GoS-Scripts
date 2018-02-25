@@ -15,7 +15,7 @@
 -- Current version: 1.0.5
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
