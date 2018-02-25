@@ -1899,6 +1899,7 @@ EzrealMenu:Menu("Drawings", "Drawings")
 EzrealMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 EzrealMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 EzrealMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+EzrealMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 EzrealMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
 
 local EzrealQ = { range = 1150, radius = 60, width = 120, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
@@ -1925,6 +1926,7 @@ local pos = GetOrigin(myHero)
 if EzrealMenu.Drawings.DrawQ:Value() then DrawCircle(pos,EzrealQ.range,1,25,0xff00bfff) end
 if EzrealMenu.Drawings.DrawW:Value() then DrawCircle(pos,EzrealW.range,1,25,0xff4169e1) end
 if EzrealMenu.Drawings.DrawE:Value() then DrawCircle(pos,EzrealE.range,1,25,0xff1e90ff) end
+if EzrealMenu.Drawings.DrawR:Value() then DrawCircle(pos,EzrealMenu.Combo.Distance:Value(),1,25,0xff0000ff) end
 end
 
 function DrawDamage()
