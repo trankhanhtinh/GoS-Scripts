@@ -12,10 +12,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2
+-- Current version: 1.0.3
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki
+-- + Supports Ashe, Caitlyn, Corki, Draven
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,6 +34,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.3
+-- + Added Draven & BaseUlt
 -- 1.0.2
 -- + Added Corki
 -- 1.0.1
@@ -42,7 +44,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.02
+local GSVer = 1.03
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -169,6 +171,8 @@ GAPCLOSER_SPELLS = {
 }
 
 local UtilityMenu = Menu("[GoS-U] Utility", "[GoS-U] Utility")
+UtilityMenu:Menu("BaseUlt", "BaseUlt")
+UtilityMenu.BaseUlt:Boolean('BU', 'Enable BaseUlt', true)
 UtilityMenu:Menu("Draws", "Draws")
 UtilityMenu.Draws:Boolean('DrawAA', 'Draw Killable AAs', true)
 UtilityMenu:Menu("Items", "Items")
@@ -188,11 +192,70 @@ UtilityMenu.SS:Slider("HealMe","%HP To Use Heal: MyHero", 15, 0, 100, 5)
 UtilityMenu.SS:Slider("HealAlly","%HP To Use Heal: Ally", 15, 0, 100, 5)
 UtilityMenu.SS:Slider("BarrierMe","%HP To Use Barrier", 15, 0, 100, 5)
 
+SpawnPos = nil
+Recalling = {}
+local GlobalTimer = 0
+OnObjectLoad(function(Object)
+	if GetObjectType(Object) == Obj_AI_SpawnPoint and GetTeam(Object) ~= GetTeam(myHero) then
+		SpawnPos = Object
+	end
+end)
+OnCreateObj(function(Object)
+	if GetObjectType(Object) == Obj_AI_SpawnPoint and GetTeam(Object) ~= GetTeam(myHero) then
+		SpawnPos = Object
+	end
+end)
+function BaseUlt()
+	if UtilityMenu.BaseUlt.BU:Value() then
+		if CanUseSpell(myHero, _R) == READY then
+			for i, recall in pairs(Recalling) do
+				if GetObjectName(myHero) == "Ashe" then
+					local AsheRDmg = (200*GetCastLevel(myHero,_R))+GetBonusAP(myHero)
+					if AsheRDmg >= (GetCurrentHP(recall.champ)+GetMagicResist(recall.champ)+GetHPRegen(recall.champ)*7) and SpawnPos ~= nil then
+						local RecallTime = recall.duration-(GetGameTimer()-recall.start)+GetLatency()/2000
+						local HitTime = 0.25+GetDistance(SpawnPos)/1600+GetLatency()/2000
+						if RecallTime < HitTime and HitTime < 7.8 and HitTime-RecallTime < 1.5 then
+							CastSkillShot(_R, GetOrigin(SpawnPos))
+						end
+					end
+				elseif GetObjectName(myHero) == "Draven" then
+					local DravenRDmg = (80*GetCastLevel(myHero,_R)+60)+(0.88*GetBonusDmg(myHero))
+					if DravenRDmg >= (GetCurrentHP(recall.champ)+GetArmor(recall.champ)+GetHPRegen(recall.champ)*7) and SpawnPos ~= nil then
+						local RecallTime = recall.duration-(GetGameTimer()-recall.start)+GetLatency()/2000
+						local HitTime = 0.5+GetDistance(SpawnPos)/2000+GetLatency()/2000
+						if RecallTime < HitTime and HitTime < 7.8 and HitTime-RecallTime < 1.5 then
+							local Timer = GetTickCount()
+							if (GlobalTimer + 12500) < Timer then
+								CastSkillShot(_R, GetOrigin(SpawnPos))
+								GlobalTimer = Timer
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+OnProcessRecall(function(unit,recall)
+	if GetTeam(unit) ~= GetTeam(myHero) then 
+		if recall.isStart then
+			table.insert(Recalling, {champ = unit, start = GetGameTimer(), duration = (recall.totalTime/1000)})
+		else
+			for i, recall in pairs(Recalling) do
+				if recall.champ == unit then
+					table.remove(Recalling, i)
+				end
+			end
+		end
+	end
+end)
+
 Heal = (GetCastName(myHero,SUMMONER_1):lower():find("summonerheal") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerheal") and SUMMONER_2 or nil))
 Barrier = (GetCastName(myHero,SUMMONER_1):lower():find("summonerbarrier") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerbarrier") and SUMMONER_2 or nil))
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
+	BaseUlt()
 	Items()
 	LevelUp()
 	SS()
@@ -261,7 +324,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Caitlyn" == GetObjectName(myHero) then
+		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -282,9 +345,9 @@ function SS()
 				CastSpell(Heal)
 			else
 				for _, ally in pairs(GetAllyHeroes()) do
-					if ValidTarget(ally) then
+					if ValidTarget(ally, 850) then
 						if (GetCurrentHP(ally) / GetMaxHP(ally)) <= UtilityMenu.SS.HealAlly:Value() then
-							CastSpell(Heal)
+							CastTargetSpell(ally, Heal)
 						end
 					end
 				end
@@ -314,7 +377,7 @@ AsheMenu:Menu("Combo", "Combo")
 AsheMenu.Combo:Boolean('UseQ', 'Use Q [Rangers Focus]', true)
 AsheMenu.Combo:Boolean('UseW', 'Use W [Volley]', true)
 AsheMenu.Combo:Boolean('UseR', 'Use R [Crystal Arrow]', true)
-AsheMenu.Combo:Slider('Distance','Distance: R', 2000, 0, 10000, 100)
+AsheMenu.Combo:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
 AsheMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 AsheMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 AsheMenu:Menu("Harass", "Harass")
@@ -324,7 +387,7 @@ AsheMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AsheMenu:Menu("KillSteal", "KillSteal")
 AsheMenu.KillSteal:Boolean('UseW', 'Use W [Volley]', true)
 AsheMenu.KillSteal:Boolean('UseR', 'Use R [Crystal Arrow]', true)
-AsheMenu.KillSteal:Slider('Distance','Distance: R', 2000, 0, 10000, 100)
+AsheMenu.KillSteal:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
 AsheMenu:Menu("LaneClear", "LaneClear")
 AsheMenu.LaneClear:Boolean('UseQ', 'Use Q [Rangers Focus]', true)
 AsheMenu.LaneClear:Boolean('UseW', 'Use W [Volley]', true)
@@ -332,11 +395,11 @@ AsheMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AsheMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
 AsheMenu.AntiGapcloser:Boolean('UseW', 'Use W [Volley]', true)
 AsheMenu.AntiGapcloser:Boolean('UseR', 'Use R [Crystal Arrow]', true)
-AsheMenu.AntiGapcloser:Slider('DistanceW','Distance: W', 200, 0, 500, 25)
-AsheMenu.AntiGapcloser:Slider('DistanceR','Distance: R', 200, 0, 500, 25)
+AsheMenu.AntiGapcloser:Slider('DistanceW','Distance: W', 200, 25, 500, 25)
+AsheMenu.AntiGapcloser:Slider('DistanceR','Distance: R', 200, 25, 500, 25)
 AsheMenu:Menu("Interrupter", "Interrupter")
 AsheMenu.Interrupter:Boolean('UseR', 'Use R [Crystal Arrow]', true)
-AsheMenu.Interrupter:Slider('Distance','Distance: R', 400, 0, 1000, 50)
+AsheMenu.Interrupter:Slider('Distance','Distance: R', 400, 50, 1000, 50)
 AsheMenu:Menu("Prediction", "Prediction")
 AsheMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 AsheMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
@@ -673,11 +736,11 @@ CaitlynMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 CaitlynMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
 CaitlynMenu.AntiGapcloser:Boolean('UseW', 'Use W [Yordle Snap Trap]', true)
 CaitlynMenu.AntiGapcloser:Boolean('UseE', 'Use E [90 Caliber Net]', true)
-CaitlynMenu.AntiGapcloser:Slider('DistanceW','Distance: W', 300, 0, 500, 25)
-CaitlynMenu.AntiGapcloser:Slider('DistanceE','Distance: E', 200, 0, 500, 25)
+CaitlynMenu.AntiGapcloser:Slider('DistanceW','Distance: W', 300, 25, 500, 25)
+CaitlynMenu.AntiGapcloser:Slider('DistanceE','Distance: E', 200, 25, 500, 25)
 CaitlynMenu:Menu("Interrupter", "Interrupter")
 CaitlynMenu.Interrupter:Boolean('UseW', 'Use W [Yordle Snap Trap]', true)
-CaitlynMenu.Interrupter:Slider('Distance','Distance: W', 500, 0, 1000, 50)
+CaitlynMenu.Interrupter:Slider('Distance','Distance: W', 500, 50, 1000, 50)
 CaitlynMenu:Menu("Prediction", "Prediction")
 CaitlynMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
 CaitlynMenu.Prediction:DropDown("PredictionW", "Prediction: W", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
@@ -1454,4 +1517,333 @@ function LaneClear()
 		end
 	end
 end
+
+-- Draven
+
+elseif "Draven" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Draven loaded successfully!")
+local DravenMenu = Menu("[GoS-U] Draven", "[GoS-U] Draven")
+DravenMenu:Menu("Combo", "Combo")
+DravenMenu.Combo:Boolean('UseQ', 'Use Q [Spinning Axe]', true)
+DravenMenu.Combo:Boolean('UseW', 'Use W [Blood Rush]', true)
+DravenMenu.Combo:Boolean('UseE', 'Use E [Stand Aside]', true)
+DravenMenu.Combo:Boolean('UseR', 'Use R [Whirling Death]', true)
+DravenMenu.Combo:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
+DravenMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+DravenMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+DravenMenu:Menu("Harass", "Harass")
+DravenMenu.Harass:Boolean('UseQ', 'Use Q [Spinning Axe]', true)
+DravenMenu.Harass:Boolean('UseW', 'Use W [Blood Rush]', true)
+DravenMenu.Harass:Boolean('UseE', 'Use E [Stand Aside]', true)
+DravenMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+DravenMenu:Menu("KillSteal", "KillSteal")
+DravenMenu.KillSteal:Boolean('UseE', 'Use E [Stand Aside]', true)
+DravenMenu.KillSteal:Boolean('UseR', 'Use R [Whirling Death]', true)
+DravenMenu.KillSteal:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
+DravenMenu:Menu("LaneClear", "LaneClear")
+DravenMenu.LaneClear:Boolean('UseQ', 'Use Q [Spinning Axe]', true)
+DravenMenu.LaneClear:Boolean('UseE', 'Use E [Stand Aside]', true)
+DravenMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+DravenMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+DravenMenu.AntiGapcloser:Boolean('UseE', 'Use E [Stand Aside]', true)
+DravenMenu.AntiGapcloser:Slider('Distance','Distance: E', 400, 25, 500, 25)
+DravenMenu:Menu("Interrupter", "Interrupter")
+DravenMenu.Interrupter:Boolean('UseE', 'Use E [Stand Aside]', true)
+DravenMenu.Interrupter:Slider('Distance','Distance: E', 700, 50, 1000, 50)
+DravenMenu:Menu("Prediction", "Prediction")
+DravenMenu.Prediction:DropDown("PredictionE", "Prediction: E", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+DravenMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+DravenMenu:Menu("Drawings", "Drawings")
+DravenMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+DravenMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+DravenMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+
+local DravenE = { range = 1050, radius = 120, width = 240, speed = 1400, delay = 0.25, type = "line", collision = false, source = myHero }
+local DravenR = { range = DravenMenu.Combo.Distance:Value(), radius = 130, width = 260, speed = 2000, delay = 0.5, type = "line", collision = false, source = myHero }
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	AntiGapcloser()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if DravenMenu.Drawings.DrawE:Value() then DrawCircle(pos,DravenE.range,1,25,0xff1e90ff) end
+if DravenMenu.Drawings.DrawR:Value() then DrawCircle(pos,DravenR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	local QDmg = (5*GetCastLevel(myHero,_Q)+30)+((0.1*GetCastLevel(myHero,_Q)+0.55)*GetBonusDmg(myHero))
+	local EDmg = (35*GetCastLevel(myHero,_E)+40)+(0.5*GetBonusDmg(myHero))
+	local RDmg = (200*GetCastLevel(myHero,_R)+150)+(2.2*GetBonusDmg(myHero))
+	local ComboDmg = QDmg + EDmg + RDmg
+	local QRDmg = QDmg + RDmg
+	local ERDmg = EDmg + RDmg
+	local QEDmg = QDmg + EDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if DravenMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	CastSpell(_Q)
+end
+function useW(target)
+	CastSpell(_W)
+end
+function useE(target)
+	if GetDistance(target) < DravenE.range then
+		if DravenMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif DravenMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),DravenE.speed,DravenE.delay*1000,DravenE.range,DravenE.width,true,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif DravenMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,DravenE,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_E, EPred.CastPosition)
+			end
+		elseif DravenMenu.Prediction.PredictionE:Value() == 4 then
+			local ESpell = IPrediction.Prediction({name="DravenDoubleShot", range=DravenE.range, speed=DravenE.speed, delay=DravenE.delay, width=DravenE.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(DravenE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif DravenMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetLinearAOEPrediction(target,DravenE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+function useR(target)
+	if GetDistance(target) < DravenR.range then
+		if DravenMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif DravenMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),DravenR.speed,DravenR.delay*1000,DravenR.range,DravenR.width,true,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif DravenMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,DravenR,true,false)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif DravenMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="DravenRCast", range=DravenR.range, speed=DravenR.speed, delay=DravenR.delay, width=DravenR.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(DravenR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif DravenMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetLinearAOEPrediction(target,DravenR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if DravenMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					useQ(target)
+				end
+			end
+		end
+		if DravenMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, 1000) then
+					useW(target)
+				end
+			end
+		end
+		if DravenMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, DravenE.range) then
+					useE(target)
+				end
+			end
+		end
+		if DravenMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, DravenR.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < DravenMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, DravenR.range) >= DravenMenu.Combo.X:Value() then
+							useR(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if DravenMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > DravenMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if DravenMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > DravenMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, 1000) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if DravenMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > DravenMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					if ValidTarget(target, DravenE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_E) == READY then
+			if DravenMenu.KillSteal.UseE:Value() then
+				if ValidTarget(enemy, DravenE.range) then
+					local DravenEDmg = (35*GetCastLevel(myHero,_E)+40)+(0.5*GetBonusDmg(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < DravenEDmg then
+						useE(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if DravenMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, DravenMenu.KillSteal.Distance:Value()) then
+					local DravenRDmg = (40*GetCastLevel(myHero,_R)+30)+(0.44*GetBonusDmg(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < DravenRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if DravenMenu.LaneClear.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > DravenMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					local BestPos, BestHit = GetLineFarmPosition(DravenE.range, DravenE.radius, MINION_ENEMY)
+					if BestPos and BestHit > 5 then
+						CastSkillShot(_E, BestPos)
+					end
+				end
+			end
+		end
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if DravenMenu.LaneClear.UseQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > DravenMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, GetRange(myHero)+GetHitBox(myHero)) then
+							if CanUseSpell(myHero,_Q) == READY then
+								CastSpell(_Q)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_E) == READY then
+			if DravenMenu.AntiGapcloser.UseE:Value() then
+				if ValidTarget(antigap, DravenMenu.AntiGapcloser.Distance:Value()) then
+					useE(antigap)
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+OnProcessSpell(function(unit, spell)
+	if DravenMenu.Interrupter.UseE:Value() then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, DravenMenu.Interrupter.Distance:Value()) then
+				if CanUseSpell(myHero,_E) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
+						end
+					end
+				end
+			end
+		end
+    end
+end)
 end
