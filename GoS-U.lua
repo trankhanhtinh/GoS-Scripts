@@ -357,7 +357,7 @@ function SS()
 			else
 				for _, ally in pairs(GetAllyHeroes()) do
 					if ValidTarget(ally, 850) then
-						if (GetCurrentHP(ally) / GetMaxHP(ally)) <= UtilityMenu.SS.HealAlly:Value() then
+						if (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= UtilityMenu.SS.HealAlly:Value() then
 							CastTargetSpell(ally, Heal)
 						end
 					end
