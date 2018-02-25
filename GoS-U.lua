@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.4
+-- Current version: 1.0.5
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal
@@ -34,6 +34,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5
+-- + Added Jhin
 -- 1.0.4
 -- + Added Ezreal
 -- 1.0.3
@@ -46,7 +48,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.04
+local GSVer = 1.05
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -1566,7 +1568,7 @@ DravenMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos",
 DravenMenu:Menu("Drawings", "Drawings")
 DravenMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 DravenMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-DravenMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+DravenMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', true)
 
 local DravenE = { range = 1050, radius = 120, width = 240, speed = 1400, delay = 0.25, type = "line", collision = false, source = myHero }
 local DravenR = { range = DravenMenu.Combo.Distance:Value(), radius = 130, width = 260, speed = 2000, delay = 0.5, type = "line", collision = false, source = myHero }
@@ -2252,4 +2254,394 @@ function LaneClear()
 		end
 	end
 end
+
+-- Jhin
+
+elseif "Jhin" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Jhin loaded successfully!")
+local JhinMenu = Menu("[GoS-U] Jhin", "[GoS-U] Jhin")
+JhinMenu:Menu("Auto", "Auto")
+JhinMenu.Auto:Boolean('UseQ', 'Use Q [Dancing Grenade]', true)
+JhinMenu.Auto:Boolean('UseW', 'Use W [Deadly Flourish]', true)
+JhinMenu.Auto:DropDown("ModeQ", "Cast Mode: Q", 2, {"Standard", "Bounce"})
+JhinMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+JhinMenu:Menu("Combo", "Combo")
+JhinMenu.Combo:Boolean('UseQ', 'Use Q [Dancing Grenade]', true)
+JhinMenu.Combo:Boolean('UseW', 'Use W [Deadly Flourish]', true)
+JhinMenu.Combo:Boolean('UseE', 'Use E [Captive Audience]', true)
+JhinMenu.Combo:DropDown("ModeQ", "Cast Mode: Q", 1, {"Standard", "Bounce"})
+JhinMenu:Menu("Harass", "Harass")
+JhinMenu.Harass:Boolean('UseQ', 'Use Q [Dancing Grenade]', true)
+JhinMenu.Harass:Boolean('UseW', 'Use W [Deadly Flourish]', true)
+JhinMenu.Harass:Boolean('UseE', 'Use E [Captive Audience]', true)
+JhinMenu.Harass:DropDown("ModeQ", "Cast Mode: Q", 2, {"Standard", "Bounce"})
+JhinMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+JhinMenu:Menu("KillSteal", "KillSteal")
+JhinMenu.KillSteal:Boolean('UseW', 'Use W [Deadly Flourish]', true)
+JhinMenu.KillSteal:Key("UseR", "Use R [Curtain Call]", string.byte("A"))
+JhinMenu.KillSteal:Boolean('UseRD', 'Draw Killable With R', true)
+JhinMenu:Menu("LaneClear", "LaneClear")
+JhinMenu.LaneClear:Boolean('UseQ', 'Use Q [Dancing Grenade]', true)
+JhinMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+JhinMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+JhinMenu.AntiGapcloser:Boolean('UseW', 'Use W [Deadly Flourish]', true)
+JhinMenu.AntiGapcloser:Slider('Distance','Distance: W', 400, 25, 500, 25)
+JhinMenu:Menu("Interrupter", "Interrupter")
+JhinMenu.Interrupter:Boolean('UseW', 'Use W [Deadly Flourish]', true)
+JhinMenu.Interrupter:Slider('Distance','Distance: W', 400, 50, 1000, 50)
+JhinMenu:Menu("Prediction", "Prediction")
+JhinMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+JhinMenu.Prediction:DropDown("PredictionE", "Prediction: E", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+JhinMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+JhinMenu:Menu("Drawings", "Drawings")
+JhinMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+JhinMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+JhinMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+JhinMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+JhinMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
+
+local JhinQ = { range = 550 }
+local JhinW = { range = 3000, radius = 40, width = 80, speed = 5000, delay = 0.75, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local JhinE = { range = 750, radius = 140, width = 280, speed = 1650, delay = 0.25, type = "circular", collision = false, source = myHero }
+local JhinR = { range = 3500, radius = 80, width = 160, speed = 5000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	AntiGapcloser()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,JhinQ.range,1,25,0xff00bfff) end
+if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,JhinW.range,1,25,0xff4169e1) end
+if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,JhinE.range,1,25,0xff1e90ff) end
+if JhinMenu.Drawings.DrawR:Value() then DrawCircle(pos,JhinR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	local QDmg = (25*GetCastLevel(myHero,_Q)+20)+((0.05*GetCastLevel(myHero,_Q)+0.35)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.6*GetBonusAP(myHero))
+	local WDmg = (35*GetCastLevel(myHero,_W)+15)+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
+	local EDmg = (60*GetCastLevel(myHero,_E)-40)+(1.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+GetBonusAP(myHero)
+	local ComboDmg = QDmg + WDmg + EDmg
+	local WEDmg = WDmg + EDmg
+	local QEDmg = QDmg + EDmg
+	local QWDmg = QDmg + WDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if JhinMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	CastTargetSpell(target, _Q)
+end
+function useW(target)
+	if GetDistance(target) < JhinW.range then
+		if JhinMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif JhinMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JhinW.speed,JhinW.delay*1000,JhinW.range,JhinW.width,false,true)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif JhinMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,JhinW,false,true)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif JhinMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="JhinW", range=JhinW.range, speed=JhinW.speed, delay=JhinW.delay, width=JhinW.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(JhinW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif JhinMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetLinearAOEPrediction(target,JhinW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function useE(target)
+	if GetDistance(target) < JhinE.range then
+		if JhinMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif JhinMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JhinE.speed,JhinE.delay*1000,JhinE.range,JhinE.width,false,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif JhinMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,JhinE,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif JhinMenu.Prediction.PredictionE:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="JhinE", range=JhinE.range, speed=JhinE.speed, delay=JhinE.delay, width=JhinE.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(JhinE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif JhinMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetCircularAOEPrediction(target,JhinE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if JhinMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, JhinQ.range) then
+					if JhinMenu.Auto.ModeQ:Value() == 1 then
+						useQ(target)
+					elseif JhinMenu.Auto.ModeQ:Value() == 2 then
+						for _, minion in pairs(minionManager.objects) do
+							if GetTeam(minion) == MINION_ENEMY then
+								if EnemiesAround(minion, 400) >= 1 then
+									useQ(minion)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	if JhinMenu.Auto.UseW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, JhinW.range) then
+					useW(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if JhinMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, JhinQ.range) then
+					if JhinMenu.Combo.ModeQ:Value() == 1 then
+						useQ(target)
+					elseif JhinMenu.Combo.ModeQ:Value() == 2 then
+						for _, minion in pairs(minionManager.objects) do
+							if GetTeam(minion) == MINION_ENEMY then
+								if EnemiesAround(minion, 400) >= 1 then
+									useQ(minion)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		if JhinMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
+				if ValidTarget(target, JhinW.range) then
+					useW(target)
+				end
+			end
+		end
+		if JhinMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, JhinE.range) then
+					useE(target)
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if JhinMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, JhinQ.range) then
+						if JhinMenu.Harass.ModeQ:Value() == 1 then
+							useQ(target)
+						elseif JhinMenu.Harass.ModeQ:Value() == 2 then
+							for _, minion in pairs(minionManager.objects) do
+								if GetTeam(minion) == MINION_ENEMY then
+									if EnemiesAround(minion, 400) >= 1 then
+										useQ(minion)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		if JhinMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
+					if ValidTarget(target, JhinW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if JhinMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, JhinE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if JhinMenu.KillSteal.UseW:Value() then
+				if ValidTarget(enemy, JhinW.range) then
+					local JhinWDmg = (35*GetCastLevel(myHero,_W)+15)+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < JhinWDmg then
+						useW(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if ValidTarget(enemy, JhinR.range) then
+				if JhinMenu.KillSteal.UseR:Value() then
+					if JhinMenu.Prediction.PredictionR:Value() == 1 then
+						CastSkillShot(_R,GetOrigin(target))
+					elseif JhinMenu.Prediction.PredictionR:Value() == 2 then
+						local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JhinR.speed,JhinR.delay*1000,JhinR.range,JhinR.width,false,true)
+						if RPred.HitChance == 1 then
+							CastSkillShot(_R, RPred.PredPos)
+						end
+					elseif JhinMenu.Prediction.PredictionR:Value() == 3 then
+						local RPred = _G.gPred:GetPrediction(target,myHero,JhinR,false,false)
+						if RPred and RPred.HitChance >= 3 then
+							CastSkillShot(_R, RPred.CastPosition)
+						end
+					elseif JhinMenu.Prediction.PredictionR:Value() == 4 then
+						local RSpell = IPrediction.Prediction({name="JhinRCast", range=JhinR.range, speed=JhinR.speed, delay=JhinR.delay, width=JhinR.width, type="linear", collision=false})
+						local x, y = RSpell:Predict(target)
+						if x > 2 then
+							CastSkillShot(_R, y.x, y.y, y.z)
+						end
+					elseif JhinMenu.Prediction.PredictionR:Value() == 5 then
+						local RPrediction = GetCircularAOEPrediction(target,JhinR)
+						if RPrediction.hitChance > 0.9 then
+							CastSkillShot(_R, RPrediction.castPos)
+						end
+					end
+				end
+				local JhinRDmg = ((75*GetCastLevel(myHero,_R)-25)+0.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero))*(1+(100-GetPercentHP(enemy))*1.025))*5
+				if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < JhinRDmg then
+					if JhinMenu.KillSteal.UseRD:Value() then
+						DrawCircle(enemy,100,5,25,0xffffd700)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if JhinMenu.LaneClear.UseQ:Value() then
+			for _, minion in pairs(minionManager.objects) do
+				if GetTeam(minion) == MINION_ENEMY then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, JhinQ.range) then
+							if CanUseSpell(myHero,_Q) == READY then
+								CastTargetSpell(minion, _Q)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if JhinMenu.AntiGapcloser.UseW:Value() then
+				if ValidTarget(antigap, JhinMenu.AntiGapcloser.Distance:Value()) then
+					useW(antigap)
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+OnProcessSpell(function(unit, spell)
+	if JhinMenu.Interrupter.UseW:Value() then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, JhinMenu.Interrupter.Distance:Value()) then
+				if CanUseSpell(myHero,_W) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useW(enemy) end
+						end
+					end
+				end
+			end
+		end
+    end
+end)
 end
