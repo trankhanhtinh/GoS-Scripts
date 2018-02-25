@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.5
+-- Current version: 1.0.5.1
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin
@@ -34,6 +34,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5.1
+-- + Removed modes from Ezreal's W
 -- 1.0.5
 -- + Added Jhin
 -- 1.0.4
@@ -48,7 +50,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.05
+local GSVer = 1.051
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -1866,13 +1868,13 @@ PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90F
 local EzrealMenu = Menu("[GoS-U] Ezreal", "[GoS-U] Ezreal")
 EzrealMenu:Menu("Auto", "Auto")
 EzrealMenu.Auto:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
+EzrealMenu.Auto:Boolean('UseW', 'Use W [Essence Flux]', true)
 EzrealMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 EzrealMenu:Menu("Combo", "Combo")
 EzrealMenu.Combo:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
 EzrealMenu.Combo:Boolean('UseW', 'Use W [Essence Flux]', true)
 EzrealMenu.Combo:Boolean('UseE', 'Use E [Arcane Shift]', true)
 EzrealMenu.Combo:Boolean('UseR', 'Use R [Trueshot Barrage]', true)
-EzrealMenu.Combo:DropDown("ModeW", "Cast Mode: W", 2, {"On Ally", "On Enemy"})
 EzrealMenu.Combo:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
 EzrealMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 EzrealMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
@@ -1880,7 +1882,6 @@ EzrealMenu:Menu("Harass", "Harass")
 EzrealMenu.Harass:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
 EzrealMenu.Harass:Boolean('UseW', 'Use W [Essence Flux]', true)
 EzrealMenu.Harass:Boolean('UseE', 'Use E [Arcane Shift]', true)
-EzrealMenu.Harass:DropDown("ModeW", "Cast Mode: W", 1, {"On Ally", "On Enemy"})
 EzrealMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 EzrealMenu:Menu("KillSteal", "KillSteal")
 EzrealMenu.KillSteal:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
@@ -2088,6 +2089,15 @@ function Auto()
 			end
 		end
 	end
+	if EzrealMenu.Auto.UseW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, EzrealW.range) then
+					useW(target)
+				end
+			end
+		end
+	end
 end
 
 -- Combo
@@ -2103,18 +2113,8 @@ function Combo()
 		end
 		if EzrealMenu.Combo.UseW:Value() then
 			if CanUseSpell(myHero,_W) == READY and AA == true then
-				if EzrealMenu.Combo.ModeW:Value() == 1 then
-					for _, ally in pairs(GetAllyHeroes()) do
-						if ValidTarget(ally, EzrealW.range) then
-							useW(ally)
-						else
-							useW(target)
-						end
-					end
-				elseif EzrealMenu.Combo.ModeW:Value() == 2 then
-					if ValidTarget(target, EzrealW.range) then
-						useW(target)
-					end
+				if ValidTarget(target, EzrealW.range) then
+					useW(target)
 				end
 			end
 		end
@@ -2155,18 +2155,8 @@ function Harass()
 		if EzrealMenu.Harass.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY and AA == true then
-					if EzrealMenu.Harass.ModeW:Value() == 1 then
-						for _, ally in pairs(GetAllyHeroes()) do
-							if ValidTarget(ally, EzrealW.range) then
-								useW(ally)
-							else
-								useW(target)
-							end
-						end
-					elseif EzrealMenu.Harass.ModeW:Value() == 2 then
-						if ValidTarget(target, EzrealW.range) then
-							useW(target)
-						end
+					if ValidTarget(target, EzrealW.range) then
+						useW(target)
 					end
 				end
 			end
