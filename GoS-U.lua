@@ -2575,7 +2575,7 @@ function KillSteal2()
 			end
 		end
 		for _, enemy in pairs(GetEnemyHeroes()) do
-			local JhinRDmg = ((75*GetCastLevel(myHero,_R)-25)+0.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero))*(1+(100-GetPercentHP(enemy))*1.025))*5
+			local JhinRDmg = ((75*GetCastLevel(myHero,_R)-25)+0.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero))*(1+(100-GetPercentHP(enemy))*1.025))*4
 			if ValidTarget(enemy) then
 				if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < JhinRDmg then
 					if JhinMenu.KillSteal.UseRD:Value() then
