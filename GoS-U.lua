@@ -2263,7 +2263,6 @@ PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90F
 local JhinMenu = Menu("[GoS-U] Jhin", "[GoS-U] Jhin")
 JhinMenu:Menu("Auto", "Auto")
 JhinMenu.Auto:Boolean('UseQ', 'Use Q [Dancing Grenade]', true)
-JhinMenu.Auto:Boolean('UseW', 'Use W [Deadly Flourish]', true)
 JhinMenu.Auto:DropDown("ModeQ", "Cast Mode: Q", 2, {"Standard", "Bounce"})
 JhinMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 JhinMenu:Menu("Combo", "Combo")
@@ -2305,7 +2304,6 @@ local JhinQ = { range = 550 }
 local JhinW = { range = 3000, radius = 40, width = 80, speed = 5000, delay = 0.75, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local JhinE = { range = 750, radius = 140, width = 280, speed = 1650, delay = 0.25, type = "circular", collision = false, source = myHero }
 local JhinR = { range = 3500, radius = 80, width = 160, speed = 5000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
-local UsingR = false
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -2313,6 +2311,7 @@ OnTick(function(myHero)
 	Combo()
 	Harass()
 	KillSteal()
+	KillSteal2()
 	LaneClear()
 	AntiGapcloser()
 end)
@@ -2330,14 +2329,14 @@ if JhinMenu.Drawings.DrawR:Value() then DrawCircle(pos,JhinR.range,1,25,0xff0000
 end
 
 function DrawDamage()
-	local QDmg = (25*GetCastLevel(myHero,_Q)+20)+((0.05*GetCastLevel(myHero,_Q)+0.35)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.6*GetBonusAP(myHero))
-	local WDmg = (35*GetCastLevel(myHero,_W)+15)+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
-	local EDmg = (60*GetCastLevel(myHero,_E)-40)+(1.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+GetBonusAP(myHero)
-	local ComboDmg = QDmg + WDmg + EDmg
-	local WEDmg = WDmg + EDmg
-	local QEDmg = QDmg + EDmg
-	local QWDmg = QDmg + WDmg
 	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (25*GetCastLevel(myHero,_Q)+20)+((0.05*GetCastLevel(myHero,_Q)+0.35)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.6*GetBonusAP(myHero))
+		local WDmg = (35*GetCastLevel(myHero,_W)+15)+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
+		local EDmg = (60*GetCastLevel(myHero,_E)-40)+(1.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+GetBonusAP(myHero)
+		local ComboDmg = QDmg + WDmg + EDmg
+		local WEDmg = WDmg + EDmg
+		local QEDmg = QDmg + EDmg
+		local QWDmg = QDmg + WDmg
 		if ValidTarget(enemy) then
 			if JhinMenu.Drawings.DrawDMG:Value() then
 				if Ready(_Q) and Ready(_W) and Ready(_E) then
@@ -2423,12 +2422,6 @@ function useE(target)
 		end
 	end
 end
-OnSpellCast(function(spell)
-	if spell.spellID == _R then
-		UsingR = true
-		DelayAction(function() UsingR = false end, 10)
-	end
-end)
 
 -- Auto
 
@@ -2448,15 +2441,6 @@ function Auto()
 							end
 						end
 					end
-				end
-			end
-		end
-	end
-	if JhinMenu.Auto.UseW:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JhinMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_W) == READY and UsingR == false then
-				if ValidTarget(target, JhinW.range) then
-					useW(target)
 				end
 			end
 		end
@@ -2558,36 +2542,41 @@ function KillSteal()
 					end
 				end
 			end
-		elseif CanUseSpell(myHero,_R) == READY then
-			if ValidTarget(enemy, JhinR.range) then
-				if JhinMenu.KillSteal.UseR:Value() then
-					local EnemyToHit = ClosestEnemy(GetMousePos())
-					if JhinMenu.Prediction.PredictionR:Value() == 1 then
-						CastSkillShot(_R,GetOrigin(EnemyToHit))
-					elseif JhinMenu.Prediction.PredictionR:Value() == 2 then
-						local RPred = GetPredictionForPlayer(GetOrigin(myHero),EnemyToHit,GetMoveSpeed(EnemyToHit),JhinR.speed,JhinR.delay*1000,JhinR.range,JhinR.width,false,true)
-						if RPred.HitChance == 1 then
-							CastSkillShot(_R, RPred.PredPos)
-						end
-					elseif JhinMenu.Prediction.PredictionR:Value() == 3 then
-						local RPred = _G.gPred:GetPrediction(EnemyToHit,myHero,JhinR,false,false)
-						if RPred and RPred.HitChance >= 3 then
-							CastSkillShot(_R, RPred.CastPosition)
-						end
-					elseif JhinMenu.Prediction.PredictionR:Value() == 4 then
-						local RSpell = IPrediction.Prediction({name="JhinRCast", range=JhinR.range, speed=JhinR.speed, delay=JhinR.delay, width=JhinR.width, type="linear", collision=false})
-						local x, y = RSpell:Predict(EnemyToHit)
-						if x > 2 then
-							CastSkillShot(_R, y.x, y.y, y.z)
-						end
-					elseif JhinMenu.Prediction.PredictionR:Value() == 5 then
-						local RPrediction = GetCircularAOEPrediction(EnemyToHit,JhinR)
-						if RPrediction.hitChance > 0.9 then
-							CastSkillShot(_R, RPrediction.castPos)
-						end
-					end
+		end
+	end
+end
+function KillSteal2()
+	if CanUseSpell(myHero,_R) == READY then
+		if JhinMenu.KillSteal.UseR:Value() then
+			local EnemyToHit = ClosestEnemy(GetMousePos())
+			if JhinMenu.Prediction.PredictionR:Value() == 1 then
+				CastSkillShot(_R,GetOrigin(EnemyToHit))
+			elseif JhinMenu.Prediction.PredictionR:Value() == 2 then
+				local RPred = GetPredictionForPlayer(GetOrigin(myHero),EnemyToHit,GetMoveSpeed(target),JhinR.speed,JhinR.delay*1000,JhinR.range,JhinR.width,false,true)
+				if RPred.HitChance == 1 then
+					CastSkillShot(_R, RPred.PredPos)
 				end
-				local JhinRDmg = ((75*GetCastLevel(myHero,_R)-25)+0.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero))*(1+(100-GetPercentHP(enemy))*1.025))*5
+			elseif JhinMenu.Prediction.PredictionR:Value() == 3 then
+				local RPred = _G.gPred:GetPrediction(EnemyToHit,myHero,JhinR,false,false)
+				if RPred and RPred.HitChance >= 3 then
+					CastSkillShot(_R, RPred.CastPosition)
+				end
+			elseif JhinMenu.Prediction.PredictionR:Value() == 4 then
+				local RSpell = IPrediction.Prediction({name="JhinRCast", range=JhinR.range, speed=JhinR.speed, delay=JhinR.delay, width=JhinR.width, type="linear", collision=false})
+				local x, y = RSpell:Predict(EnemyToHit)
+				if x > 2 then
+					CastSkillShot(_R, y.x, y.y, y.z)
+				end
+			elseif JhinMenu.Prediction.PredictionR:Value() == 5 then
+				local RPrediction = GetCircularAOEPrediction(EnemyToHit,JhinR)
+				if RPrediction.hitChance > 0.9 then
+					CastSkillShot(_R, RPrediction.castPos)
+				end
+			end
+		end
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			local JhinRDmg = ((75*GetCastLevel(myHero,_R)-25)+0.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero))*(1+(100-GetPercentHP(enemy))*1.025))*5
+			if ValidTarget(enemy) then
 				if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < JhinRDmg then
 					if JhinMenu.KillSteal.UseRD:Value() then
 						DrawCircle(enemy,100,5,25,0xffffd700)
