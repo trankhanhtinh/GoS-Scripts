@@ -370,7 +370,6 @@ if "Ashe" == GetObjectName(myHero) then
 PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Ashe loaded successfully!")
 local AsheMenu = Menu("[GoS-U] Ashe", "[GoS-U] Ashe")
 AsheMenu:Menu("Auto", "Auto")
-AsheMenu.Auto:Boolean('UseQ', 'Use Q [Rangers Focus]', true)
 AsheMenu.Auto:Boolean('UseW', 'Use W [Volley]', true)
 AsheMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 AsheMenu:Menu("Combo", "Combo")
