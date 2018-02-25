@@ -2426,7 +2426,7 @@ end
 OnSpellCast(function(spell)
 	if spell.spellID == _R then
 		UsingR = true
-		DelayAction(function() UsingR = false end, 2)
+		DelayAction(function() UsingR = false end, 10)
 	end
 end)
 
