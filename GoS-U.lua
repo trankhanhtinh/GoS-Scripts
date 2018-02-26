@@ -12,10 +12,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.5.1
+-- Current version: 1.0.6
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,6 +34,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.6
+-- + Added Jinx
+-- + Restored modes for Ezreal's W
 -- 1.0.5.1
 -- + Removed modes from Ezreal's W
 -- 1.0.5
@@ -50,7 +53,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.051
+local GSVer = 1.06
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -246,6 +249,16 @@ function BaseUlt()
 							CastSkillShot(_R, GetOrigin(SpawnPos))
 						end
 					end
+				elseif GetObjectName(myHero) == "Jinx" then
+					local JinxRDmg = math.max(50*GetCastLevel(myHero,_R)+75+GetBonusDmg(myHero)+(0.05*GetCastLevel(myHero,_R)+0.2)*(GetMaxHP(recall.champ)-GetCurrentHP(recall.champ)))
+					if JinxRDmg >= (GetCurrentHP(recall.champ)+GetMagicResist(recall.champ)+GetHPRegen(recall.champ)*20) and SpawnPos ~= nil then
+						local RecallTime = recall.duration-(GetGameTimer()-recall.start)+GetLatency()/2000
+						JinxRSpeed = GetDistance(SpawnPos) > 1350 and (2295000+(GetDistance(SpawnPos)-1350)*2200)/GetDistance(SpawnPos) or 700
+						local HitTime = 0.6+GetDistance(SpawnPos)/JinxRSpeed+GetLatency()/2000
+						if RecallTime < HitTime and HitTime < 7.8 and HitTime-RecallTime < 1.5 then
+							CastSkillShot(_R, GetOrigin(SpawnPos))
+						end
+					end
 				end
 			end
 		end
@@ -339,7 +352,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) or "Jhin" == GetObjectName(myHero) then
+		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) or "Jhin" == GetObjectName(myHero) or "Jinx" == GetObjectName(myHero) then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -1875,13 +1888,15 @@ EzrealMenu.Combo:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
 EzrealMenu.Combo:Boolean('UseW', 'Use W [Essence Flux]', true)
 EzrealMenu.Combo:Boolean('UseE', 'Use E [Arcane Shift]', true)
 EzrealMenu.Combo:Boolean('UseR', 'Use R [Trueshot Barrage]', true)
+EzrealMenu.Combo:DropDown("ModeW", "Cast Mode: W", 2, {"On Ally", "On Enemy"})
 EzrealMenu.Combo:Slider('Distance','Distance: R', 2000, 100, 10000, 100)
 EzrealMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 EzrealMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 EzrealMenu:Menu("Harass", "Harass")
 EzrealMenu.Harass:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
 EzrealMenu.Harass:Boolean('UseW', 'Use W [Essence Flux]', true)
-EzrealMenu.Harass:Boolean('UseE', 'Use E [Arcane Shift]', true)
+EzrealMenu.Harass:Boolean('UseE', 'Use E [Arcane Shift]', false)
+EzrealMenu.Harass:DropDown("ModeW", "Cast Mode: W", 1, {"On Ally", "On Enemy"})
 EzrealMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 EzrealMenu:Menu("KillSteal", "KillSteal")
 EzrealMenu.KillSteal:Boolean('UseQ', 'Use Q [Mystic Shot]', true)
@@ -2113,8 +2128,18 @@ function Combo()
 		end
 		if EzrealMenu.Combo.UseW:Value() then
 			if CanUseSpell(myHero,_W) == READY and AA == true then
-				if ValidTarget(target, EzrealW.range) then
-					useW(target)
+				if EzrealMenu.Combo.ModeW:Value() == 1 then
+					for _, ally in pairs(GoS:GetAllyHeroes()) do
+						if ValidTarget(ally, EzrealW.range) and GetDistance(ally, target) >= EzrealW.range+GetRange(myHero) then
+							useW(ally)
+						elseif ValidTarget(target, EzrealW.range) then
+							useW(target)
+						end
+					end
+				elseif EzrealMenu.Combo.ModeW:Value() == 2 then
+					if ValidTarget(target, EzrealW.range) then
+						useW(target)
+					end
 				end
 			end
 		end
@@ -2155,8 +2180,18 @@ function Harass()
 		if EzrealMenu.Harass.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > EzrealMenu.Harass.MP:Value() then
 				if CanUseSpell(myHero,_W) == READY and AA == true then
-					if ValidTarget(target, EzrealW.range) then
-						useW(target)
+					if EzrealMenu.Harass.ModeW:Value() == 1 then
+						for _, ally in pairs(GoS:GetAllyHeroes()) do
+							if ValidTarget(ally, EzrealW.range) and GetDistance(ally, target) >= EzrealW.range+GetRange(myHero) then
+								useW(ally)
+							elseif ValidTarget(target, EzrealW.range) then
+								useW(target)
+							end
+						end
+					elseif EzrealMenu.Harass.ModeW:Value() == 2 then
+						if ValidTarget(target, EzrealW.range) then
+							useW(target)
+						end
 					end
 				end
 			end
@@ -2624,6 +2659,422 @@ OnProcessSpell(function(unit, spell)
 					if UnitGapcloserSpells then
 						for _, slot in pairs(UnitGapcloserSpells) do
 							if spell.name == GetCastName(enemy, slot) then useW(enemy) end
+						end
+					end
+				end
+			end
+		end
+    end
+end)
+
+-- Jinx
+
+elseif "Jinx" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Jinx loaded successfully!")
+local JinxMenu = Menu("[GoS-U] Jinx", "[GoS-U] Jinx")
+JinxMenu:Menu("Auto", "Auto")
+JinxMenu.Auto:Boolean('UseW', 'Use W [Zap!]', true)
+JinxMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+JinxMenu:Menu("Combo", "Combo")
+JinxMenu.Combo:Boolean('UseQ', 'Use Q [Switcheroo!]', true)
+JinxMenu.Combo:Boolean('UseW', 'Use W [Zap!]', true)
+JinxMenu.Combo:Boolean('UseE', 'Use E [Flame Chompers!]', true)
+JinxMenu.Combo:Boolean('UseR', 'Use R [Death Rocket!]', true)
+JinxMenu.Combo:Slider('Distance','Distance: R', 4000, 100, 10000, 100)
+JinxMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+JinxMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+JinxMenu:Menu("Harass", "Harass")
+JinxMenu.Harass:Boolean('UseQ', 'Use Q [Switcheroo!]', true)
+JinxMenu.Harass:Boolean('UseW', 'Use W [Zap!]', true)
+JinxMenu.Harass:Boolean('UseE', 'Use E [Flame Chompers!]', true)
+JinxMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+JinxMenu:Menu("KillSteal", "KillSteal")
+JinxMenu.KillSteal:Boolean('UseW', 'Use W [Zap!]', true)
+JinxMenu.KillSteal:Boolean('UseR', 'Use R [Death Rocket!]', true)
+JinxMenu.KillSteal:Slider('Distance','Distance: R', 4000, 100, 10000, 100)
+JinxMenu:Menu("LaneClear", "LaneClear")
+JinxMenu.LaneClear:Boolean('UseQ', 'Use Q [Switcheroo!]', true)
+JinxMenu.LaneClear:Boolean('UseE', 'Use E [Flame Chompers!]', true)
+JinxMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+JinxMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+JinxMenu.AntiGapcloser:Boolean('UseW', 'Use W [Zap!]', true)
+JinxMenu.AntiGapcloser:Boolean('UseE', 'Use E [Flame Chompers!]', true)
+JinxMenu.AntiGapcloser:Slider('DistanceW','Distance: W', 400, 25, 500, 25)
+JinxMenu.AntiGapcloser:Slider('DistanceE','Distance: E', 300, 25, 500, 25)
+JinxMenu:Menu("Interrupter", "Interrupter")
+JinxMenu.Interrupter:Boolean('UseE', 'Use E [Flame Chompers!]', true)
+JinxMenu.Interrupter:Slider('Distance','Distance: E', 400, 50, 1000, 50)
+JinxMenu:Menu("Prediction", "Prediction")
+JinxMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+JinxMenu.Prediction:DropDown("PredictionE", "Prediction: E", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+JinxMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+JinxMenu:Menu("Drawings", "Drawings")
+JinxMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+JinxMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+JinxMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+JinxMenu.Drawings:Boolean('DrawDMG', 'Draw Max WER Damage', true)
+
+local JinxW = { range = 1450, radius = 45, width = 90, speed = 3200, delay = 0.6, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
+local JinxE = { range = 900, radius = 100, width = 200, speed = 2570, delay = 0.75, type = "circular", collision = false, source = myHero }
+local JinxR = { range = JinxMenu.Combo.Distance:Value(), radius = 110, width = 220, speed = 1700, delay = 0.6, type = "line", collision = false, source = myHero }
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	AntiGapcloser()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if JinxMenu.Drawings.DrawW:Value() then DrawCircle(pos,JinxW.range,1,25,0xff4169e1) end
+if JinxMenu.Drawings.DrawE:Value() then DrawCircle(pos,JinxE.range,1,25,0xff1e90ff) end
+if JinxMenu.Drawings.DrawR:Value() then DrawCircle(pos,JinxR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local WDmg = (50*GetCastLevel(myHero,_Q)-40)+(1.4*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+		local EDmg = (50*GetCastLevel(myHero,_W)+20)+GetBonusAP(myHero)
+		local RDmg = (100*GetCastLevel(myHero,_R)+150)+(1.5*GetBonusDmg(myHero))+((0.05*GetCastLevel(myHero,_R)+0.2)*(GetMaxHP(enemy)-GetCurrentHP(enemy)))
+		local ComboDmg = WDmg + EDmg + RDmg
+		local ERDmg = EDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local WEDmg = WDmg + EDmg
+		if ValidTarget(enemy) then
+			if JinxMenu.Drawings.DrawDMG:Value() then
+				if Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	CastSpell(_Q)
+end
+function useW(target)
+	if GetDistance(target) < JinxW.range then
+		if JinxMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif JinxMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JinxW.speed,JinxW.delay*1000,JinxW.range,JinxW.width,true,false)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif JinxMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,JinxW,false,true)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif JinxMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="JinxW", range=JinxW.range, speed=JinxW.speed, delay=JinxW.delay, width=JinxW.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(JinxW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif JinxMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetLinearAOEPrediction(target,JinxW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function useE(target)
+	if GetDistance(target) < JinxE.range then
+		if JinxMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif JinxMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JinxE.speed,JinxE.delay*1000,JinxE.range,JinxE.width,false,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif JinxMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,JinxE,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif JinxMenu.Prediction.PredictionE:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="JinxE", range=JinxE.range, speed=JinxE.speed, delay=JinxE.delay, width=JinxE.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(JinxE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif JinxMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetCircularAOEPrediction(target,JinxE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+function useR(target)
+	if GetDistance(target) < JinxR.range then
+		if JinxMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif JinxMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),JinxR.speed,JinxR.delay*1000,JinxR.range,JinxR.width,false,false)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif JinxMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,JinxR,false,false)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif JinxMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="JinxR", range=JinxR.range, speed=JinxR.speed, delay=JinxR.delay, width=JinxR.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(JinxR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif JinxMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetLinearAOEPrediction(target,JinxR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+OnUpdateBuff(function(unit,buff)
+	if unit == myHero and buff.Name == "jinxqicon" then
+		Q2 = false
+	end
+end)
+OnRemoveBuff(function(unit,buff)
+	if unit == myHero and buff.Name == "jinxqicon" then
+		Q2 = true
+	end
+end)
+
+-- Auto
+
+function Auto()
+	if JinxMenu.Auto.UseW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, JinxW.range) then
+					useW(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if JinxMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					if Q2 then
+						if EnemiesAround(target, 150) <= 1 then
+							useQ(target)
+						end
+					else
+						if EnemiesAround(target, 150) > 1 then
+							useQ(target)
+						end
+					end
+				end
+			end
+		end
+		if JinxMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
+				if ValidTarget(target, JinxW.range) then
+					useW(target)
+				end
+			end
+		end
+		if JinxMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, JinxE.range) then
+					useE(target)
+				end
+			end
+		end
+		if JinxMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, JinxR.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < JinxMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, JinxR.range+GetRange(myHero)) >= JinxMenu.Combo.X:Value() then
+							useR(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if JinxMenu.Harass.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					if Q2 then
+						if EnemiesAround(target, 150) <= 1 then
+							useQ(target)
+						end
+					else
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.Harass.MP:Value() then
+							if EnemiesAround(target, 150) > 1 then
+								useQ(target)
+							end
+						end
+					end
+				end
+			end
+		end
+		if JinxMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
+					if ValidTarget(target, JinxW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if JinxMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, JinxE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if JinxMenu.KillSteal.UseW:Value() then
+				if ValidTarget(enemy, JinxW.range) then
+					local JinxWDmg = (15*GetCastLevel(myHero,_W)+5)+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < JinxWDmg then
+						useW(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if JinxMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, JinxMenu.KillSteal.Distance:Value()) and GetDistance(enemy, myHero) >= 1500 then
+					local JinxRDmg = math.max(50*GetCastLevel(myHero,_R)+75+GetBonusDmg(myHero)+(0.05*GetCastLevel(myHero,_R)+0.2)*(GetMaxHP(enemy)-GetCurrentHP(enemy)))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*8) < JinxRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if JinxMenu.LaneClear.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					local BestPos, BestHit = GetFarmPosition(JinxE.range, JinxE.range, MINION_ENEMY)
+					if BestPos and BestHit > 3 then
+						CastSkillShot(_E, BestPos)
+					end
+				end
+			end
+		end
+		if JinxMenu.LaneClear.UseQ:Value() then
+			for _, minion in pairs(minionManager.objects) do
+				if GetTeam(minion) == MINION_ENEMY then
+					if ValidTarget(minion, GetRange(myHero)+GetHitBox(myHero)) then
+						if CanUseSpell(myHero,_Q) == READY then
+							if Q2 then
+								if MinionsAround(minion, 150) <= 1 then
+									useQ(minion)
+								end
+							else
+								if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.LaneClear.MP:Value() then
+									if MinionsAround(minion, 150) > 1 then
+										useQ(minion)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if JinxMenu.AntiGapcloser.UseW:Value() then
+				if ValidTarget(antigap, JinxMenu.AntiGapcloser.DistanceW:Value()) then
+					useW(antigap)
+				end
+			end
+		elseif CanUseSpell(myHero,_E) == READY then
+			if JinxMenu.AntiGapcloser.UseE:Value() then
+				if ValidTarget(antigap, JinxMenu.AntiGapcloser.DistanceE:Value()) then
+					useE(antigap)
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+OnProcessSpell(function(unit, spell)
+	if JinxMenu.Interrupter.UseE:Value() then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, JinxMenu.Interrupter.Distance:Value()) then
+				if CanUseSpell(myHero,_E) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
 						end
 					end
 				end
