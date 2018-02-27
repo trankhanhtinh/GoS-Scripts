@@ -3249,10 +3249,10 @@ function Combo()
 					if GetDistance(target, myHero) <= GetRange(myHero) then
 						if KalistaMenu.ERend.ResetE:Value() then
 							for i,minion in pairs(minionManager.objects) do
-								if GetTeam(minion) == MINION_ENEMY then		
-									if GotBuff(minion,"kalistaexpungemarker") >= 1 then
+								if GetTeam(minion) == MINION_ENEMY then
+									if ValidTarget(minion, KalistaE.range) and GotBuff(minion,"kalistaexpungemarker") >= 1 then
 										local KalistaEDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.025*GetCastLevel(myHero,_E)+0.175)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(minion,"kalistaexpungemarker")-1))
-										if GetCurrentHP(minion) < KalistaEDmg then
+										if GetCurrentHP(minion)+GetDmgShield(minion) < KalistaEDmg then
 											if GotBuff(target,"kalistaexpungemarker") >= KalistaMenu.ERend.MS:Value() then
 												CastSpell(_E)
 											end
