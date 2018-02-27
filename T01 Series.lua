@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.3
+-- Current version: 1.2.1.4
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1.4
+-- + Fixed Ryze's Auto Q
 -- 1.2.1.3
 -- + Corrected Gnar's E damage
 -- 1.2.1.2
@@ -139,7 +141,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.213
+local TSVer = 1.214
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -5753,16 +5755,16 @@ end)
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		LastHit()
-		LaneClear()
-		JungleClear()
+	Auto()
+	Combo()
+	Harass()
+	LastHit()
+	LaneClear()
+	JungleClear()
 end)
 
 function useQ(target)
-	if GetDistance(target) < RyzeQ.range and AA == true then
+	if GetDistance(target) < RyzeQ.range then
 		if RyzeMenu.Prediction.PredictionQ:Value() == 1 then
 			CastSkillShot(_Q,GetOrigin(target))
 		elseif RyzeMenu.Prediction.PredictionQ:Value() == 2 then
@@ -5821,7 +5823,7 @@ end
 function Combo()
 	if Mode() == "Combo" then
 		if RyzeMenu.Combo.UseQ:Value() then
-			if CanUseSpell(myHero,_Q) == READY then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
 				if ValidTarget(target, RyzeQ.range) then
 					useQ(target)
 				end
@@ -5850,7 +5852,7 @@ function Harass()
 	if Mode() == "Harass" then
 		if RyzeMenu.Harass.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > RyzeMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_Q) == READY then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
 					if ValidTarget(target, RyzeQ.range) then
 						useQ(target)
 					end
