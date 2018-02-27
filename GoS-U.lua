@@ -12,10 +12,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.6
+-- Current version: 1.0.7
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,6 +34,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.7
+-- + Added Kalista
 -- 1.0.6
 -- + Added Jinx
 -- + Restored modes for Ezreal's W
@@ -53,7 +55,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.06
+local GSVer = 1.07
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -359,6 +361,11 @@ function LevelUp()
 			end
 		elseif "Corki" == GetObjectName(myHero) or "Ezreal" == GetObjectName(myHero) then
 			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif "Kalista" == GetObjectName(myHero) then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
@@ -3082,4 +3089,301 @@ OnProcessSpell(function(unit, spell)
 		end
     end
 end)
+
+-- Kalista
+
+elseif "Kalista" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Kalista loaded successfully!")
+local KalistaMenu = Menu("[GoS-U] Kalista", "[GoS-U] Kalista")
+KalistaMenu:Menu("Auto", "Auto")
+KalistaMenu.Auto:Boolean('UseW', 'Use W [Sentinel]', true)
+KalistaMenu.Auto:Boolean('UseR', 'Use R [Fates Call]', true)
+KalistaMenu.Auto:Slider("MP","Mana-Manager: W", 40, 0, 100, 5)
+KalistaMenu.Auto:Slider('HP','HP-Manager: R', 20, 0, 100, 5)
+KalistaMenu:Menu("ERend", "E [Rend]")
+KalistaMenu.ERend:Boolean('ResetE', 'Use E (Reset)', true)
+KalistaMenu.ERend:Boolean('OutOfAA', 'Use E (Out Of AA)', true)
+KalistaMenu.ERend:Slider("MS","Minimum Spears", 6, 0, 20, 1)
+KalistaMenu:Menu("Combo", "Combo")
+KalistaMenu.Combo:Boolean('UseQ', 'Use Q [Pierce]', true)
+KalistaMenu.Combo:Boolean('UseE', 'Use E [Rend]', true)
+KalistaMenu:Menu("Harass", "Harass")
+KalistaMenu.Harass:Boolean('UseQ', 'Use Q [Pierce]', true)
+KalistaMenu.Harass:Boolean('UseE', 'Use E [Rend]', true)
+KalistaMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KalistaMenu:Menu("KillSteal", "KillSteal")
+KalistaMenu.KillSteal:Boolean('UseQ', 'Use Q [Pierce]', true)
+KalistaMenu.KillSteal:Boolean('UseE', 'Use E [Rend]', true)
+KalistaMenu:Menu("LastHit", "LastHit")
+KalistaMenu.LastHit:Boolean('UseE', 'Use E [Rend]', true)
+KalistaMenu:Menu("LaneClear", "LaneClear")
+KalistaMenu.LaneClear:Boolean('UseQ', 'Use Q [Pierce]', true)
+KalistaMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KalistaMenu:Menu("Prediction", "Prediction")
+KalistaMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+KalistaMenu:Menu("Drawings", "Drawings")
+KalistaMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+KalistaMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+KalistaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+KalistaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QE Damage', true)
+
+local KalistaQ = { range = 1150, radius = 35, width = 70, speed = 2100, delay = 0.35, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
+local KalistaE = { range = 1000 }
+local KalistaR = { range = 1200 }
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if KalistaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,KalistaQ.range,1,25,0xff00bfff) end
+if KalistaMenu.Drawings.DrawE:Value() then DrawCircle(pos,KalistaE.range,1,25,0xff1e90ff) end
+if KalistaMenu.Drawings.DrawR:Value() then DrawCircle(pos,KalistaR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (60*GetCastLevel(myHero,_Q)-50)+(GetBaseDamage(myHero)+GetBonusDmg(myHero))
+		local EDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.025*GetCastLevel(myHero,_E)+0.175)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(enemy,"kalistaexpungemarker")-1))
+		local ComboDmg = QDmg + EDmg
+		if ValidTarget(enemy) then
+			if KalistaMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	if GetDistance(target) < KalistaQ.range then
+		if KalistaMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif KalistaMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),KalistaQ.speed,KalistaQ.delay*1000,KalistaQ.range,KalistaQ.width,true,false)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif KalistaMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,KalistaQ,false,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif KalistaMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="KalistaMysticShot", range=KalistaQ.range, speed=KalistaQ.speed, delay=KalistaQ.delay, width=KalistaQ.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(KalistaQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif KalistaMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,KalistaQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if KalistaMenu.Auto.UseW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KalistaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if EnemiesAround(myHero, 2500) == 0 then
+					if GetDistance(Vector(9882.892, -71.24, 4438.446)) < GetDistance(Vector(5087.77, -71.24, 10471.3808)) and GetDistance(Vector(9882.892, -71.24, 4438.446)) < 5200 then
+						CastSkillShot(_W,9882.892, -71.24, 4438.446)
+					elseif GetDistance(Vector(5087.77, -71.24, 10471.3808)) < 5200 then
+						CastSkillShot(_W,5087.77, -71.24, 10471.3808)
+					end
+				end
+			end
+		end
+	end
+	if KalistaMenu.Auto.UseR:Value() then
+		for _, ally in pairs(GetAllyHeroes()) do
+			if CanUseSpell(myHero,_R) == READY and GotBuff(ally,"kalistacoopstrikeally") == 1 then
+				if ValidTarget(ally, KalistaR.range) and EnemiesAround(ally, 1500) >= 1 then
+					if (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= KalistaMenu.Auto.HP:Value() then
+						CastSpell(_R)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if KalistaMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, KalistaQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if KalistaMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, KalistaE.range) then
+					if GetDistance(target, myHero) <= GetRange(myHero) then
+						if KalistaMenu.ERend.ResetE:Value() then
+							for i,minion in pairs(minionManager.objects) do
+								if GetTeam(minion) == MINION_ENEMY then		
+									if GotBuff(minion,"kalistaexpungemarker") >= 1 then
+										local KalistaEDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.025*GetCastLevel(myHero,_E)+0.175)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(minion,"kalistaexpungemarker")-1))
+										if GetCurrentHP(minion) < KalistaEDmg then
+											if GotBuff(target,"kalistaexpungemarker") >= KalistaMenu.ERend.MS:Value() then
+												CastSpell(_E)
+											end
+										end
+									end
+								end
+							end
+						end
+					elseif GetDistance(target, myHero) >= GetRange(myHero) then
+						if KalistaMenu.ERend.OutOfAA:Value() then
+							if GotBuff(target,"kalistaexpungemarker") >= KalistaMenu.ERend.MS:Value() then
+								CastSpell(_E)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if KalistaMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KalistaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, KalistaQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if KalistaMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KalistaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, KalistaE.range) then
+						if GetDistance(target, myHero) <= GetRange(myHero) then
+							if KalistaMenu.ERend.ResetE:Value() then
+								for i,minion in pairs(minionManager.objects) do
+									if GetTeam(minion) == MINION_ENEMY then		
+										if GotBuff(minion,"kalistaexpungemarker") >= 1 then
+											local KalistaEDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.025*GetCastLevel(myHero,_E)+0.175)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(minion,"kalistaexpungemarker")-1))
+											if GetCurrentHP(minion) < KalistaEDmg then
+												if GotBuff(target,"kalistaexpungemarker") >= KalistaMenu.ERend.MS:Value() then
+													CastSpell(_E)
+												end
+											end
+										end
+									end
+								end
+							end
+						elseif GetDistance(target, myHero) >= GetRange(myHero) then
+							if KalistaMenu.ERend.OutOfAA:Value() then
+								if GotBuff(target,"kalistaexpungemarker") >= KalistaMenu.ERend.MS:Value() then
+									CastSpell(_E)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_Q) == READY then
+			if KalistaMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, KalistaQ.range) then
+					local KalistaQDmg = (60*GetCastLevel(myHero,_Q)-50)+(GetBaseDamage(myHero)+GetBonusDmg(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < KalistaQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_E) == READY then
+			if KalistaMenu.KillSteal.UseE:Value() then
+				if ValidTarget(enemy, KalistaE.range) and GotBuff(enemy,"kalistaexpungemarker") >= 1 then
+					local KalistaEDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.025*GetCastLevel(myHero,_E)+0.175)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(enemy,"kalistaexpungemarker")-1))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)) < KalistaEDmg then
+						CastSpell(_E)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, KalistaE.range) and GotBuff(minion,"kalistaexpungemarker") >= 1 then
+					if KalistaMenu.LastHit.UseE:Value() then
+						if CanUseSpell(myHero,_E) == READY then
+							local KalistaEDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.025*GetCastLevel(myHero,_E)+0.175)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(minion,"kalistaexpungemarker")-1))
+							if GetCurrentHP(minion)+GetDmgShield(minion) < KalistaEDmg then
+								CastSpell(_E)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if KalistaMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KalistaMenu.LaneClear.MP:Value() then
+				for _, minion in pairs(minionManager.objects) do
+					if GetTeam(minion) == MINION_ENEMY then
+						if ValidTarget(minion, KalistaQ.range) then
+							if CanUseSpell(myHero,_Q) == READY then
+								CastSkillShot(_Q, GetOrigin(minion))
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
 end
