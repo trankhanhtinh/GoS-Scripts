@@ -12,10 +12,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.7
+-- Current version: 1.0.8
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,6 +34,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.8
+-- + Added KogMaw
 -- 1.0.7
 -- + Added Kalista
 -- 1.0.6
@@ -55,7 +57,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.07
+local GSVer = 1.08
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -348,7 +350,7 @@ function Items()
 end
 
 function LevelUp()
-	if UtilityMenu.LevelUp.LvlUp:Value() then
+	if UtilityMenu.LevelUp.LvlUp:Value() or "KogMaw" == GetObjectName(myHero) then
 		if "Ashe" == GetObjectName(myHero) then
 			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
@@ -3381,6 +3383,441 @@ function LaneClear()
 							end
 						end
 					end
+				end
+			end
+		end
+	end
+end
+
+-- KogMaw
+
+elseif "KogMaw" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>KogMaw loaded successfully!")
+local KogMawMenu = Menu("[GoS-U] KogMaw", "[GoS-U] KogMaw")
+KogMawMenu:Menu("Auto", "Auto")
+KogMawMenu.Auto:Boolean('UseQ', 'Use Q [Caustic Spittle]', true)
+KogMawMenu.Auto:Boolean('UseR', 'Use R [Living Artillery]', true)
+KogMawMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KogMawMenu:Menu("Combo", "Combo")
+KogMawMenu.Combo:Boolean('UseQ', 'Use Q [Caustic Spittle]', true)
+KogMawMenu.Combo:Boolean('UseW', 'Use W [Bio-Arcane Barrage]', true)
+KogMawMenu.Combo:Boolean('UseE', 'Use E [Void Ooze]', true)
+KogMawMenu.Combo:Boolean('UseR', 'Use R [Living Artillery]', true)
+KogMawMenu:Menu("Harass", "Harass")
+KogMawMenu.Harass:Boolean('UseQ', 'Use Q [Caustic Spittle]', true)
+KogMawMenu.Harass:Boolean('UseW', 'Use W [Bio-Arcane Barrage]', true)
+KogMawMenu.Harass:Boolean('UseE', 'Use E [Void Ooze]', true)
+KogMawMenu.Harass:Boolean('UseR', 'Use R [Living Artillery]', true)
+KogMawMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KogMawMenu:Menu("KillSteal", "KillSteal")
+KogMawMenu.KillSteal:Boolean('UseE', 'Use E [Void Ooze]', true)
+KogMawMenu.KillSteal:Boolean('UseR', 'Use R [Living Artillery]', true)
+KogMawMenu:Menu("LastHit", "LastHit")
+KogMawMenu.LastHit:Boolean('UseQ', 'Use Q [Caustic Spittle]', true)
+KogMawMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KogMawMenu:Menu("LaneClear", "LaneClear")
+KogMawMenu.LaneClear:Boolean('UseQ', 'Use Q [Caustic Spittle]', false)
+KogMawMenu.LaneClear:Boolean('UseW', 'Use W [Bio-Arcane Barrage]', true)
+KogMawMenu.LaneClear:Boolean('UseE', 'Use E [Void Ooze]', false)
+KogMawMenu.LaneClear:Boolean('UseR', 'Use R [Living Artillery]', true)
+KogMawMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KogMawMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+KogMawMenu.AntiGapcloser:Boolean('UseE', 'Use E [Void Ooze]', true)
+KogMawMenu.AntiGapcloser:Slider('Distance','Distance: E', 450, 25, 500, 25)
+KogMawMenu:Menu("Prediction", "Prediction")
+KogMawMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+KogMawMenu.Prediction:DropDown("PredictionE", "Prediction: E", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+KogMawMenu.Prediction:DropDown("PredictionR", "Prediction: R", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+KogMawMenu:Menu("Drawings", "Drawings")
+KogMawMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+KogMawMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+KogMawMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+KogMawMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+
+local KogMawQ = { range = 1175, radius = 60, width = 120, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
+local KogMawE = { range = 1280, radius = 115, width = 230, speed = 1350, delay = 0.25, type = "line", collision = false, source = myHero }
+local KogMawR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.85, type = "circular", collision = false, source = myHero }
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	LastHit()
+	KillSteal()
+	LaneClear()
+	AntiGapcloser()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if KogMawMenu.Drawings.DrawQ:Value() then DrawCircle(pos,KogMawQ.range,1,25,0xff00bfff) end
+if KogMawMenu.Drawings.DrawE:Value() then DrawCircle(pos,KogMawE.range,1,25,0xff1e90ff) end
+if KogMawMenu.Drawings.DrawR:Value() then DrawCircle(pos,KogMawR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (50*GetCastLevel(myHero,_Q)+30)+(0.5*GetBonusAP(myHero))
+		local WDmg = (0.0075*GetCastLevel(myHero,_W)+0.0225)+((0.01*GetBonusAP(myHero))*GetMaxHP(enemy))
+		local EDmg = (45*GetCastLevel(myHero,_E)+15)+(0.5*GetBonusAP(myHero))
+		local RDmg = ((40*GetCastLevel(myHero,_R)+60)+(0.65*GetBonusDmg(myHero))+(0.25*GetBonusAP(myHero)))*(GetPercentHP(enemy) < 25 and 3 or (GetPercentHP(enemy) < 50 and 2 or 1))
+		local ComboDmg = QDmg + WDmg + EDmg + RDmg
+		local WERDmg = WDmg + EDmg + RDmg
+		local QERDmg = QDmg + EDmg + RDmg
+		local QWRDmg = QDmg + WDmg + RDmg
+		local QWEDmg = QDmg + WDmg + EDmg
+		local ERDmg = EDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local QRDmg = QDmg + RDmg
+		local WEDmg = WDmg + EDmg
+		local QEDmg = QDmg + EDmg
+		local QWDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if KogMawMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	if GetDistance(target) < KogMawQ.range then
+		if KogMawMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif KogMawMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),KogMawQ.speed,KogMawQ.delay*1000,KogMawQ.range,KogMawQ.width,true,false)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif KogMawMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,KogMawQ,false,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif KogMawMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="KogMawQ", range=KogMawQ.range, speed=KogMawQ.speed, delay=KogMawQ.delay, width=KogMawQ.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(KogMawQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif KogMawMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,KogMawQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+function useW(target)
+	CastSpell(_W)
+end
+function useE(target)
+	if GetDistance(target) < KogMawE.range then
+		if KogMawMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif KogMawMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),KogMawE.speed,KogMawE.delay*1000,KogMawE.range,KogMawE.width,true,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif KogMawMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,KogMawE,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_E, EPred.CastPosition)
+			end
+		elseif KogMawMenu.Prediction.PredictionE:Value() == 4 then
+			local ESpell = IPrediction.Prediction({name="KogMawVoidOoze", range=KogMawE.range, speed=KogMawE.speed, delay=KogMawE.delay, width=KogMawE.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(KogMawE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif KogMawMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetLinearAOEPrediction(target,KogMawE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+function useR(target)
+	if GetDistance(target) < KogMawR.range then
+		if KogMawMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif KogMawMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),KogMawR.speed,KogMawR.delay*1000,KogMawR.range,KogMawR.width,false,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif KogMawMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,KogMawR,true,false)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif KogMawMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="KogMawLivingArtillery", range=KogMawR.range, speed=KogMawR.speed, delay=KogMawR.delay, width=KogMawR.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(KogMawR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif KogMawMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetLinearAOEPrediction(target,KogMawR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if KogMawMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, KogMawQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if KogMawMenu.Auto.UseR:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, KogMawR.range) then
+					useR(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if KogMawMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, KogMawQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if KogMawMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					useW(target)
+				end
+			end
+		end
+		if KogMawMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, KogMawE.range) then
+					useE(target)
+				end
+			end
+		end
+		if KogMawMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, KogMawR.range) then
+					useR(target)
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if KogMawMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, KogMawQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if KogMawMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if KogMawMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					if ValidTarget(target, KogMawE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+		if KogMawMenu.Harass.UseR:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_R) == READY then
+					if ValidTarget(target, KogMawR.range) then
+						useR(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_E) == READY then
+			if KogMawMenu.KillSteal.UseE:Value() then
+				if ValidTarget(enemy, KogMawE.range) then
+					local KogMawEDmg = (45*GetCastLevel(myHero,_E)+15)+(0.5*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetMagicResist(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < KogMawEDmg then
+						useE(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if KogMawMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, KogMawR.range) then
+					local KogMawRDmg = ((40*GetCastLevel(myHero,_R)+60)+(0.65*GetBonusDmg(myHero))+(0.25*GetBonusAP(myHero)))*(GetPercentHP(enemy) < 25 and 3 or (GetPercentHP(enemy) < 50 and 2 or 1))
+					if (GetCurrentHP(enemy)+GetMagicResist(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < KogMawRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, KogMawQ.range) then
+					if KogMawMenu.LastHit.UseQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.LastHit.MP:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								local KogMawQDmg = (50*GetCastLevel(myHero,_Q)+30)+(0.5*GetBonusAP(myHero))
+								if GetCurrentHP(minion) < KogMawQDmg then
+									local QPredMin = GetLinearAOEPrediction(minion,KogMawQ)
+									if QPredMin.hitChance > 0.9 then
+										CastSkillShot(_Q, QPredMin.castPos)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if KogMawMenu.LaneClear.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					local BestPos, BestHit = GetLineFarmPosition(KogMawE.range, KogMawE.radius, MINION_ENEMY)
+					if BestPos and BestHit > 5 then
+						CastSkillShot(_E, BestPos)
+					end
+				end
+			end
+		end
+		if KogMawMenu.LaneClear.UseR:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_R) == READY then
+					local BestPos, BestHit = GetFarmPosition(KogMawR.range, KogMawR.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then
+						CastSkillShot(_R, BestPos)
+					end
+				end
+			end
+		end
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if KogMawMenu.LaneClear.UseQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, KogMawQ.range) then
+							if CanUseSpell(myHero,_Q) == READY and AA == true then
+								CastSkillShot(_Q, GetOrigin(minion))
+							end
+						end
+					end
+				end
+				if KogMawMenu.LaneClear.UseW:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KogMawMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, GetRange(myHero)+GetHitBox(myHero)) then
+							if CanUseSpell(myHero,_W) == READY then
+								CastSpell(_W)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_E) == READY then
+			if KogMawMenu.AntiGapcloser.UseE:Value() then
+				if ValidTarget(antigap, KogMawMenu.AntiGapcloser.Distance:Value()) then
+					useE(antigap)
 				end
 			end
 		end
