@@ -350,8 +350,8 @@ function Items()
 end
 
 function LevelUp()
-	if UtilityMenu.LevelUp.LvlUp:Value() or "KogMaw" == GetObjectName(myHero) then
-		if "Ashe" == GetObjectName(myHero) then
+	if UtilityMenu.LevelUp.LvlUp:Value() then
+		if "Ashe" == GetObjectName(myHero) or "KogMaw" == GetObjectName(myHero) then
 			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
