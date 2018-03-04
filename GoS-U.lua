@@ -12,10 +12,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.8
+-- Current version: 1.0.9
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw, MissFortune
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,6 +34,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.9
+-- + Added MissFortune
 -- 1.0.8
 -- + Added KogMaw
 -- 1.0.7
@@ -57,7 +59,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.08
+local GSVer = 1.09
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -356,7 +358,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) or "Jhin" == GetObjectName(myHero) or "Jinx" == GetObjectName(myHero) then
+		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) or "Jhin" == GetObjectName(myHero) or "Jinx" == GetObjectName(myHero) or "MissFortune" == GetObjectName(myHero) then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -3822,5 +3824,416 @@ function AntiGapcloser()
 			end
 		end
 	end
+end
+
+-- MissFortune
+
+elseif "MissFortune" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>MissFortune loaded successfully!")
+local MissFortuneMenu = Menu("[GoS-U] MissFortune", "[GoS-U] MissFortune")
+MissFortuneMenu:Menu("Auto", "Auto")
+MissFortuneMenu.Auto:Boolean('UseQ', 'Use Q [Double Up]', true)
+MissFortuneMenu.Auto:Boolean('UseQEx', 'Use Extended Q', true)
+MissFortuneMenu.Auto:Boolean('UseE', 'Use E [Make It Rain]', true)
+MissFortuneMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+MissFortuneMenu:Menu("Combo", "Combo")
+MissFortuneMenu.Combo:Boolean('UseQ', 'Use Q [Double Up]', true)
+MissFortuneMenu.Combo:Boolean('UseQEx', 'Use Extended Q', true)
+MissFortuneMenu.Combo:Boolean('UseW', 'Use W [Strut]', true)
+MissFortuneMenu.Combo:Boolean('UseE', 'Use E [Make It Rain]', true)
+MissFortuneMenu.Combo:Boolean('UseR', 'Use R [Bullet Time]', true)
+MissFortuneMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+MissFortuneMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+MissFortuneMenu:Menu("Harass", "Harass")
+MissFortuneMenu.Harass:Boolean('UseQ', 'Use Q [Double Up]', true)
+MissFortuneMenu.Harass:Boolean('UseQEx', 'Use Extended Q', true)
+MissFortuneMenu.Harass:Boolean('UseW', 'Use W [Strut]', true)
+MissFortuneMenu.Harass:Boolean('UseE', 'Use E [Make It Rain]', false)
+MissFortuneMenu.Harass:DropDown("ModeE", "Cast Mode: E", 2, {"Gapclose To Target", "Mouse Position"})
+MissFortuneMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+MissFortuneMenu:Menu("KillSteal", "KillSteal")
+MissFortuneMenu.KillSteal:Boolean('UseQ', 'Use Q [Double Up]', true)
+MissFortuneMenu.KillSteal:Boolean('UseQEx', 'Use Extended Q', true)
+MissFortuneMenu:Menu("LastHit", "LastHit")
+MissFortuneMenu.LastHit:Boolean('UseQ', 'Use Q [Double Up]', false)
+MissFortuneMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+MissFortuneMenu:Menu("LaneClear", "LaneClear")
+MissFortuneMenu.LaneClear:Boolean('UseQ', 'Use Q [Double Up]', false)
+MissFortuneMenu.LaneClear:Boolean('UseE', 'Use E [Make It Rain]', true)
+MissFortuneMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+MissFortuneMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+MissFortuneMenu.AntiGapcloser:Boolean('UseE', 'Use E [Make It Rain]', false)
+MissFortuneMenu.AntiGapcloser:Slider('Distance','Distance: E', 400, 25, 500, 25)
+MissFortuneMenu:Menu("Prediction", "Prediction")
+MissFortuneMenu.Prediction:DropDown("PredictionE", "Prediction: E", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+MissFortuneMenu.Prediction:DropDown("PredictionR", "Prediction: R", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+MissFortuneMenu:Menu("Drawings", "Drawings")
+MissFortuneMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+MissFortuneMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+MissFortuneMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+MissFortuneMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
+
+local MissFortuneQ = { range = 650, radius = 500 }
+local MissFortuneE = { range = 1000, radius = 400, width = 800, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
+local MissFortuneR = { range = 1400, width = 350, speed = math.huge, delay = 0.001 }
+local MFGTimer = 0
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if MissFortuneMenu.Drawings.DrawQ:Value() then DrawCircle(pos,MissFortuneQ.range,1,25,0xff00bfff) end
+if MissFortuneMenu.Drawings.DrawE:Value() then DrawCircle(pos,MissFortuneE.range,1,25,0xff1e90ff) end
+if MissFortuneMenu.Drawings.DrawR:Value() then DrawCircle(pos,MissFortuneR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	local QDmg = (20*GetCastLevel(myHero,_Q))+(GetBaseDamage(myHero)+GetBonusDmg(myHero))+(0.35*GetBonusAP(myHero))
+	local EDmg = (35*GetCastLevel(myHero,_E)+45)+(0.8*GetBonusAP(myHero))
+	local RDmg = (1.5*(GetBaseDamage(myHero)+GetBonusDmg(myHero))+7.5)+(0.4*GetBonusAP(myHero)+2)
+	local ComboDmg = QDmg + EDmg + RDmg
+	local QRDmg = QDmg + RDmg
+	local ERDmg = EDmg + RDmg
+	local QEDmg = QDmg + EDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if MissFortuneMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	CastTargetSpell(target, _Q)
+end
+function useQEx(target)
+	for i,minion in pairs(minionManager.objects) do
+		if GetTeam(minion) == MINION_ENEMY then
+			if ValidTarget(minion, MissFortuneQ.range) and GetDistance(minion, target) < MissFortuneQ.radius then
+				local QPos = myHero+(VectorWay(myHero,minion)/GetDistance(myHero,minion))*775
+				local QPred = GetPredictionForPlayer(myHero,target,GetMoveSpeed(target),1400,250,MissFortuneQ.range+MissFortuneQ.radius,1,false,false)
+				if QPred.HitChance == 1 and GetDistance(QPred.PredPos, QPos) < 250 then
+					CastTargetSpell(minion, _Q)
+				end
+			end
+		end
+	end
+end
+function useE(target)
+	if GetDistance(target) < MissFortuneE.range then
+		if MissFortuneMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif MissFortuneMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),MissFortuneE.speed,MissFortuneE.delay*1000,MissFortuneE.range,MissFortuneE.width,false,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif MissFortuneMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,MissFortuneE,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif MissFortuneMenu.Prediction.PredictionE:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="MissFortuneScattershot", range=MissFortuneE.range, speed=MissFortuneE.speed, delay=MissFortuneE.delay, width=MissFortuneE.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(MissFortuneE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif MissFortuneMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetCircularAOEPrediction(target,MissFortuneE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+
+OnSpellCast(function(_Q)
+	if GotBuff(myHero,"missfortunebulletsound") > 0 then
+		BlockCast()
+	end
+end)
+OnSpellCast(function(_W)
+	if GotBuff(myHero,"missfortunebulletsound") > 0 then
+		BlockCast()
+	end
+end)
+OnSpellCast(function(_E)
+	if GotBuff(myHero,"missfortunebulletsound") > 0 then
+		BlockCast()
+	end
+end)
+
+-- Auto
+
+function Auto()
+	if MissFortuneMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, MissFortuneQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if MissFortuneMenu.Auto.UseQEx:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, MissFortuneQ.range+MissFortuneQ.radius) then
+					useQEx(target)
+				end
+			end
+		end
+	end
+	if MissFortuneMenu.Auto.UseE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, MissFortuneE.range) then
+					useE(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if MissFortuneMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, MissFortuneQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if MissFortuneMenu.Combo.UseQEx:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, MissFortuneQ.range+MissFortuneQ.radius) then
+					useQEx(target)
+				end
+			end
+		end
+		if MissFortuneMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					CastSpell(_W)
+				end
+			end
+		end
+		if MissFortuneMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, MissFortuneE.range) then
+					useE(target)
+				end
+			end
+		end
+		if MissFortuneMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, MissFortuneR.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < MissFortuneMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, MissFortuneR.range+GetRange(myHero)) >= MissFortuneMenu.Combo.X:Value() then
+							local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),MissFortuneR.speed,MissFortuneR.delay*1000,MissFortuneR.range,MissFortuneR.width,false,false)
+							if RPred.HitChance == 1 then
+								BlockF7OrbWalk(true)
+								BlockF7Dodge(true)
+								BlockInput(true)
+								if _G.IOW then
+									IOW.movementEnabled = false
+									IOW.attacksEnabled = false
+								elseif _G.GoSWalkLoaded then
+									_G.GoSWalk:EnableMovement(false)
+									_G.GoSWalk:EnableAttack(false)
+								end
+								CastSkillShot(_R, RPred.PredPos)
+								DelayAction(function()
+									BlockF7OrbWalk(false)
+									BlockF7Dodge(false)
+									BlockInput(false)
+									if _G.IOW then
+										IOW.movementEnabled = true
+										IOW.attacksEnabled = true
+									elseif _G.GoSWalkLoaded then
+										_G.GoSWalk:EnableMovement(true)
+										_G.GoSWalk:EnableAttack(true)
+									end
+								end, 3)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if MissFortuneMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, MissFortuneQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if MissFortuneMenu.Harass.UseQEx:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, MissFortuneQ.range+MissFortuneQ.radius) then
+						useQEx(target)
+					end
+				end
+			end
+		end
+		if MissFortuneMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, MissFortuneW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if MissFortuneMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_Q) == READY then
+			if MissFortuneMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, MissFortuneQ.range) then
+					local MissFortuneQDmg = (20*GetCastLevel(myHero,_Q))+(GetBaseDamage(myHero)+GetBonusDmg(myHero))+(0.35*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < MissFortuneQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+			if MissFortuneMenu.KillSteal.UseQEx:Value() then
+				if ValidTarget(enemy, MissFortuneQ.range+MissFortuneQ.radius) then
+					local MissFortuneQExDmg = (20*GetCastLevel(myHero,_Q))+(2.5*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))+(0.35*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < MissFortuneQExDmg then
+						useQEx(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, MissFortuneQ.range) then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.LastHit.MP:Value() then
+						if MissFortuneMenu.LastHit.UseQ:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								local MissFortuneQDmg = (20*GetCastLevel(myHero,_Q))+(GetBaseDamage(myHero)+GetBonusDmg(myHero))+(0.35*GetBonusAP(myHero))
+								if GetCurrentHP(minion)+GetDmgShield(minion) < MissFortuneQDmg then
+									CastTargetSpell(minion, _Q)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if MissFortuneMenu.LaneClear.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > MissFortuneMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					local BestPos, BestHit = GetFarmPosition(MissFortuneE.range, MissFortuneE.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then  
+						CastSkillShot(_E, BestPos)
+					end
+				end
+			end
+		end
+		if MissFortuneMenu.LaneClear.UseQ:Value() then
+			for _, minion in pairs(minionManager.objects) do
+				if GetTeam(minion) == MINION_ENEMY then
+					if ValidTarget(minion, MissFortuneQ.range) then
+						if CanUseSpell(myHero,_Q) == READY then
+							CastTargetSpell(minion, _Q)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_E) == READY then
+			if MissFortuneMenu.AntiGapcloser.UseE:Value() then
+				if ValidTarget(antigap, MissFortuneMenu.AntiGapcloser.Distance:Value()) then
+					useE(antigap)
+				end
+			end
+		end
+	end
+end
+
+function VectorWay(A,B)
+	WayX = B.x - A.x
+	WayY = B.y - A.y
+	WayZ = B.z - A.z
+	return Vector(WayX, WayY, WayZ)
 end
 end
