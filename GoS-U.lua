@@ -12,10 +12,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1
+-- Current version: 1.1.1
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw, MissFortune
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw, Lucian,
+--   MissFortune, Vayne
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -34,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.1
+-- + Added Lucian
 -- 1.1
 -- + Added Vayne
 -- 1.0.9
@@ -61,7 +64,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.1
+local GSVer = 1.11
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -369,7 +372,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Corki" == GetObjectName(myHero) or "Ezreal" == GetObjectName(myHero) then
+		elseif "Corki" == GetObjectName(myHero) or "Ezreal" == GetObjectName(myHero) or "Lucian" == GetObjectName(myHero) then
 			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -3826,6 +3829,358 @@ function AntiGapcloser()
 			if KogMawMenu.AntiGapcloser.UseE:Value() then
 				if ValidTarget(antigap, KogMawMenu.AntiGapcloser.Distance:Value()) then
 					useE(antigap)
+				end
+			end
+		end
+	end
+end
+
+-- Lucian
+
+elseif "Lucian" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Lucian loaded successfully!")
+local LucianMenu = Menu("[GoS-U] Lucian", "[GoS-U] Lucian")
+LucianMenu:Menu("Auto", "Auto")
+LucianMenu.Auto:Boolean('UseQ', 'Use Q [Piercing Light]', true)
+LucianMenu.Auto:Boolean('UseQEx', 'Use Extended Q', true)
+LucianMenu.Auto:Boolean('UseW', 'Use W [Ardent Blaze]', false)
+LucianMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+LucianMenu:Menu("Combo", "Combo")
+LucianMenu.Combo:Boolean('UseQ', 'Use Q [Piercing Light]', true)
+LucianMenu.Combo:Boolean('UseQEx', 'Use Extended Q', true)
+LucianMenu.Combo:Boolean('UseW', 'Use W [Ardent Blaze]', true)
+LucianMenu.Combo:Boolean('UseE', 'Use E [Relentless Pursuit]', true)
+LucianMenu.Combo:Boolean('UseR', 'Use R [The Culling]', true)
+LucianMenu.Combo:DropDown("ModeE", "Cast Mode: E", 2, {"Gapclose To Target", "Mouse Position"})
+LucianMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+LucianMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+LucianMenu:Menu("Harass", "Harass")
+LucianMenu.Harass:Boolean('UseQ', 'Use Q [Piercing Light]', true)
+LucianMenu.Harass:Boolean('UseQEx', 'Use Extended Q', true)
+LucianMenu.Harass:Boolean('UseW', 'Use W [Ardent Blaze]', true)
+LucianMenu.Harass:Boolean('UseE', 'Use E [Relentless Pursuit]', false)
+LucianMenu.Harass:DropDown("ModeE", "Cast Mode: E", 2, {"Gapclose To Target", "Mouse Position"})
+LucianMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+LucianMenu:Menu("KillSteal", "KillSteal")
+LucianMenu.KillSteal:Boolean('UseW', 'Use W [Ardent Blaze]', true)
+LucianMenu:Menu("LaneClear", "LaneClear")
+LucianMenu.LaneClear:Boolean('UseQ', 'Use Q [Piercing Light]', true)
+LucianMenu.LaneClear:Boolean('UseW', 'Use W [Ardent Blaze]', false)
+LucianMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+LucianMenu:Menu("Prediction", "Prediction")
+LucianMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+LucianMenu:Menu("Drawings", "Drawings")
+LucianMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+LucianMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+LucianMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+LucianMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+LucianMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
+
+local LucianQ = { range = 500 }
+local LucianQExtended = { range = 900 , delay = 0.4, speed = math.huge, width = 60, collision = false, aoe = false, type = "linear" }
+local LucianW = { range = 900, radius = 65, width = 130, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
+local LucianE = { range = 425 }
+local LucianR = { range = 1200 }
+local GTimerR = 0
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if LucianMenu.Drawings.DrawQ:Value() then DrawCircle(pos,LucianQ.range,1,25,0xff00bfff) end
+if LucianMenu.Drawings.DrawW:Value() then DrawCircle(pos,LucianW.range,1,25,0xff4169e1) end
+if LucianMenu.Drawings.DrawE:Value() then DrawCircle(pos,LucianE.range,1,25,0xff1e90ff) end
+if LucianMenu.Drawings.DrawR:Value() then DrawCircle(pos,LucianR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (35*GetCastLevel(myHero,_Q)+50)+((0.1*GetCastLevel(myHero,_Q)+0.5)*GetBonusDmg(myHero))
+		local WDmg = (40*GetCastLevel(myHero,_W)+20)+(0.9*GetBonusAP(myHero))
+		local RDmg = ((15*GetCastLevel(myHero,_R)+5)+(0.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.1*GetBonusAP(myHero)))*(5*GetCastLevel(myHero,_R)+15)
+		local ComboDmg = QDmg + WDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local QRDmg = QDmg + RDmg
+		local QWDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if LucianMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	CastTargetSpell(target, _Q)
+end
+local VectorExtend = function(v1, v2, distance)
+	return v1 + distance * (v2 - v1):normalized()
+end
+function useQEx(target)
+	local Pred = GetPrediction(target, LucianQExtended)
+	local TargetPos = VectorExtend(Vector(myHero), Vector(Pred.castPos), LucianQExtended.range)
+	if GetDistance(Pred.castPos) <= LucianQExtended.range then
+		for i, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				local MinionPos = VectorExtend(Vector(myHero), Vector(minion), LucianQExtended.range)
+        		if GetDistance(TargetPos, MinionPos) <= LucianQExtended.width then
+        			CastTargetSpell(minion, _Q)
+        		end
+			end
+		end
+	end
+end
+function useW(target)
+	if GetDistance(target) < LucianW.range then
+		if LucianMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif LucianMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),LucianW.speed,LucianW.delay*1000,LucianW.range,LucianW.width,true,true)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif LucianMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,LucianW,true,false)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.castPosition)
+			end
+		elseif LucianMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="LucianW", range=LucianW.range, speed=LucianW.speed, delay=LucianW.delay, width=LucianW.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(LucianW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif LucianMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetLinearAOEPrediction(target,LucianW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if LucianMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, LucianQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if LucianMenu.Auto.UseQEx:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, LucianQExtended.range) then
+					useQEx(target)
+				end
+			end
+		end
+	end
+	if LucianMenu.Auto.UseW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, LucianW.range) then
+					useW(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if LucianMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, LucianQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if LucianMenu.Combo.UseQEx:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, LucianQExtended.range) then
+					useQEx(target)
+				end
+			end
+		end
+		if LucianMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
+				if ValidTarget(target, LucianW.range) then
+					useW(target)
+				end
+			end
+		end
+		if LucianMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, LucianE.range+GetRange(myHero)) then
+					if LucianMenu.Combo.ModeE:Value() == 1 then
+						CastSkillShot(_E, GetOrigin(target))
+						if _G.IOW then
+							IOW:ResetAA()
+						elseif _G.GoSWalkLoaded then
+							_G.GoSWalk:ResetAttack()
+						end
+					elseif LucianMenu.Combo.ModeE:Value() == 2 then
+						CastSkillShot(_E, GetMousePos())
+						if _G.IOW then
+							IOW:ResetAA()
+						elseif _G.GoSWalkLoaded then
+							_G.GoSWalk:ResetAttack()
+						end
+					end
+				end
+			end
+		end
+		if LucianMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, LucianR.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < LucianMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, LucianR.range+GetRange(myHero)) >= LucianMenu.Combo.X:Value() then
+							local TimerR = GetTickCount()
+							if (GTimerR + 3000) < TimerR then
+								CastSkillShot(_R, GetOrigin(target))
+								GTimerR = TimerR
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if LucianMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, LucianQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if LucianMenu.Harass.UseQEx:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, LucianQExtended.range) then
+						useQEx(target)
+					end
+				end
+			end
+		end
+		if LucianMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
+					if ValidTarget(target, LucianW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if LucianMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					if ValidTarget(target, LucianE.range+GetRange(myHero)) then
+						if LucianMenu.Combo.ModeE:Value() == 1 then
+							CastSkillShot(_E, GetOrigin(target))
+							if _G.IOW then
+								IOW:ResetAA()
+							elseif _G.GoSWalkLoaded then
+								_G.GoSWalk:ResetAttack()
+							end
+						elseif LucianMenu.Combo.ModeE:Value() == 2 then
+							CastSkillShot(_E, GetMousePos())
+							if _G.IOW then
+								IOW:ResetAA()
+							elseif _G.GoSWalkLoaded then
+								_G.GoSWalk:ResetAttack()
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if LucianMenu.KillSteal.UseW:Value() then
+				if ValidTarget(enemy, LucianW.range) then
+					local LucianWDmg = (40*GetCastLevel(myHero,_W)+20)+(0.9*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < LucianWDmg then
+						useW(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if LucianMenu.LaneClear.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					local BestPos, BestHit = GetFarmPosition(LucianW.range, LucianW.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then  
+						CastSkillShot(_W, BestPos)
+					end
+				end
+			end
+		end
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if LucianMenu.LaneClear.UseQ:Value() then
+					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.LaneClear.MP:Value() then
+						if ValidTarget(minion, LucianQ.range) then
+							if CanUseSpell(myHero,_Q) == READY then
+								CastTargetSpell(minion, _Q)
+							end
+						end
+					end
 				end
 			end
 		end
