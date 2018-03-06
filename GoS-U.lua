@@ -1135,7 +1135,7 @@ function LaneClear()
 		if CaitlynMenu.LaneClear.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > CaitlynMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_Q) == READY and AA == true then
-					local BestPos, BestHit = GetLineFarmPosition(CaitlynQ.range, CaitlynQ.range, MINION_ENEMY)
+					local BestPos, BestHit = GetLineFarmPosition(CaitlynQ.range, CaitlynQ.radius, MINION_ENEMY)
 					if BestPos and BestHit > 4 then
 						CastSkillShot(_Q, BestPos)
 					end
@@ -3035,7 +3035,7 @@ function LaneClear()
 		if JinxMenu.LaneClear.UseE:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.LaneClear.MP:Value() then
 				if CanUseSpell(myHero,_E) == READY then
-					local BestPos, BestHit = GetFarmPosition(JinxE.range, JinxE.range, MINION_ENEMY)
+					local BestPos, BestHit = GetFarmPosition(JinxE.range, JinxE.radius, MINION_ENEMY)
 					if BestPos and BestHit > 3 then
 						CastSkillShot(_E, BestPos)
 					end
