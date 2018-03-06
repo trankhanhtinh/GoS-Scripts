@@ -4004,14 +4004,12 @@ OnProcessSpell(function(unit,spell)
 		end
 		if spell.name == "LucianE" then
 			ECast = true
-			DelayAction(function()
-				ECast = false
-				if _G.IOW then
-					IOW:ResetAA()
-				elseif _G.GoSWalkLoaded then
-					_G.GoSWalk:ResetAttack()
-				end
-			end, spell.windUpTime+(LucianMenu.Misc.EW:Value()/100))
+			if _G.IOW then
+				IOW:ResetAA()
+			elseif _G.GoSWalkLoaded then
+				_G.GoSWalk:ResetAttack()
+			end
+			DelayAction(function() ECast = false end, spell.windUpTime+(LucianMenu.Misc.EW:Value()/100))
 		end
 		if spell.name == "LucianR" then
 			if _G.IOW then
