@@ -3876,6 +3876,8 @@ LucianMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 LucianMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 LucianMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 LucianMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
+LucianMenu:Menu("Misc", "Misc")
+LucianMenu.Misc:Slider("EW","Extra Windup", 1, 0, 50, 1)
 
 local LucianQ = { range = 500 }
 local LucianQExtended = { range = 900 , delay = 0.4, speed = math.huge, width = 60, collision = false, aoe = false, type = "linear" }
@@ -3883,6 +3885,10 @@ local LucianW = { range = 900, radius = 65, width = 130, speed = 1600, delay = 0
 local LucianE = { range = 425 }
 local LucianR = { range = 1200 }
 local GTimerR = 0
+local QCast = false
+local WCast = false
+local ECast = false
+local RCast = false
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -3947,7 +3953,7 @@ function useQEx(target)
 	local TargetPos = VectorExtend(Vector(myHero), Vector(Pred.castPos), LucianQExtended.range)
 	if GetDistance(Pred.castPos) <= LucianQExtended.range then
 		for i, minion in pairs(minionManager.objects) do
-			if GetTeam(minion) == MINION_ENEMY then
+			if GetTeam(minion) == MINION_ENEMY and ValidTarget(minion, LucianQ.range) then
 				local MinionPos = VectorExtend(Vector(myHero), Vector(minion), LucianQExtended.range)
         		if GetDistance(TargetPos, MinionPos) <= LucianQExtended.width then
         			CastTargetSpell(minion, _Q)
@@ -3986,6 +3992,45 @@ function useW(target)
 		end
 	end
 end
+OnProcessSpell(function(unit,spell)
+	if unit == myHero then
+		if spell.name == "LucianQ" then
+			QCast = true
+			DelayAction(function() QCast = false end, spell.windUpTime+(LucianMenu.Misc.EW:Value()/100))
+		end
+		if spell.name == "LucianW" then
+			WCast = true
+			DelayAction(function() WCast = false end, spell.windUpTime+(LucianMenu.Misc.EW:Value()/100))
+		end
+		if spell.name == "LucianE" then
+			ECast = true
+			DelayAction(function()
+				ECast = false
+				if _G.IOW then
+					IOW:ResetAA()
+				elseif _G.GoSWalkLoaded then
+					_G.GoSWalk:ResetAttack()
+				end
+			end, spell.windUpTime+(LucianMenu.Misc.EW:Value()/100))
+		end
+		if spell.name == "LucianR" then
+			if _G.IOW then
+				IOW.attacksEnabled = false
+			elseif _G.GoSWalkLoaded then
+				_G.GoSWalk:EnableAttack(false)
+			end
+			RCast = true
+			DelayAction(function()
+				RCast = false
+				if _G.IOW then
+					IOW.attacksEnabled = true
+				elseif _G.GoSWalkLoaded then
+					_G.GoSWalk:EnableAttack(true)
+				end
+			end, 3+(LucianMenu.Misc.EW:Value()/100))
+		end
+	end
+end)
 
 -- Auto
 
@@ -4024,7 +4069,7 @@ end
 function Combo()
 	if Mode() == "Combo" then
 		if LucianMenu.Combo.UseQ:Value() then
-			if CanUseSpell(myHero,_Q) == READY and AA == true then
+			if CanUseSpell(myHero,_Q) == READY and AA == true and not WCast and not ECast and not RCast then
 				if ValidTarget(target, LucianQ.range) then
 					useQ(target)
 				end
@@ -4038,35 +4083,25 @@ function Combo()
 			end
 		end
 		if LucianMenu.Combo.UseW:Value() then
-			if CanUseSpell(myHero,_W) == READY and AA == true then
+			if CanUseSpell(myHero,_W) == READY and AA == true and not QCast and not ECast and not RCast then
 				if ValidTarget(target, LucianW.range) then
 					useW(target)
 				end
 			end
 		end
 		if LucianMenu.Combo.UseE:Value() then
-			if CanUseSpell(myHero,_E) == READY and AA == true then
-				if ValidTarget(target, LucianE.range+GetRange(myHero)) then
+			if CanUseSpell(myHero,_E) == READY and AA == true and not QCast and not WCast and not RCast then
+				if ValidTarget(target, LucianE.range+GetRange(myHero)+GetHitBox(myHero)) then
 					if LucianMenu.Combo.ModeE:Value() == 1 then
 						CastSkillShot(_E, GetOrigin(target))
-						if _G.IOW then
-							IOW:ResetAA()
-						elseif _G.GoSWalkLoaded then
-							_G.GoSWalk:ResetAttack()
-						end
 					elseif LucianMenu.Combo.ModeE:Value() == 2 then
 						CastSkillShot(_E, GetMousePos())
-						if _G.IOW then
-							IOW:ResetAA()
-						elseif _G.GoSWalkLoaded then
-							_G.GoSWalk:ResetAttack()
-						end
 					end
 				end
 			end
 		end
 		if LucianMenu.Combo.UseR:Value() then
-			if CanUseSpell(myHero,_R) == READY then
+			if CanUseSpell(myHero,_R) == READY and not QCast and not WCast and not ECast then
 				if ValidTarget(target, LucianR.range) then
 					if 100*GetCurrentHP(target)/GetMaxHP(target) < LucianMenu.Combo.HP:Value() then
 						if EnemiesAround(myHero, LucianR.range+GetRange(myHero)) >= LucianMenu.Combo.X:Value() then
@@ -4089,7 +4124,7 @@ function Harass()
 	if Mode() == "Harass" then
 		if LucianMenu.Harass.UseQ:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if CanUseSpell(myHero,_Q) == READY and AA == true and not WCast and not ECast and not RCast then
 					if ValidTarget(target, LucianQ.range) then
 						useQ(target)
 					end
@@ -4107,7 +4142,7 @@ function Harass()
 		end
 		if LucianMenu.Harass.UseW:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_W) == READY and AA == true then
+				if CanUseSpell(myHero,_W) == READY and AA == true and not QCast and not ECast and not RCast then
 					if ValidTarget(target, LucianW.range) then
 						useW(target)
 					end
@@ -4116,22 +4151,12 @@ function Harass()
 		end
 		if LucianMenu.Harass.UseE:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LucianMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_E) == READY and AA == true then
-					if ValidTarget(target, LucianE.range+GetRange(myHero)) then
+				if CanUseSpell(myHero,_E) == READY and AA == true and not QCast and not WCast and not RCast then
+					if ValidTarget(target, LucianE.range+GetRange(myHero)+GetHitBox(myHero)) then
 						if LucianMenu.Combo.ModeE:Value() == 1 then
 							CastSkillShot(_E, GetOrigin(target))
-							if _G.IOW then
-								IOW:ResetAA()
-							elseif _G.GoSWalkLoaded then
-								_G.GoSWalk:ResetAttack()
-							end
 						elseif LucianMenu.Combo.ModeE:Value() == 2 then
 							CastSkillShot(_E, GetMousePos())
-							if _G.IOW then
-								IOW:ResetAA()
-							elseif _G.GoSWalkLoaded then
-								_G.GoSWalk:ResetAttack()
-							end
 						end
 					end
 				end
