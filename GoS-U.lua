@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.1
+-- Current version: 1.1.1.1
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw, Lucian,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.1.1
+-- + Fixed Heal
 -- 1.1.1
 -- + Added Lucian
 -- 1.1
@@ -64,7 +66,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.11
+local GSVer = 1.111
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -387,24 +389,26 @@ function LevelUp()
 end
 
 function SS()
-	if UtilityMenu.SS.UseHeal:Value() then
-		if Heal then
-			if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.HealMe:Value() then
-				CastSpell(Heal)
-			end
-			for _, ally in pairs(GetAllyHeroes()) do
-				if ValidTarget(ally, 850) then
-					if (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= UtilityMenu.SS.HealAlly:Value() then
-						CastTargetSpell(ally, Heal)
+	if EnemiesAround(myHero, 2500) >= 1 then
+		if UtilityMenu.SS.UseHeal:Value() then
+			if Heal then
+				if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.HealMe:Value() then
+					CastSpell(Heal)
+				end
+				for _, ally in pairs(GetAllyHeroes()) do
+					if ValidTarget(ally, 850) then
+						if (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= UtilityMenu.SS.HealAlly:Value() then
+							CastTargetSpell(ally, Heal)
+						end
 					end
 				end
 			end
 		end
-	end
-	if UtilityMenu.SS.UseBarrier:Value() then
-		if Barrier then
-			if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.BarrierMe:Value() then
-				CastSpell(Barrier)
+		if UtilityMenu.SS.UseBarrier:Value() then
+			if Barrier then
+				if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.BarrierMe:Value() then
+					CastSpell(Barrier)
+				end
 			end
 		end
 	end
