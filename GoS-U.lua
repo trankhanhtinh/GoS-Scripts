@@ -4324,16 +4324,6 @@ function useE(target)
 		end
 	end
 end
-OnUpdateBuff(function(unit,buff)
-	if unit == myHero and buff.Name == "vaynetumblefade" then
-		QActive = true
-	end
-end)
-OnRemoveBuff(function(unit,buff)
-	if unit == myHero and buff.Name == "vaynetumblefade" then
-		QActive = false
-	end
-end)
 
 -- Auto
 
