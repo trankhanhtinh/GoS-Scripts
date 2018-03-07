@@ -16,6 +16,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [07-03] Updated for patch 8.5
+-- (Kaisa W, Nocturne Q, Swain W & E)
 -- [22-02] Updated for patch 8.4
 -- [16-02] Initial release for patch 8.3
 
@@ -135,6 +137,7 @@ Spells = {
 	["JinxW"]={charName="Jinx",slot=_W,type="linear",speed=3200,range=1450,delay=0.6,radius=50,hitbox=true,aoe=false,cc=true,collision=true},
 	["JinxE"]={charName="Jinx",slot=_E,type="circular",speed=2570,range=900,delay=1.5,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
 	["JinxR"]={charName="Jinx",slot=_R,type="linear",speed=1700,range=25000,delay=0.6,radius=110,hitbox=true,aoe=true,cc=false,collision=false},
+	["KaisaW"]={charName="Kaisa",slot=_W,type="linear",speed=1750,range=3000,delay=0.4,radius=65,hitbox=true,aoe=false,cc=false,collision=true},
 	["KalistaMysticShot"]={charName="Kalista",slot=_Q,type="linear",speed=2100,range=1150,delay=0.35,radius=35,hitbox=true,aoe=false,cc=false,collision=true},
 	["KalistaW"]={charName="Kalista",slot=_W,type="linear",speed=math.huge,range=5000,delay=0.5,radius=45,hitbox=true,aoe=false,cc=false,collision=false},
 	["KarmaQ"]={charName="Karma",slot=_Q,type="linear",speed=1750,range=950,delay=0.25,radius=80,hitbox=true,aoe=false,cc=true,collision=true},
@@ -203,7 +206,7 @@ Spells = {
 	["Bushwhack"]={charName="Nidalee",slot=_W,type="circular",speed=math.huge,range=900,delay=0.25,radius=85,hitbox=true,aoe=false,cc=false,collision=true},
 	["Pounce"]={charName="Nidalee",slot=_W,type="circular",speed=1750,range=750,delay=0.25,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
 	["Swipe"]={charName="Nidalee",slot=_E,type="conic",speed=math.huge,range=300,delay=0.25,angle=180,hitbox=false,aoe=true,cc=false,collision=false},
-	["NocturneDuskbringer"]={charName="Nocturne",slot=_Q,type="linear",speed=1400,range=1200,delay=0.25,radius=60,hitbox=true,aoe=true,cc=false,collision=false},
+	["NocturneDuskbringer"]={charName="Nocturne",slot=_Q,type="linear",speed=1600,range=1200,delay=0.25,radius=60,hitbox=true,aoe=true,cc=false,collision=false},
 	["AbsoluteZero"]={charName="Nunu",slot=_R,type="circular",speed=math.huge,range=0,delay=3.01,radius=650,hitbox=false,aoe=true,cc=true,collision=false},
 	["OlafAxeThrowCast"]={charName="Olaf",slot=_Q,type="linear",speed=1550,range=1000,delay=0.25,radius=80,hitbox=true,aoe=true,cc=true,collision=false},
 	["OrianaIzunaCommand"]={charName="Orianna",slot=_Q,type="linear",speed=1400,range=825,delay=0.25,radius=175,hitbox=true,aoe=true,cc=false,collision=false},
@@ -256,8 +259,8 @@ Spells = {
 	["SorakaQ"]={charName="Soraka",slot=_Q,type="circular",speed=1150,range=800,delay=0.25,radius=235,hitbox=true,aoe=true,cc=true,collision=false},
 	["SorakaE"]={charName="Soraka",slot=_E,type="circular",speed=math.huge,range=925,delay=1.5,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
 	["SwainQ"]={charName="Swain",slot=_Q,type="conic",speed=math.huge,range=725,delay=0.25,angle=45,hitbox=false,aoe=true,cc=false,collision=false},
-	["SwainW"]={charName="Swain",slot=_W,type="circular",speed=math.huge,range=3500,delay=1.5,radius=260,hitbox=false,aoe=true,cc=false,collision=false},
-	["SwainE"]={charName="Swain",slot=_E,type="linear",speed=1550,range=850,delay=0.25,radius=65,hitbox=true,aoe=true,cc=true,collision=false},
+	["SwainW"]={charName="Swain",slot=_W,type="circular",speed=math.huge,range=3500,delay=1.5,radius=325,hitbox=false,aoe=true,cc=false,collision=false},
+	["SwainE"]={charName="Swain",slot=_E,type="linear",speed=1550,range=850,delay=0.25,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
 	["SwainR"]={charName="Swain",slot=_R,type="circular",speed=math.huge,range=0,delay=0.5,radius=650,hitbox=false,aoe=true,cc=true,collision=false},
 	["SyndraQ"]={charName="Syndra",slot=_Q,type="circular",speed=math.huge,range=800,delay=0.625,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
 	["SyndraWCast"]={charName="Syndra",slot=_W,type="circular",speed=1450,range=950,delay=0.25,radius=225,hitbox=true,aoe=true,cc=true,collision=false},
