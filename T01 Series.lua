@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.4
+-- Current version: 1.2.1.5
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1.5
+-- + Corrected Ryze's E damage
 -- 1.2.1.4
 -- + Fixed Ryze's Auto Q
 -- 1.2.1.3
@@ -141,7 +143,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.214
+local TSVer = 1.215
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -5725,7 +5727,7 @@ OnDraw(function(myHero)
 	local QDmg = (25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero))
 	local QBDmg = QDmg*(0.1*GetCastLevel(myHero,_Q)+1.3)
 	local WDmg = (20*GetCastLevel(myHero,_W)+60)+(0.6*GetBonusAP(myHero))+(0.01*GetMaxMana(myHero))
-	local EDmg = (25*GetCastLevel(myHero,_E)+25)+(0.3*GetBonusAP(myHero))+(0.02*GetMaxMana(myHero))
+	local EDmg = (20*GetCastLevel(myHero,_E)+50)+(0.3*GetBonusAP(myHero))+(0.02*GetMaxMana(myHero))
 	local ComboDmg = QDmg + WDmg + QDmg + EDmg + QBDmg
 	local WEDmg = WDmg + QDmg + EDmg + QBDmg
 	local QEDmg = QDmg + EDmg + QBDmg
