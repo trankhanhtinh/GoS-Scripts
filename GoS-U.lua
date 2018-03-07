@@ -460,7 +460,7 @@ AsheMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "
 AsheMenu:Menu("Drawings", "Drawings")
 AsheMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 AsheMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-AsheMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
+AsheMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', false)
 
 local AsheW = { range = 1200, radius = 20, width = 40, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
 local AsheR = { range = AsheMenu.Combo.Distance:Value(), radius = 125, width = 250, speed = 1600, delay = 0.25, type = "line", collision = false, source = myHero }
@@ -804,7 +804,7 @@ CaitlynMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 CaitlynMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 CaitlynMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 CaitlynMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-CaitlynMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+CaitlynMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', false)
 
 local CaitlynQ = { range = 1250, radius = 60, width = 120, speed = 2200, delay = 0.625, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local CaitlynW = { range = 800, radius = 75, width = 150, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
@@ -1229,7 +1229,7 @@ CorkiMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 CorkiMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 CorkiMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 CorkiMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-CorkiMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+CorkiMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', false)
 
 local CorkiQ = { range = 825, radius = 250, width = 500, speed = 1000, delay = 0.25, type = "circular", collision = false, source = myHero }
 local CorkiW = { range = GetCastRange(myHero,_W), radius = 100, width = 200, speed = 1500, delay = 0, type = "line", collision = false, source = myHero }
@@ -1611,7 +1611,7 @@ DravenMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos",
 DravenMenu:Menu("Drawings", "Drawings")
 DravenMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 DravenMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-DravenMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', true)
+DravenMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', false)
 
 local DravenE = { range = 1050, radius = 120, width = 240, speed = 1400, delay = 0.25, type = "line", collision = false, source = myHero }
 local DravenR = { range = DravenMenu.Combo.Distance:Value(), radius = 130, width = 260, speed = 2000, delay = 0.5, type = "line", collision = false, source = myHero }
@@ -1945,7 +1945,7 @@ EzrealMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 EzrealMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 EzrealMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 EzrealMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-EzrealMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+EzrealMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', false)
 
 local EzrealQ = { range = 1150, radius = 60, width = 120, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
 local EzrealW = { range = 1000, radius = 80, width = 160, speed = 1550, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
@@ -2351,7 +2351,7 @@ JhinMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 JhinMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 JhinMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 JhinMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-JhinMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
+JhinMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', false)
 
 local JhinQ = { range = 550 }
 local JhinW = { range = 3000, radius = 40, width = 80, speed = 5000, delay = 0.75, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
@@ -2741,7 +2741,7 @@ JinxMenu:Menu("Drawings", "Drawings")
 JinxMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 JinxMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 JinxMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-JinxMenu.Drawings:Boolean('DrawDMG', 'Draw Max WER Damage', true)
+JinxMenu.Drawings:Boolean('DrawDMG', 'Draw Max WER Damage', false)
 
 local JinxW = { range = 1450, radius = 45, width = 90, speed = 3200, delay = 0.6, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
 local JinxE = { range = 900, radius = 100, width = 200, speed = 2570, delay = 0.75, type = "circular", collision = false, source = myHero }
@@ -3141,7 +3141,7 @@ KaisaMenu:Menu("Drawings", "Drawings")
 KaisaMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 KaisaMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 KaisaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-KaisaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QW Damage', true)
+KaisaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QW Damage', false)
 
 local KaisaQ = { range = 575 }
 local KaisaW = { range = 3000, radius = 65, width = 130, speed = 1750, delay = 0.4, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
@@ -3392,7 +3392,7 @@ KalistaMenu:Menu("Drawings", "Drawings")
 KalistaMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 KalistaMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 KalistaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-KalistaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QE Damage', true)
+KalistaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QE Damage', false)
 
 local KalistaQ = { range = 1150, radius = 35, width = 70, speed = 2100, delay = 0.35, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
 local KalistaE = { range = 1000 }
@@ -3697,7 +3697,7 @@ KogMawMenu:Menu("Drawings", "Drawings")
 KogMawMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 KogMawMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 KogMawMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-KogMawMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', true)
+KogMawMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', false)
 
 local KogMawQ = { range = 1175, radius = 60, width = 120, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
 local KogMawE = { range = 1280, radius = 115, width = 230, speed = 1350, delay = 0.25, type = "line", collision = false, source = myHero }
@@ -4128,7 +4128,7 @@ LucianMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 LucianMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 LucianMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 LucianMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-LucianMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
+LucianMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', false)
 LucianMenu:Menu("Misc", "Misc")
 LucianMenu.Misc:Slider("EW","Extra Windup", 1, 0, 50, 1)
 
@@ -4508,7 +4508,7 @@ MissFortuneMenu:Menu("Drawings", "Drawings")
 MissFortuneMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
 MissFortuneMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
 MissFortuneMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
-MissFortuneMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', true)
+MissFortuneMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWR Damage', false)
 
 local MissFortuneQ = { range = 650, radius = 500 }
 local MissFortuneE = { range = 1000, radius = 400, width = 800, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
