@@ -23,6 +23,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.1
+-- + Corrected Ryze's E damage
 -- 1.1
 -- + Added Kayle, Kennen, KogMaw, LeBlanc, Malphite, Nasus, Ryze
 -- 1.0.7 BETA
@@ -1917,7 +1919,7 @@ OnTick(function(myHero)
 				if RyzeLHMenu.Manual.UseE:Value() then
 					if CanUseSpell(myHero,_E) == READY then
 						if ValidTarget(minion, RyzeE.range) then
-							local RyzeEDmg = (25*GetCastLevel(myHero,_E)+25)+(0.3*GetBonusAP(myHero))
+							local RyzeEDmg = (20*GetCastLevel(myHero,_E)+50)+(0.3*GetBonusAP(myHero))
 							if GetCurrentHP(minion) < RyzeEDmg then
 								BlockInput(true)
 								if _G.IOW then
@@ -1947,7 +1949,7 @@ OnTick(function(myHero)
 			if RyzeLHMenu.Auto.AutoE:Value() then
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(minion, RyzeE.range) then
-						local RyzeEDmg = (25*GetCastLevel(myHero,_E)+25)+(0.3*GetBonusAP(myHero))
+						local RyzeEDmg = (20*GetCastLevel(myHero,_E)+50)+(0.3*GetBonusAP(myHero))
 						if GetCurrentHP(minion) < RyzeEDmg then
 							DrawCircle(GetOrigin(minion),100,2,25,0xffffff00)
 							CastTargetSpell(minion, _E)
@@ -1957,7 +1959,7 @@ OnTick(function(myHero)
 			else
 				if CanUseSpell(myHero,_E) == READY then
 					if ValidTarget(minion, RyzeE.range) then
-						local RyzeEDmg = (25*GetCastLevel(myHero,_E)+25)+(0.3*GetBonusAP(myHero))
+						local RyzeEDmg = (20*GetCastLevel(myHero,_E)+50)+(0.3*GetBonusAP(myHero))
 						if GetCurrentHP(minion) < RyzeEDmg then
 							DrawCircle(GetOrigin(minion),100,2,25,0xffffff00)
 						end
