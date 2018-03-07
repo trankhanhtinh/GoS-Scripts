@@ -12,11 +12,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.1.2
+-- Current version: 1.1.2
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw, Lucian,
---   MissFortune, Vayne
+-- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista, KogMaw,
+--   Lucian, MissFortune, Vayne
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.2
+-- + Added Kaisa
 -- 1.1.1.2
 -- + Corrected Jhin's Q damage
 -- 1.1.1.1
@@ -68,7 +70,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.112
+local GSVer = 1.12
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -3108,6 +3110,251 @@ OnProcessSpell(function(unit, spell)
 		end
     end
 end)
+
+-- Kaisa
+
+elseif "Kaisa" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Kaisa loaded successfully!")
+local KaisaMenu = Menu("[GoS-U] Kaisa", "[GoS-U] Kaisa")
+KaisaMenu:Menu("Auto", "Auto")
+KaisaMenu.Auto:Boolean('UseQ', 'Use Q [Icathian Rain]', true)
+KaisaMenu.Auto:Boolean('UseW', 'Use W [Void Seeker]', false)
+KaisaMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KaisaMenu:Menu("Combo", "Combo")
+KaisaMenu.Combo:Boolean('UseQ', 'Use Q [Icathian Rain]', true)
+KaisaMenu.Combo:Boolean('UseW', 'Use W [Void Seeker]', true)
+KaisaMenu.Combo:Boolean('UseE', 'Use E [Supercharger]', true)
+KaisaMenu:Menu("Harass", "Harass")
+KaisaMenu.Harass:Boolean('UseQ', 'Use Q [Icathian Rain]', true)
+KaisaMenu.Harass:Boolean('UseW', 'Use W [Void Seeker]', true)
+KaisaMenu.Harass:Boolean('UseE', 'Use E [Supercharger]', true)
+KaisaMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KaisaMenu:Menu("KillSteal", "KillSteal")
+KaisaMenu.KillSteal:Boolean('UseW', 'Use W [Void Seeker]', true)
+KaisaMenu:Menu("LaneClear", "LaneClear")
+KaisaMenu.LaneClear:Boolean('UseQ', 'Use Q [Icathian Rain]', true)
+KaisaMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+KaisaMenu:Menu("Prediction", "Prediction")
+KaisaMenu.Prediction:DropDown("PredictionW", "Prediction: W", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+KaisaMenu:Menu("Drawings", "Drawings")
+KaisaMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+KaisaMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+KaisaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+KaisaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QW Damage', true)
+
+local KaisaQ = { range = 575 }
+local KaisaW = { range = 3000, radius = 65, width = 130, speed = 1750, delay = 0.4, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
+local KaisaR = { range = GetCastRange(myHero,_R) }
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	ECheck()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if KaisaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,KaisaQ.range,1,25,0xff00bfff) end
+if KaisaMenu.Drawings.DrawW:Value() then DrawCircle(pos,KaisaW.range,1,25,0xff4169e1) end
+if KaisaMenu.Drawings.DrawR:Value() then DrawCircle(pos,KaisaR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (39.625*GetCastLevel(myHero,_Q)+72.875)+GetBonusDmg(myHero)+(0.5*GetBonusAP(myHero))
+		local WDmg = (25*GetCastLevel(myHero,_W)-5)+(1.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.65*GetBonusAP(myHero))
+		local ComboDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if KaisaMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useW(target)
+	if GetDistance(target) < KaisaW.range then
+		if KaisaMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif KaisaMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),KaisaW.speed,KaisaW.delay*1000,KaisaW.range,KaisaW.width,true,false)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif KaisaMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,KaisaW,false,true)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif KaisaMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="KaisaW", range=KaisaW.range, speed=KaisaW.speed, delay=KaisaW.delay, width=KaisaW.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(KaisaW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif KaisaMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetLinearAOEPrediction(target,KaisaW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function ECheck()
+	if GotBuff(myHero, "KaisaE") > 0 then
+		if _G.IOW then
+			IOW.attacksEnabled = false
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableAttack(false)
+		end
+	else
+		if _G.IOW then
+			IOW.attacksEnabled = true
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableAttack(true)
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if KaisaMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KaisaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, KaisaQ.range) then
+					CastSpell(_Q)
+				end
+			end
+		end
+	end
+	if KaisaMenu.Auto.UseW:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KaisaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, KaisaW.range) then
+					useW(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if KaisaMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, KaisaQ.range) then
+					CastSpell(_Q)
+				end
+			end
+		end
+		if KaisaMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
+				if ValidTarget(target, KaisaW.range) then
+					useW(target)
+				end
+			end
+		end
+		if KaisaMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					if GotBuff(myHero, "KaisaE") == 0 then
+						CastSpell(_E)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if KaisaMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KaisaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, KaisaQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if KaisaMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KaisaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
+					if ValidTarget(target, KaisaW.range) then
+						useW(target)
+					end
+				end
+			end
+		end
+		if KaisaMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KaisaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+						if GotBuff(myHero, "KaisaE") == 0 then
+							CastSpell(_E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_W) == READY then
+			if KaisaMenu.KillSteal.UseW:Value() then
+				if ValidTarget(enemy, KaisaW.range) then
+					local KaisaWDmg = (25*GetCastLevel(myHero,_W)-5)+(1.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.65*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetMagicResist(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*6) < KaisaWDmg then
+						useW(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if KaisaMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KaisaMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					local BestPos, BestHit = GetFarmPosition(1, KaisaQ.range, MINION_ENEMY)
+					if BestPos and BestHit > 3 then
+						CastSkillShot(_Q, BestPos)
+					end
+				end
+			end
+		end
+	end
+end
 
 -- Kalista
 
