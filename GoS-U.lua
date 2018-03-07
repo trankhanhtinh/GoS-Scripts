@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.1.1
+-- Current version: 1.1.1.2
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kalista, KogMaw, Lucian,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.1.2
+-- + Corrected Jhin's Q damage
 -- 1.1.1.1
 -- + Fixed Heal
 -- 1.1.1
@@ -66,7 +68,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.111
+local GSVer = 1.112
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -2379,7 +2381,7 @@ end
 
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		local QDmg = (25*GetCastLevel(myHero,_Q)+20)+((0.05*GetCastLevel(myHero,_Q)+0.35)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.6*GetBonusAP(myHero))
+		local QDmg = (25*GetCastLevel(myHero,_Q)+20)+((0.075*GetCastLevel(myHero,_Q)+0.325)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.6*GetBonusAP(myHero))
 		local WDmg = (35*GetCastLevel(myHero,_W)+15)+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
 		local EDmg = (60*GetCastLevel(myHero,_E)-40)+(1.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+GetBonusAP(myHero)
 		local ComboDmg = QDmg + WDmg + EDmg
