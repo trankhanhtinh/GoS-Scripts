@@ -4005,7 +4005,7 @@ KatarinaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QER Damage', false)
 KatarinaMenu:Menu("Misc", "Misc")
 KatarinaMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
 KatarinaMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
-KatarinaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+KatarinaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 KatarinaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 KatarinaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
