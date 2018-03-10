@@ -36,7 +36,7 @@
 -- == Changelog ==
 -- ===============
 -- 1.1.2.1
--- + Optimized target selector
+-- + Minor changes
 -- 1.1.2
 -- + Added Kaisa
 -- 1.1.1.2
@@ -301,8 +301,7 @@ Heal = (GetCastName(myHero,SUMMONER_1):lower():find("summonerheal") and SUMMONER
 Barrier = (GetCastName(myHero,SUMMONER_1):lower():find("summonerbarrier") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerbarrier") and SUMMONER_2 or nil))
 
 OnTick(function(myHero)
-	trgslc = TargetSelector(10000,TARGET_LESS_CAST_PRIORITY,DAMAGE_PHYSICAL,true,false)
-	target = trgslc:GetTarget()
+	target = GetCurrentTarget()
 	BaseUlt()
 	Items1()
 	Items2()
