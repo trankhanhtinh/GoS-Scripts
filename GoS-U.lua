@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.2
+-- Current version: 1.1.2.1
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista, KogMaw,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.2.1
+-- + Optimized target selector
 -- 1.1.2
 -- + Added Kaisa
 -- 1.1.1.2
@@ -70,7 +72,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.12
+local GSVer = 1.121
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -299,7 +301,8 @@ Heal = (GetCastName(myHero,SUMMONER_1):lower():find("summonerheal") and SUMMONER
 Barrier = (GetCastName(myHero,SUMMONER_1):lower():find("summonerbarrier") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerbarrier") and SUMMONER_2 or nil))
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
+	trgslc = TargetSelector(10000,TARGET_LESS_CAST_PRIORITY,DAMAGE_PHYSICAL,true,false)
+	target = trgslc:GetTarget()
 	BaseUlt()
 	Items1()
 	Items2()
@@ -318,7 +321,7 @@ OnDraw(function(myHero)
 end)
 
 function Items1()
-	if Mode() == "Combo" then
+	if EnemiesAround(myHero, 1000) >= 1 then
 		if (GetCurrentHP(target)/GetMaxHP(target))*100 <= UtilityMenu.Items.OI:Value() then
 			if UtilityMenu.Items.UseBC:Value() then
 				if GetItemSlot(myHero, 3144) >= 1 and ValidTarget(target, 550) then
@@ -466,7 +469,6 @@ local AsheW = { range = 1200, radius = 20, width = 40, speed = 2000, delay = 0.2
 local AsheR = { range = AsheMenu.Combo.Distance:Value(), radius = 125, width = 250, speed = 1600, delay = 0.25, type = "line", collision = false, source = myHero }
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -812,7 +814,6 @@ local CaitlynE = { range = 750, radius = 65, width = 130, speed = 1500, delay = 
 local CaitlynR = { range = GetCastRange(myHero,_R) }
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -1237,7 +1238,6 @@ local CorkiE = { range = 600 }
 local CorkiR = { range = 1225, radius = 35, width = 70, speed = 1950, delay = 0.175, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -1617,7 +1617,6 @@ local DravenE = { range = 1050, radius = 120, width = 240, speed = 1400, delay =
 local DravenR = { range = DravenMenu.Combo.Distance:Value(), radius = 130, width = 260, speed = 2000, delay = 0.5, type = "line", collision = false, source = myHero }
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Combo()
 	Harass()
 	KillSteal()
@@ -1953,7 +1952,6 @@ local EzrealE = { range = 475 }
 local EzrealR = { range = EzrealMenu.Combo.Distance:Value(), radius = 160, width = 320, speed = 2000, delay = 1, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -2359,7 +2357,6 @@ local JhinE = { range = 750, radius = 140, width = 280, speed = 1650, delay = 0.
 local JhinR = { range = 3500, radius = 80, width = 160, speed = 5000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -2748,7 +2745,6 @@ local JinxE = { range = 900, radius = 100, width = 200, speed = 2570, delay = 0.
 local JinxR = { range = JinxMenu.Combo.Distance:Value(), radius = 110, width = 220, speed = 1700, delay = 0.6, type = "line", collision = false, source = myHero }
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -3148,7 +3144,6 @@ local KaisaW = { range = 3000, radius = 65, width = 130, speed = 1750, delay = 0
 local KaisaR = { range = GetCastRange(myHero,_R) }
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	ECheck()
 	Combo()
@@ -3399,7 +3394,6 @@ local KalistaE = { range = 1000 }
 local KalistaR = { range = 1200 }
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -3704,7 +3698,6 @@ local KogMawE = { range = 1280, radius = 115, width = 230, speed = 1350, delay =
 local KogMawR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.85, type = "circular", collision = false, source = myHero }
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -4144,7 +4137,6 @@ local ECast = false
 local RCast = false
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -4516,7 +4508,6 @@ local MissFortuneR = { range = 1400, width = 350, speed = math.huge, delay = 0.0
 local MFGTimer = 0
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
@@ -4919,10 +4910,8 @@ VayneMenu.Misc:Slider('Distance','Distance: E', 400, 100, 475, 5)
 
 local VayneQ = { range = 300 }
 local VayneE = { range = 550, radius = 475, width = 1, speed = 2000, delay = 0.25 }
-WStacks = {}
 
 OnTick(function(myHero)
-	target = GetCurrentTarget()
 	Auto()
 	Combo()
 	Harass()
