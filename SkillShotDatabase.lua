@@ -185,7 +185,7 @@ Spells = {
 	["LuluQ"]={charName="Lulu",slot=_Q,type="linear",speed=1500,range=925,delay=0.25,radius=45,hitbox=true,aoe=true,cc=true,collision=false},
 	["LuxLightBinding"]={charName="Lux",slot=_Q,type="linear",speed=1200,range=1175,delay=0.25,radius=60,hitbox=true,aoe=true,cc=true,collision=true},
 	["LuxPrismaticWave"]={charName="Lux",slot=_W,type="linear",speed=1400,range=1075,delay=0.25,radius=120,hitbox=true,aoe=true,cc=false,collision=false},
-	["LuxLightStrikeKugel"]={charName="Lux",slot=_E,type="linear",speed=1300,range=1000,delay=0.25,radius=350,hitbox=true,aoe=true,cc=true,collision=false},
+	["LuxLightStrikeKugel"]={charName="Lux",slot=_E,type="circular",speed=1300,range=1000,delay=0.25,radius=350,hitbox=true,aoe=true,cc=true,collision=false},
 	["LuxMaliceCannon"]={charName="Lux",slot=_R,type="linear",speed=math.huge,range=3340,delay=1,radius=115,hitbox=true,aoe=true,cc=true,collision=false},
 	["Landslide"]={charName="Malphite",slot=_E,type="circular",speed=math.huge,range=0,delay=0.242,radius=200,hitbox=false,aoe=true,cc=true,collision=false},
 	["UFSlash"]={charName="Malphite",slot=_R,type="circular",speed=2170,range=1000,delay=0,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
