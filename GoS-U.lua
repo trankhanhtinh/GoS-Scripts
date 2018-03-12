@@ -12,11 +12,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.2.1
+-- Current version: 1.1.3
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista, KogMaw,
---   Lucian, MissFortune, Vayne
+--   Lucian, MissFortune, Sivir, Vayne
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.3
+-- + Added Sivir
 -- 1.1.2.1
 -- + Minor changes
 -- 1.1.2
@@ -72,7 +74,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.121
+local GSVer = 1.13
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -4856,6 +4858,695 @@ function AntiGapcloser()
 	end
 end
 
+function VectorWay(A,B)
+	WayX = B.x - A.x
+	WayY = B.y - A.y
+	WayZ = B.z - A.z
+	return Vector(WayX, WayY, WayZ)
+end
+
+-- Sivir
+
+elseif "Sivir" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Sivir loaded successfully!")
+local SivirMenu = Menu("[GoS-U] Sivir", "[GoS-U] Sivir")
+SivirMenu:Menu("Auto", "Auto")
+SivirMenu.Auto:Boolean('UseQ', 'Use Q [Boomerang Blade]', true)
+SivirMenu.Auto:Boolean('UseE', 'Use E [Spell Shield]', true)
+SivirMenu.Auto:Slider("HP","Block Only CC When >%HP", 40, 0, 100, 5)
+SivirMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+SivirMenu:Menu("Blocklist", "Blocklist")
+SivirMenu.Blocklist:Boolean('BA', 'Block AOE Spells', true)
+SivirMenu.Blocklist:Boolean('BC', 'Block Circular Spells', true)
+SivirMenu.Blocklist:Boolean('BL', 'Block Linear Spells', true)
+SivirMenu.Blocklist:Boolean('BT', 'Block Targeted Spells', true)
+SivirMenu:Menu("Combo", "Combo")
+SivirMenu.Combo:Boolean('UseQ', 'Use Q [Boomerang Blade]', true)
+SivirMenu.Combo:Boolean('UseW', 'Use W [Ricochet]', true)
+SivirMenu.Combo:Boolean('UseR', 'Use R [On The Hunt]', true)
+SivirMenu.Combo:Slider('Distance','Distance: R', 1500, 100, 2000, 50)
+SivirMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+SivirMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+SivirMenu:Menu("Harass", "Harass")
+SivirMenu.Harass:Boolean('UseQ', 'Use Q [Boomerang Blade]', true)
+SivirMenu.Harass:Boolean('UseW', 'Use W [Ricochet]', true)
+SivirMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+SivirMenu:Menu("KillSteal", "KillSteal")
+SivirMenu.KillSteal:Boolean('UseQ', 'Use Q [Boomerang Blade]', true)
+SivirMenu:Menu("LaneClear", "LaneClear")
+SivirMenu.LaneClear:Boolean('UseQ', 'Use Q [Boomerang Blade]', true)
+SivirMenu.LaneClear:Boolean('UseW', 'Use W [Ricochet]', true)
+SivirMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+SivirMenu:Menu("Prediction", "Prediction")
+SivirMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+SivirMenu:Menu("Drawings", "Drawings")
+SivirMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+SivirMenu.Drawings:Boolean('DrawDMG', 'Draw Max QW Damage', true)
+
+local SivirQ = { range = 1250, radius = 75, width = 150, speed = 1350, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	LineE()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if SivirMenu.Drawings.DrawQ:Value() then DrawCircle(pos,SivirQ.range,1,25,0xff00bfff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (37*GetCastLevel(myHero,_Q)+27.75)+((0.185*GetCastLevel(myHero,_Q)+1.11)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.925*GetBonusAP(myHero))
+		local WDmg = (0.15*GetCastLevel(myHero,_W)+1.35)*(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+		local ComboDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if SivirMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	if GetDistance(target) < SivirQ.range then
+		if SivirMenu.Prediction.PredictionQ:Value() == 1 then
+			CastSkillShot(_Q,GetOrigin(target))
+		elseif SivirMenu.Prediction.PredictionQ:Value() == 2 then
+			local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),SivirQ.speed,SivirQ.delay*1000,SivirQ.range,SivirQ.width,false,true)
+			if QPred.HitChance == 1 then
+				CastSkillShot(_Q, QPred.PredPos)
+			end
+		elseif SivirMenu.Prediction.PredictionQ:Value() == 3 then
+			local qPred = _G.gPred:GetPrediction(target,myHero,SivirQ,false,true)
+			if qPred and qPred.HitChance >= 3 then
+				CastSkillShot(_Q, qPred.CastPosition)
+			end
+		elseif SivirMenu.Prediction.PredictionQ:Value() == 4 then
+			local QSpell = IPrediction.Prediction({name="SivirQ", range=SivirQ.range, speed=SivirQ.speed, delay=SivirQ.delay, width=SivirQ.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(SivirQ.range)
+			local x, y = QSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_Q, y.x, y.y, y.z)
+			end
+		elseif SivirMenu.Prediction.PredictionQ:Value() == 5 then
+			local QPrediction = GetLinearAOEPrediction(target,SivirQ)
+			if QPrediction.hitChance > 0.9 then
+				CastSkillShot(_Q, QPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if SivirMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SivirMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, SivirQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+end
+
+Block = {
+["AatroxQ"] = { slot = _Q, champName = "Aatrox", SType = "circular", SSpeed = 450, SRange = 650, SDelay = 250, SRadius = 275, CC = true }, 
+["AatroxE"] = { slot = _E , champName = "Aatrox", SType = "linear", SSpeed = 1200, SRange = 1000, SDelay = 250, SRadius = 120, CC = true }, 
+["AhriSeduce"] = { slot = _E, champName = "Ahri", SType = "linear", SSpeed = 1600, SRange = 975, SDelay = 250, SRadius = 50, CC = true }, 
+["Pulverize"] = { slot = _Q, champName = "Alistar", SType = "aoe", SRange = 365, CC = true }, 
+["Headbutt"] = { slot = _W, champName = "Alistar", SType = "target", SRange = 650, CC = true }, 
+["BandageToss"] = { slot = _Q, champName = "Amumu", SType = "linear", SSpeed = 2000, SRange = 1100, SDelay = 250, SRadius = 70, CC = true }, 
+["CurseoftheSadMummy"] = { slot = _R, champName = "Amumu", SType = "aoe", SRange = 550, CC = true }, 
+["FlashFrost"] = { slot = _Q, champName = "Anivia", SType = "linear", SSpeed = 850, SRange = 1075, SDelay = 250, SRadius = 225, CC = true }, 
+["Frostbite"] = { slot = _E, champName = "Anivia", SType = "target", SRange = 1000, CC = false }, 
+["Disintegrate"] = { slot = _Q, champName = "Annie", SType = "target", SRange = 625, CC = false }, 
+["Incinerate"] = { slot = _W, champName = "Annie", SType = "aoe", SRange = 625, CC = false }, 
+["InfernalGuardian"] = { slot = _R, champName = "Annie", SType = "circular", SSpeed = math.huge, SRange = 600, SDelay = 250, SRadius = 290, CC = true }, 
+["Volley"] = { slot = _W, champName = "Ashe", SType = "linear", SSpeed = 2000, SRange = 1200, SDelay = 250, SRadius = 20, CC = true }, 
+["EnchantedCrystalArrow"] = { slot = _R, champName = "Ashe", SType = "linear", SSpeed = 1600, SRange = 25000, SDelay = 250, SRadius = 125, CC = true }, 
+["AurelionSolQ"] = { slot = _Q, champName = "AurelionSol", SType = "linear", SSpeed = 600, SRange = 1075, SDelay = 250, SRadius = 210, CC = true }, 
+["AurelionSolR"] = { slot = _R, champName = "AurelionSol", SType = "linear", SSpeed = 4285, SRange = 1500, SDelay = 350, SRadius = 120, CC = true }, 
+["AzirE"] = { slot = _E, champName = "Azir", SType = "aoe", SRange = 1100, CC = false }, 
+["AzirR"] = { slot = _R, champName = "Azir", SType = "aoe", SRange = 250, CC = true }, 
+["BardQ"] = { slot = _Q, champName = "Bard", SType = "linear", SSpeed = 1500, SRange = 950, SDelay = 250, SRadius = 80, CC = true }, 
+["RocketGrab"] = { slot = _Q, champName = "Blitzcrank", SType = "linear", SSpeed = 1750, SRange = 925, SDelay = 250, SRadius = 60, CC = true }, 
+["StaticField"] = { slot = _R, champName = "Blitzcrank", SType = "aoe", SRange = 600, CC = true }, 
+["BrandQ"] = { slot = _Q, champName = "Brand", SType = "linear", SSpeed = 1550, SRange = 1050, SDelay = 250, SRadius = 65, CC = true }, 
+["BrandW"] = { slot = _W, champName = "Brand", SType = "circular", SSpeed = math.huge, SRange = 900, SDelay = 625, SRadius = 250, CC = false }, 
+["BrandE"] = { slot = _E, champName = "Brand", SType = "target", SRange = 625, CC = false }, 
+["BrandR"] = { slot = _R, champName = "Brand", SType = "target", SRange = 750, CC = true }, 
+["BraumQ"] = { slot = _Q, champName = "Braum", SType = "linear", SSpeed = 1670, SRange = 1000, SDelay = 250, SRadius = 60, CC = true }, 
+["BraumRWrapper"] = { slot = _R, champName = "Braum", SType = "linear", SSpeed = 1400, SRange = 1250, SDelay = 500, SRadius = 115, CC = true }, 
+["CaitlynPiltoverPeacemaker"] = { slot = _Q, champName = "Caitlyn", SType = "linear", SSpeed = 2200, SRange = 1250, SDelay = 625, SRadius = 90, CC = false }, 
+["CaitlynYordleTrap"] = { slot = _W, champName = "Caitlyn", SType = "circular", SSpeed = math.huge, SRange = 800, SDelay = 250, SRadius = 75, CC = true }, 
+["CaitlynEntrapmentMissile"] = { slot = _E, champName = "Caitlyn", SType = "linear", SSpeed = 1500, SRange = 750, SDelay = 250, SRadius = 60, CC = true }, 
+["CaitlynAceintheHole"] = { slot = _R, champName = "Caitlyn", SType = "target", SRange = 3000, CC = false }, 
+["CamilleW"] = { slot = _W, champName = "Camille", SType = "aoe", SRange = 610, CC = true }, 
+["CamilleE"] = { slot = _E, champName = "Camille", SType = "linear", SSpeed = 1350, SRange = 800, SDelay = 250, SRadius = 45, CC = true }, 
+["CassiopeiaQ"] = { slot = _Q, champName = "Cassiopeia", SType = "circular", SSpeed = math.huge, SRange = 850, SDelay = 400, SRadius = 150, CC = false }, 
+["CassiopeiaE"] = { slot = _E, champName = "Cassiopeia", SType = "target", SRange = 700, CC = false }, 
+["CassiopeiaR"] = { slot = _R, champName = "Cassiopeia", SType = "aoe", SRange = 825, CC = true }, 
+["Rupture"] = { slot = _Q, champName = "ChoGath", SType = "circular", SSpeed = math.huge, SRange = 950, SDelay = 500, SRadius = 175, CC = true }, 
+["FeralScream"] = { slot = _W, champName = "ChoGath", SType = "aoe", SRange = 650, CC = true }, 
+["Feast"] = { slot = _R, champName = "ChoGath", SType = "target", SRange = 175, CC = false }, 
+["PhosphorusBomb"] = { slot = _Q, champName = "Corki", SType = "circular", SSpeed = 1000, SRange = 825, SDelay = 250, SRadius = 250, CC = false }, 
+["MissileBarrageMissile"] = { slot = _R, champName = "Corki", SType = "linear", SSpeed = 1950, SRange = 1225, SDelay = 175, SRadius = 35, CC = false }, 
+["MissileBarrageMissile2"] = { slot = _R, champName = "Corki", SType = "linear", SSpeed = 1950, SRange = 1225, SDelay = 175, SRadius = 35, CC = false }, 
+["DariusCleave"] = { slot = _Q, champName = "Darius", SType = "circular", SSpeed = math.huge, SRange = 1, SDelay = 750, SRadius = 425, CC = false }, 
+["DariusAxeGrabCone"] = { slot = _E, champName = "Darius", SType = "aoe", SRange = 535, CC = true }, 
+["DariusExecute"] = { slot = _R, champName = "Darius", SType = "target", SRange = 460, CC = false }, 
+["DianaArc"] = { slot = _Q, champName = "Diana", SType = "circular", SSpeed = 1400, SRange = 900, SDelay = 250, SRadius = 205, CC = false }, 
+["DianaOrbs"] = { slot = _W, champName = "Diana", SType = "aoe", SRange = 200, CC = false }, 
+["DianaVortex"] = { slot = _E, champName = "Diana", SType = "aoe", SRange = 450, CC = true }, 
+["DianaTeleport"] = { slot = _R, champName = "Diana", SType = "target", SRange = 825, CC = false }, 
+["InfectedCleaverMissileCast"] = { slot = _Q, champName = "DrMundo", SType = "linear", SSpeed = 1850, SRange = 975, SDelay = 250, SRadius = 60, CC = true }, 
+["DravenDoubleShot"] = { slot = _E, champName = "Draven", SType = "linear", SSpeed = 1400, SRange = 1050, SDelay = 250, SRadius = 120, CC = true }, 
+["DravenRCast"] = { slot = _R, champName = "Draven", SType = "linear", SSpeed = 2000, SRange = 25000, SDelay = 500, SRadius = 130, CC = false }, 
+["EkkoW"] = { slot = _W, champName = "Ekko", SType = "circular", SSpeed = 1650, SRange = 1600, SDelay = 3750, SRadius = 400, CC = true }, 
+["EkkoR"] = { slot = _R, champName = "Ekko", SType = "circular", SSpeed = 1650, SRange = 1600, SDelay = 250, SRadius = 375, CC = true }, 
+["EliseSpiderQCast"] = { slot = _Q, champName = "Elise", SType = "target", SRange = 475, CC = false }, 
+["EliseHumanQ"] = { slot = _Q, champName = "Elise", SType = "target", SRange = 625, CC = false }, 
+["EliseHumanE"] = { slot = _E, champName = "Elise", SType = "linear", SSpeed = 1600, SRange = 1075, SDelay = 250, SRadius = 55, CC = true }, 
+["EvelynnQ"] = { slot = _Q, champName = "Evelynn", SType = "linear", SSpeed = 2200, SRange = 800, SDelay = 250, SRadius = 35, CC = false }, 
+["EvelynnE"] = { slot = _E, champName = "Evelynn", SType = "target", SRange = 800, CC = false }, 
+["EvelynnR"] = { slot = _R, champName = "Evelynn", SType = "aoe", SRange = 450, CC = false }, 
+["EzrealMysticShot"] = { slot = _Q, champName = "Ezreal", SType = "linear", SSpeed = 2000, SRange = 1150, SDelay = 250, SRadius = 80, CC = false }, 
+["EzrealEssenceFlux"] = { slot = _W, champName = "Ezreal", SType = "linear", SSpeed = 1550, SRange = 1000, SDelay = 250, SRadius = 80, CC = false }, 
+["EzrealTrueshotBarrage"] = { slot = _R, champName = "Ezreal", SType = "linear", SSpeed = 2000, SRange = 25000, SDelay = 1000, SRadius = 160, CC = false }, 
+["Terrify"] = { slot = _Q, champName = "Fiddlesticks", SType = "target", SRange = 575, CC = true }, 
+["DarkWind"] = { slot = _E, champName = "Fiddlesticks", SType = "target", SRange = 750, CC = true }, 
+["FioraQ"] = { slot = _Q, champName = "Fiora", SType = "linear", SSpeed = 800, SRange = 400, SDelay = 0, SRadius = 50, CC = false }, 
+["FioraW"] = { slot = _W, champName = "Fiora", SType = "linear", SSpeed = math.huge, SRange = 750, SDelay = 750, SRadius = 85, CC = true }, 
+["FioraR"] = { slot = _R, champName = "Fiora", SType = "target", SRange = 500, CC = false }, 
+["FizzQ"] = { slot = _Q, champName = "Fizz", SType = "target", SRange = 550, CC = false }, 
+["FizzE"] = { slot = _E, champName = "Fizz", SType = "circular", SSpeed = math.huge, SRange = 400, SDelay = 750, SRadius = 330, CC = true }, 
+["FizzR"] = { slot = _R, champName = "Fizz", SType = "linear", SSpeed = 1300, SRange = 1300, SDelay = 250, SRadius = 120, CC = true }, 
+["GalioW"] = { slot = _W, champName = "Galio", SType = "aoe", SRange = 350, CC = true }, 
+["GalioE"] = { slot = _E, champName = "Galio", SType = "linear", SSpeed = 1400, SRange = 650, SDelay = 450, SRadius = 160, CC = true }, 
+["GalioR"] = { slot = _R, champName = "Galio", SType = "circular", SSpeed = math.huge, SRange = 5500, SDelay = 2750, SRadius = 500, CC = true }, 
+["GangplankQ"] = { slot = _Q, champName = "Gangplank", SType = "target", SRange = 625, CC = false }, 
+["GangplankR"] = { slot = _R, champName = "Gangplank", SType = "circular", SSpeed = math.huge, SRange = 25000, SDelay = 250, SRadius = 600, CC = true }, 
+["GarenR"] = { slot = _R, champName = "Garen", SType = "target", SRange = 400, CC = false }, 
+["GnarQ"] = { slot = _Q, champName = "Gnar", SType = "linear", SSpeed = 1700, SRange = 1100, SDelay = 250, SRadius = 55, CC = true }, 
+["GnarE"] = { slot = _Q, champName = "Gnar", SType = "circular", SSpeed = 900, SRange = 475, SDelay = 250, SRadius = 160, CC = true }, 
+["GnarE"] = { slot = _Q, champName = "Gnar", SType = "circular", SSpeed = 900, SRange = 475, SDelay = 250, SRadius = 160, CC = true }, 
+["GnarBigQ"] = { slot = _Q, champName = "Gnar", SType = "linear", SSpeed = 2100, SRange = 1100, SDelay = 500, SRadius = 90, CC = true }, 
+["GnarBigW"] = { slot = _W, champName = "Gnar", SType = "linear", SSpeed = math.huge, SRange = 550, SDelay = 600, SRadius = 100, CC = true }, 
+["GnarBigE"] = { slot = _E, champName = "Gnar", SType = "circular", SSpeed = 800, SRange = 600, SDelay = 250, SRadius = 375, CC = true }, 
+["GnarR"] = { slot = _R, champName = "Gnar", SType = "aoe", SRange = 475, CC = true }, 
+["GragasQ"] = { slot = _Q, champName = "Gragas", SType = "circular", SSpeed = 1000, SRange = 850, SDelay = 250, SRadius = 250, CC = true }, 
+["GragasE"] = { slot = _E, champName = "Gragas", SType = "linear", SSpeed = 900, SRange = 600, SDelay = 250, SRadius = 170, CC = true }, 
+["GragasR"] = { slot = _R, champName = "Gragas", SType = "circular", SSpeed = 1800, SRange = 1000, SDelay = 250, SRadius = 400, CC = true }, 
+["GravesChargeShot"] = { slot = _R, champName = "Graves", SType = "linear", SSpeed = 1950, SRange = 1000, SDelay = 250, SRadius = 100, CC = false }, 
+["GravesChargeShotFxMissile"] = { slot = _R, champName = "Graves", SType = "aoe", SRange = 800, CC = false }, 
+["HecarimRapidSlash"] = { slot = _Q, champName = "Hecarim", SType = "aoe", SRange = 350, CC = false }, 
+["HecarimUlt"] = { slot = _R, champName = "Hecarim", SType = "linear", SSpeed = 1200, SRange = 1000, SDelay = 10, SRadius = 210, CC = true }, 
+["HeimerdingerW"] = { slot = _W, champName = "Heimerdinger", SType = "linear", SSpeed = 2050, SRange = 1325, SDelay = 250, SRadius = 70, CC = false }, 
+["HeimerdingerE"] = { slot = _E, champName = "Heimerdinger", SType = "circular", SSpeed = 1200, SRange = 970, SDelay = 250, SRadius = 250, CC = true }, 
+["HeimerdingerEUlt"] = { slot = _E, champName = "Heimerdinger", SType = "circular", SSpeed = 1200, SRange = 970, SDelay = 250, SRadius = 250, CC = true }, 
+["IllaoiQ"] = { slot = _Q, champName = "Illaoi", SType = "linear", SSpeed = math.huge, SRange = 850, SDelay = 750, SRadius = 100, CC = false }, 
+["IreliaBladesurge"] = { slot = _Q, champName = "Irelia", SType = "target", SRange = 650, CC = false }, 
+["IreliaEquilibriumStrike"] = { slot = _E, champName = "Irelia", SType = "target", SRange = 325, CC = true }, 
+["IreliaTranscendentBlades"] = { slot = _R, champName = "Irelia", SType = "linear", SSpeed = 1350, SRange = 1000, SDelay = 250, SRadius = 100, CC = false }, 
+["IvernQ"] = { slot = _Q, champName = "Ivern", SType = "linear", SSpeed = 1300, SRange = 1075, SDelay = 250, SRadius = 50, CC = true }, 
+["HowlingGale"] = { slot = _Q, champName = "Janna", SType = "linear", SSpeed = 667, SRange = 1000, SDelay = 0, SRadius = 100, CC = true }, 
+["Zephyr"] = { slot = _W, champName = "Janna", SType = "target", SRange = 550, CC = true }, 
+["ReapTheWhirlwind"] = { slot = _R, champName = "Janna", SType = "aoe", SRange = 725, CC = true }, 
+["JarvanIVDragonStrike"] = { slot = _Q, champName = "JarvanIV", SType = "linear", SSpeed = math.huge, SRange = 770, SDelay = 400, SRadius = 60, CC = true }, 
+["JarvanIVGoldenAegis"] = { slot = _W, champName = "JarvanIV", SType = "aoe", SRange = 625, CC = true }, 
+["JarvanIVDemacianStandard"] = { slot = _E, champName = "JarvanIV", SType = "circular", SSpeed = 3440, SRange = 860, SDelay = 0, SRadius = 175, CC = false }, 
+["JarvanIVCataclysm"] = { slot = _R, champName = "JarvanIV", SType = "target", SRange = 650, CC = true }, 
+["JaxLeapStrike"] = { slot = _Q, champName = "Jax", SType = "target", SRange = 700, CC = false }, 
+["JaxCounterStrike"] = { slot = _E, champName = "Jax", SType = "circular", SSpeed = math.huge, SRange = 1, SDelay = 1400, SRadius = 300, CC = true }, 
+["JayceToTheSkies"] = { slot = _Q, champName = "Jayce", SType = "target", SRange = 600, CC = true }, 
+["JayceThunderingBlow"] = { slot = _E, champName = "Jayce", SType = "target", SRange = 240, CC = true }, 
+["JayceShockBlast"] = { slot = _Q, champName = "Jayce", SType = "linear", SSpeed = 1450, SRange = 1050, SDelay = 214, SRadius = 75, CC = false }, 
+["JayceShockBlastWallMis"] = { slot = _Q, champName = "Jayce", SType = "linear", SSpeed = 1890, SRange = 2030, SDelay = 214, SRadius = 105, CC = false }, 
+["JhinQ"] = { slot = _Q, champName = "Jhin", SType = "target", SRange = 550, CC = false }, 
+["JhinW"] = { slot = _W, champName = "Jhin", SType = "linear", SSpeed = 5000, SRange = 3000, SDelay = 750, SRadius = 40, CC = true }, 
+["JhinE"] = { slot = _E, champName = "Jhin", SType = "circular", SSpeed = 1650, SRange = 750, SDelay = 250, SRadius = 140, CC = true }, 
+["JhinRShot"] = { slot = _R, champName = "Jhin", SType = "linear", SSpeed = 5000, SRange = 3500, SDelay = 250, SRadius = 80, CC = true }, 
+["JinxW"] = { slot = _W, champName = "Jinx", SType = "linear", SSpeed = 3200, SRange = 1450, SDelay = 600, SRadius = 50, CC = true }, 
+["JinxE"] = { slot = _E, champName = "Jinx", SType = "circular", SSpeed = 2570, SRange = 900, SDelay = 1500, SRadius = 100, CC = true }, 
+["JinxR"] = { slot = _R, champName = "Jinx", SType = "linear", SSpeed = 1700, SRange = 25000, SDelay = 600, SRadius = 110, CC = false }, 
+["KaisaQ"] = { slot = _Q, champName = "Kaisa", SType = "aoe", SRange = 575, CC = false }, 
+["KaisaW"] = { slot = _W, champName = "Kaisa", SType = "linear", SSpeed = 1750, SRange = 3000, SDelay = 400, SRadius = 65, CC = false }, 
+["KalistaMysticShot"] = { slot = _Q, champName = "Kalista", SType = "linear", SSpeed = 2100, SRange = 1150, SDelay = 350, SRadius = 35, CC = false }, 
+["KarthusLayWasteA1"] = { slot = _Q, champName = "Karthus", SType = "circular", SSpeed = math.huge, SRange = 875, SDelay = 500, SRadius = 200, CC = false }, 
+["KarthusLayWasteA2"] = { slot = _Q, champName = "Karthus", SType = "circular", SSpeed = math.huge, SRange = 875, SDelay = 500, SRadius = 200, CC = false }, 
+["KarthusLayWasteA3"] = { slot = _Q, champName = "Karthus", SType = "circular", SSpeed = math.huge, SRange = 875, SDelay = 500, SRadius = 200, CC = false }, 
+["NullSphere"] = { slot = _Q, champName = "Kassadin", SType = "target", SRange = 650, CC = false }, 
+["ForcePulse"] = { slot = _E, champName = "Kassadin", SType = "aoe", SRange = 600, CC = true }, 
+["Riftwalk"] = { slot = _R, champName = "Kassadin", SType = "circular", SSpeed = math.huge, SRange = 500, SDelay = 250, SRadius = 300, CC = false }, 
+["KatarinaQ"] = { slot = _Q, champName = "Katarina", SType = "target", SRange = 625, CC = false }, 
+["KatarinaE"] = { slot = _E, champName = "Katarina", SType = "circular", SSpeed = math.huge, SRange = 725, SDelay = 150, SRadius = 150, CC = false }, 
+["KayleQ"] = { slot = _Q, champName = "Kayle", SType = "target", SRange = 650, CC = true }, 
+["KaynW"] = { slot = _W, champName = "Kayn", SType = "linear", SSpeed = math.huge, SRange = 700, SDelay = 550, SRadius = 90, CC = true }, 
+["KennenShurikenHurlMissile1"] = { slot = _Q, champName = "Kennen", SType = "linear", SSpeed = 1650, SRange = 1050, SDelay = 175, SRadius = 45, CC = true }, 
+["KennenShurikenStorm"] = { slot = _R, champName = "Kennen", SType = "aoe", SRange = 550, CC = false }, 
+["KhaZixQ"] = { slot = _Q, champName = "KhaZix", SType = "target", SRange = 375, CC = false }, 
+["KhaZixW"] = { slot = _W, champName = "KhaZix", SType = "linear", SSpeed = 1650, SRange = 1000, SDelay = 250, SRadius = 60, CC = false }, 
+["KhaZixWLong"] = { slot = _W, champName = "KhaZix", SType = "linear", SSpeed = 1650, SRange = 1000, SDelay = 250, SRadius = 70, CC = true }, 
+["KhaZixE"] = { slot = _E, champName = "KhaZix", SType = "circular", SSpeed = 1400, SRange = 700, SDelay = 250, SRadius = 320, CC = false }, 
+["KhaZixELong"] = { slot = _E, champName = "KhaZix", SType = "circular", SSpeed = 1400, SRange = 900, SDelay = 250, SRadius = 320, CC = false }, 
+["KindredW"] = { slot = _W, champName = "Kindred", SType = "aoe", SRange = 800, CC = true }, 
+["KindredE"] = { slot = _E, champName = "Kindred", SType = "target", SRange = 750, CC = true }, 
+["KledRiderQ"] = { slot = _Q, champName = "Kled", SType = "aoe", SRange = 800, CC = false }, 
+["KledEDash"] = { slot = _E, champName = "Kled", SType = "linear", SSpeed = 1100, SRange = 550, SDelay = 0, SRadius = 90, CC = false }, 
+["KogMawQ"] = { slot = _Q, champName = "KogMaw", SType = "linear", SSpeed = 1600, SRange = 1175, SDelay = 250, SRadius = 60, CC = false }, 
+["KogMawVoidOoze"] = { slot = _E, champName = "KogMaw", SType = "linear", SSpeed = 1350, SRange = 1280, SDelay = 250, SRadius = 115, CC = true }, 
+["KogMawLivingArtillery"] = { slot = _R, champName = "KogMaw", SType = "circular", SSpeed = math.huge, SRange = 1800, SDelay = 850, SRadius = 200, CC = false }, 
+["LeBlancQ"] = { slot = _Q, champName = "LeBlanc", SType = "target", SRange = 700, CC = false }, 
+["LeBlancW"] = { slot = _W, champName = "LeBlanc", SType = "circular", SSpeed = 1600, SRange = 600, SDelay = 250, SRadius = 260, CC = false }, 
+["LeBlancRW"] = { slot = _W, champName = "LeBlanc", SType = "circular", SSpeed = 1600, SRange = 600, SDelay = 250, SRadius = 260, CC = false }, 
+["LeBlancE"] = { slot = _E, champName = "LeBlanc", SType = "linear", SSpeed = 1750, SRange = 925, SDelay = 250, SRadius = 55, CC = true }, 
+["LeBlancRE"] = { slot = _E, champName = "LeBlanc", SType = "linear", SSpeed = 1750, SRange = 925, SDelay = 250, SRadius = 55, CC = true }, 
+["BlinkMonkQOne"] = { slot = _Q, champName = "LeeSin", SType = "linear", SSpeed = 1750, SRange = 1100, SDelay = 250, SRadius = 50, CC = false }, 
+["BlinkMonkEOne"] = { slot = _E, champName = "LeeSin", SType = "aoe", SRange = 350, CC = true }, 
+["BlinkMonkR"] = { slot = _R, champName = "LeeSin", SType = "target", SRange = 375, CC = true }, 
+["LeonaZenithBlade"] = { slot = _E, champName = "Leona", SType = "linear", SSpeed = 2000, SRange = 875, SDelay = 250, SRadius = 70, CC = true }, 
+["LeonaSolarFlare"] = { slot = _R, champName = "Leona", SType = "circular", SSpeed = math.huge, SRange = 1200, SDelay = 625, SRadius = 250, CC = true }, 
+["LissandraQ"] = { slot = _Q, champName = "Lissandra", SType = "linear", SSpeed = 2400, SRange = 825, SDelay = 251, SRadius = 65, CC = true }, 
+["LissandraW"] = { slot = _W, champName = "Lissandra", SType = "aoe", SRange = 450, CC = true }, 
+["LissandraE"] = { slot = _E, champName = "Lissandra", SType = "linear", SSpeed = 850, SRange = 1050, SDelay = 250, SRadius = 100, CC = false }, 
+["LissandraR"] = { slot = _R, champName = "Lissandra", SType = "target", SRange = 550, CC = true }, 
+["LucianQ"] = { slot = _Q, champName = "Lucian", SType = "linear", SSpeed = math.huge, SRange = 900, SDelay = 500, SRadius = 65, CC = false }, 
+["LucianW"] = { slot = _W, champName = "Lucian", SType = "linear", SSpeed = 1600, SRange = 900, SDelay = 250, SRadius = 65, CC = false }, 
+["LucianR"] = { slot = _R, champName = "Lucian", SType = "linear", SSpeed = 2800, SRange = 1200, SDelay = 10, SRadius = 75, CC = false }, 
+["LuluQ"] = { slot = _Q, champName = "Lulu", SType = "linear", SSpeed = 1500, SRange = 925, SDelay = 250, SRadius = 45, CC = true }, 
+["LuluW"] = { slot = _W, champName = "Lulu", SType = "target", SRange = 650, CC = true }, 
+["LuluE"] = { slot = _E, champName = "Lulu", SType = "target", SRange = 650, CC = false }, 
+["LuxLightBinding"] = { slot = _Q, champName = "Lux", SType = "linear", SSpeed = 1200, SRange = 1175, SDelay = 250, SRadius = 60, CC = true }, 
+["LuxLightStrikeKugel"] = { slot = _E, champName = "Lux", SType = "circular", SSpeed = 1300, SRange = 1000, SDelay = 250, SRadius = 350, CC = true }, 
+["LuxMaliceCannon"] = { slot = _R, champName = "Lux", SType = "linear", SSpeed = math.huge, SRange = 3340, SDelay = 1000, SRadius = 115, CC = false }, 
+["MalphiteQ"] = { slot = _Q, champName = "Malphite", SType = "target", SRange = 625, CC = true }, -- Check
+["Landslide"] = { slot = _E, champName = "Malphite", SType = "aoe", SRange = 200, CC = true }, 
+["UFSlash"] = { slot = _R, champName = "Malphite", SType = "circular", SSpeed = 2170, SRange = 1000, SDelay = 0, SRadius = 300, CC = true }, 
+["MalzaharQ"] = { slot = _Q, champName = "Malzahar", SType = "circular", SSpeed = math.huge, SRange = 900, SDelay = 250, SRadius = 100, CC = true }, 
+["MalzaharE"] = { slot = _E, champName = "Malzahar", SType = "target", SRange = 650, CC = false }, 
+["MalzaharR"] = { slot = _R, champName = "Malzahar", SType = "target", SRange = 700, CC = true }, 
+["MaokaiQ"] = { slot = _Q, champName = "Maokai", SType = "linear", SSpeed = 1600, SRange = 600, SDelay = 375, SRadius = 150, CC = true }, 
+["MaokaiE"] = { slot = _E, champName = "Maokai", SType = "target", SRange = 525, CC = true }, 
+["MaokaiR"] = { slot = _R, champName = "Maokai", SType = "linear", SSpeed = 450, SRange = 3000, SDelay = 500, SRadius = 650, CC = true }, 
+["AlphaStrike"] = { slot = _Q, champName = "MasterYi", SType = "target", SRange = 600, CC = false }, 
+["MissFortuneQ"] = { slot = _Q, champName = "MissFortune", SType = "target", SRange = 650, CC = false }, -- Check
+["MordekaiserSiphonOfDestruction"] = { slot = _E, champName = "Mordekaiser", SType = "aoe", SRange = 675, CC = false }, 
+["MordekaiserChildrenoftheGrave"] = { slot = _R, champName = "Mordekaiser", SType = "target", SRange = 650, CC = false }, -- Check
+["DarkBinding"] = { slot = _Q, champName = "Morgana", SType = "linear", SSpeed = 1200, SRange = 1175, SDelay = 250, SRadius = 60, CC = true }, 
+["NamiQ"] = { slot = _Q, champName = "Nami", SType = "circular", SSpeed = math.huge, SRange = 875, SDelay = 950, SRadius = 200, CC = true }, 
+["NamiW"] = { slot = _W, champName = "Nami", SType = "target", SRange = 725, CC = false }, 
+["NamiR"] = { slot = _R, champName = "Nami", SType = "linear", SSpeed = 850, SRange = 2750, SDelay = 500, SRadius = 215, CC = true }, 
+["NasusW"] = { slot = _W, champName = "Nasus", SType = "target", SRange = 600, CC = true }, 
+["NautilusAnchorDrag"] = { slot = _Q, champName = "Nautilus", SType = "linear", SSpeed = 2000, SRange = 1100, SDelay = 250, SRadius = 75, CC = true }, 
+["NautilusSplashZone"] = { slot = _E, champName = "Nautilus", SType = "aoe", SRange = 600, CC = true }, 
+["NautilusR"] = { slot = _R, champName = "Nautilus", SType = "target", SRange = 825, CC = true }, 
+["JavelinToss"] = { slot = _Q, champName = "Nidalee", SType = "linear", SSpeed = 1300, SRange = 1500, SDelay = 250, SRadius = 45, CC = false }, 
+["Bushwhack"] = { slot = _W, champName = "Nidalee", SType = "circular", SSpeed = math.huge, SRange = 900, SDelay = 250, SRadius = 85, CC = true }, 
+["Pounce"] = { slot = _W, champName = "Nidalee", SType = "circular", SSpeed = 1750, SRange = 750, SDelay = 250, SRadius = 200, CC = false }, 
+["Swipe"] = { slot = _E, champName = "Nidalee", SType = "aoe", SRange = 300, CC = false }, 
+["NocturneDuskbringer"] = { slot = _Q, champName = "Nocturne", SType = "linear", SSpeed = 1600, SRange = 1200, SDelay = 250, SRadius = 60, CC = false }, 
+["IceBlast"] = { slot = _E, champName = "Nunu", SType = "target", SRange = 550, CC = true }, 
+["AbsoluteZero"] = { slot = _R, champName = "Nunu", SType = "circular", SSpeed = math.huge, SRange = 1, SDelay = 3010, SRadius = 650, CC = true }, 
+["OlafAxeThrowCast"] = { slot = _Q, champName = "Olaf", SType = "linear", SSpeed = 1550, SRange = 1000, SDelay = 250, SRadius = 80, CC = true }, 
+["OlafRecklessStrike"] = { slot = _E, champName = "Olaf", SType = "target", SRange = 325, CC = false }, 
+["OrianaIzunaCommand"] = { slot = _Q, champName = "Orianna", SType = "linear", SSpeed = 1400, SRange = 825, SDelay = 250, SRadius = 175, CC = false }, 
+["OrianaRedactCommand"] = { slot = _E, champName = "Orianna", SType = "linear", SSpeed = 1400, SRange = 1100, SDelay = 250, SRadius = 55, CC = false }, 
+["OrnnQ"] = { slot = _Q, champName = "Ornn", SType = "linear", SSpeed = 2000, SRange = 800, SDelay = 300, SRadius = 100, CC = true }, 
+["OrnnE"] = { slot = _E, champName = "Ornn", SType = "linear", SSpeed = 1780, SRange = 800, SDelay = 350, SRadius = 150, CC = true }, 
+["OrnnR"] = { slot = _R, champName = "Ornn", SType = "linear", SSpeed = 1200, SRange = 2500, SDelay = 500, SRadius = 225, CC = true }, 
+["PantheonQ"] = { slot = _Q, champName = "Pantheon", SType = "target", SRange = 600, CC = false }, 
+["PantheonW"] = { slot = _W, champName = "Pantheon", SType = "target", SRange = 600, CC = true }, 
+["PantheonE"] = { slot = _E, champName = "Pantheon", SType = "aoe", SRange = 600, CC = false }, 
+["PantheonR"] = { slot = _R, champName = "Pantheon", SType = "circular", SSpeed = math.huge, SRange = 5500, SDelay = 2500, SRadius = 700, CC = true }, 
+["PoppyW"] = { slot = _W, champName = "Poppy", SType = "aoe", SRange = 400, CC = true }, 
+["PoppyE"] = { slot = _E, champName = "Poppy", SType = "target", SRange = 425, CC = true }, 
+["PoppyRSpell"] = { slot = _R, champName = "Poppy", SType = "linear", SSpeed = 1600, SRange = 1900, SDelay = 600, SRadius = 80, CC = true }, 
+["QuinnQ"] = { slot = _Q, champName = "Quinn", SType = "linear", SSpeed = 1550, SRange = 1025, SDelay = 250, SRadius = 50, CC = false }, 
+["QuinnE"] = { slot = _E, champName = "Quinn", SType = "target", SRange = 675, CC = true }, 
+["RakanQ"] = { slot = _Q, champName = "Rakan", SType = "linear", SSpeed = 1800, SRange = 900, SDelay = 250, SRadius = 60, CC = false }, 
+["RakanW"] = { slot = _W, champName = "Rakan", SType = "circular", SSpeed = 2150, SRange = 600, SDelay = 0, SRadius = 250, CC = true }, 
+["PuncturingTaunt"] = { slot = _E, champName = "Rammus", SType = "target", SRange = 325, CC = true }, 
+["Tremors2"] = { slot = _R, champName = "Rammus", SType = "aoe", SRange = 300, CC = true }, 
+["RekSaiQBurrowed"] = { slot = _Q, champName = "RekSai", SType = "linear", SSpeed = 2100, SRange = 1650, SDelay = 125, SRadius = 50, CC = false }, 
+["RekSaiWBurrowed"] = { slot = _W, champName = "RekSai", SType = "aoe", SRange = 160, CC = true }, 
+["RekSaiE"] = { slot = _E, champName = "RekSai", SType = "target", SRange = 250, CC = false }, 
+["RenektonCleave"] = { slot = _Q, champName = "Renekton", SType = "aoe", SRange = 325, CC = false }, 
+["RenektonSliceAndDice"] = { slot = _Q, champName = "Renekton", SType = "linear", SSpeed = 1125, SRange = 450, SDelay = 250, SRadius = 45, CC = false }, 
+["RengarW"] = { slot = _W, champName = "Rengar", SType = "aoe", SRange = 450, CC = false }, 
+["RengarE"] = { slot = _E, champName = "Rengar", SType = "linear", SSpeed = 1500, SRange = 1000, SDelay = 250, SRadius = 60, CC = true }, 
+["RivenTriCleave"] = { slot = _Q, champName = "Riven", SType = "circular", SSpeed = 1100, SRange = 260, SDelay = 250, SRadius = 200, CC = true }, 
+["RivenMartyr"] = { slot = _W, champName = "Riven", SType = "aoe", SRange = 135, CC = true }, 
+["RivenIzunaBlade"] = { slot = _R, champName = "Riven", SType = "aoe", SRange = 900, CC = false }, 
+["RumbleGrenade"] = { slot = _E, champName = "Rumble", SType = "linear", SSpeed = 2000, SRange = 850, SDelay = 250, SRadius = 70, CC = true }, 
+["RyzeQ"] = { slot = _Q, champName = "Ryze", SType = "linear", SSpeed = 1700, SRange = 1000, SDelay = 250, SRadius = 50, CC = false }, 
+["RyzeW"] = { slot = _W, champName = "Ryze", SType = "target", SRange = 615, CC = true }, 
+["RyzeE"] = { slot = _E, champName = "Ryze", SType = "target", SRange = 615, CC = false }, 
+["SejuaniQ"] = { slot = _Q, champName = "Sejuani", SType = "linear", SSpeed = 1300, SRange = 650, SDelay = 250, SRadius = 150, CC = true }, 
+["ShacoE"] = { slot = _E, champName = "Shaco", SType = "target", SRange = 625, CC = true }, -- Check
+["ShenE"] = { slot = _E, champName = "Shen", SType = "linear", SSpeed = 1200, SRange = 600, SDelay = 0, SRadius = 60, CC = true }, 
+["ShyvanaFireball"] = { slot = _E, champName = "Shyvana", SType = "linear", SSpeed = 1575, SRange = 925, SDelay = 250, SRadius = 60, CC = false }, 
+["ShyvanaFireballDragon2"] = { slot = _E, champName = "Shyvana", SType = "linear", SSpeed = 1575, SRange = 925, SDelay = 333, SRadius = 60, CC = false }, 
+["ShyvanaTransformLeap"] = { slot = _R, champName = "Shyvana", SType = "linear", SSpeed = 1130, SRange = 850, SDelay = 250, SRadius = 60, CC = true }, 
+["Fling"] = { slot = _E, champName = "Singed", SType = "target", SRange = 125, CC = true }, -- Check
+["SionQ"] = { slot = _Q, champName = "Sion", SType = "linear", SSpeed = math.huge, SRange = 600, SDelay = 0, SRadius = 300, CC = true }, 
+["SionW"] = { slot = _W, champName = "Sion", SType = "circular", SSpeed = math.huge, SRange = 1, SDelay = 3000, SRadius = 550, CC = false }, 
+["SionE"] = { slot = _E, champName = "Sion", SType = "linear", SSpeed = 1900, SRange = 725, SDelay = 250, SRadius = 80, CC = true }, 
+["SionR"] = { slot = _R, champName = "Sion", SType = "linear", SSpeed = 950, SRange = 7500, SDelay = 125, SRadius = 200, CC = true }, 
+["SivirQ"] = { slot = _Q, champName = "Sivir", SType = "linear", SSpeed = 1350, SRange = 1250, SDelay = 250, SRadius = 75, CC = false }, 
+["SkarnerVirulentSlash"] = { slot = _Q, champName = "Skarner", SType = "aoe", SRange = 350, CC = false }, 
+["SkarnerFracture"] = { slot = _E, champName = "Skarner", SType = "linear", SSpeed = 1500, SRange = 1000, SDelay = 250, SRadius = 70, CC = true }, 
+["SkarnerImpale"] = { slot = _R, champName = "Skarner", SType = "target", SRange = 350, CC = true }, 
+["SonaQ"] = { slot = _Q, champName = "Sona", SType = "aoe", SRange = 825, CC = false }, 
+["SonaR"] = { slot = _R, champName = "Sona", SType = "linear", SSpeed = 2250, SRange = 900, SDelay = 250, SRadius = 120, CC = true }, 
+["SorakaQ"] = { slot = _Q, champName = "Soraka", SType = "circular", SSpeed = 1150, SRange = 800, SDelay = 250, SRadius = 235, CC = true }, 
+["SorakaE"] = { slot = _E, champName = "Soraka", SType = "circular", SSpeed = math.huge, SRange = 925, SDelay = 1500, SRadius = 300, CC = true }, 
+["SwainQ"] = { slot = _Q, champName = "Swain", SType = "aoe", SRange = 725, CC = false }, 
+["SwainW"] = { slot = _W, champName = "Swain", SType = "circular", SSpeed = math.huge, SRange = 3500, SDelay = 1500, SRadius = 325, CC = true }, 
+["SwainE"] = { slot = _E, champName = "Swain", SType = "linear", SSpeed = 1550, SRange = 850, SDelay = 250, SRadius = 100, CC = true }, 
+["SyndraQ"] = { slot = _W, champName = "Syndra", SType = "circular", SSpeed = math.huge, SRange = 800, SDelay = 625, SRadius = 200, CC = false }, 
+["SyndraWCast"] = { slot = _W, champName = "Syndra", SType = "circular", SSpeed = 1450, SRange = 950, SDelay = 250, SRadius = 225, CC = true }, 
+["SyndraE"] = { slot = _E, champName = "Syndra", SType = "aoe", SRange = 700, CC = true }, 
+["SyndraEMissile"] = { slot = _E, champName = "Syndra", SType = "linear", SSpeed = 1600, SRange = 1250, SDelay = 250, SRadius = 50, CC = true }, 
+["SyndraR"] = { slot = _R, champName = "Syndra", SType = "target", SRange = 750, CC = false }, 
+["TahmKenchQ"] = { slot = _Q, champName = "TahmKench", SType = "linear", SSpeed = 2670, SRange = 800, SDelay = 250, SRadius = 70, CC = true }, 
+["TahmKenchW"] = { slot = _W, champName = "TahmKench", SType = "target", SRange = 250, CC = true }, 
+["TaliyahQ"] = { slot = _Q, champName = "Taliyah", SType = "linear", SSpeed = 2850, SRange = 1000, SDelay = 250, SRadius = 100, CC = false }, 
+["TaliyahWVC"] = { slot = _W, champName = "Taliyah", SType = "circular", SSpeed = math.huge, SRange = 900, SDelay = 600, SRadius = 150, CC = true }, 
+["TalonQ"] = { slot = _Q, champName = "Talon", SType = "target", SRange = 550, CC = false }, 
+["TalonW"] = { slot = _W, champName = "Talon", SType = "aoe", SRange = 650, CC = true }, 
+["TalonR"] = { slot = _R, champName = "Talon", SType = "aoe", SRange = 550, CC = false }, 
+["TaricE"] = { slot = _E, champName = "Taric", SType = "linear", SSpeed = math.huge, SRange = 575, SDelay = 1000, SRadius = 70, CC = true }, 
+["TeemoQ"] = { slot = _Q, champName = "Teemo", SType = "target", SRange = 680, CC = false }, 
+["TeemoRCast"] = { slot = _R, champName = "Teemo", SType = "circular", SSpeed = math.huge, SRange = 900, SDelay = 1250, SRadius = 200, CC = true }, 
+["ThreshQ"] = { slot = _Q, champName = "Thresh", SType = "linear", SSpeed = 1900, SRange = 1100, SDelay = 500, SRadius = 55, CC = true }, 
+["ThreshE"] = { slot = _E, champName = "Thresh", SType = "aoe", SRange = 400, CC = true }, 
+["ThreshRPenta"] = { slot = _R, champName = "Thresh", SType = "aoe", SRange = 450, CC = true }, 
+["TristanaW"] = { slot = _W, champName = "Tristana", SType = "circular", SSpeed = 1100, SRange = 900, SDelay = 250, SRadius = 250, CC = true }, 
+["TristanaE"] = { slot = _E, champName = "Tristana", SType = "target", SRange = 661, CC = false }, 
+["TristanaR"] = { slot = _R, champName = "Tristana", SType = "target", SRange = 661, CC = true }, 
+["TrundleR"] = { slot = _R, champName = "Trundle", SType = "target", SRange = 700, CC = false }, -- Check
+["WildCards"] = { slot = _Q, champName = "TwistedFate", SType = "linear", SSpeed = 1000, SRange = 1450, SDelay = 250, SRadius = 35, CC = false }, 
+["TwitchVenomCask"] = { slot = _W, champName = "Twitch", SType = "circular", SSpeed = 1400, SRange = 950, SDelay = 250, SRadius = 340, CC = true }, 
+["UrgotQ"] = { slot = _Q, champName = "Urgot", SType = "circular", SSpeed = math.huge, SRange = 800, SDelay = 600, SRadius = 215, CC = true }, 
+["UrgotE"] = { slot = _E, champName = "Urgot", SType = "linear", SSpeed = 1050, SRange = 475, SDelay = 450, SRadius = 100, CC = true }, 
+["UrgotR"] = { slot = _R, champName = "Urgot", SType = "linear", SSpeed = 3200, SRange = 1600, SDelay = 400, SRadius = 70, CC = true }, 
+["VarusQ"] = { slot = _Q, champName = "Varus", SType = "linear", SSpeed = 1850, SRange = 1625, SDelay = 0, SRadius = 40, CC = false }, 
+["VarusE"] = { slot = _E, champName = "Varus", SType = "circular", SSpeed = 1500, SRange = 925, SDelay = 242, SRadius = 280, CC = true }, 
+["VarusR"] = { slot = _R, champName = "Varus", SType = "linear", SSpeed = 1850, SRange = 1075, SDelay = 242, SRadius = 120, CC = true }, 
+["VayneCondemn"] = { slot = _E, champName = "Vayne", SType = "target", SRange = 550, CC = true }, 
+["VeigarBalefulStrike"] = { slot = _Q, champName = "Veigar", SType = "linear", SSpeed = 2000, SRange = 950, SDelay = 250, SRadius = 60, CC = false }, 
+["VeigarDarkMatter"] = { slot = _W, champName = "Veigar", SType = "circular", SSpeed = math.huge, SRange = 900, SDelay = 1250, SRadius = 225, CC = false }, 
+["VeigarEventHorizon"] = { slot = _E, champName = "Veigar", SType = "circular", SSpeed = math.huge, SRange = 700, SDelay = 750, SRadius = 375, CC = true }, 
+["VeigarPrimordialBurst"] = { slot = _R, champName = "Veigar", SType = "target", SRange = 650, CC = false }, 
+["VelKozQ"] = { slot = _Q, champName = "VelKoz", SType = "linear", SSpeed = 1235, SRange = 1050, SDelay = 251, SRadius = 55, CC = true }, 
+["VelKozW"] = { slot = _W, champName = "VelKoz", SType = "linear", SSpeed = 1500, SRange = 1050, SDelay = 250, SRadius = 80, CC = false }, 
+["VelKozE"] = { slot = _E, champName = "VelKoz", SType = "circular", SSpeed = math.huge, SRange = 850, SDelay = 750, SRadius = 235, CC = true }, 
+["ViQ"] = { slot = _Q, champName = "Vi", SType = "linear", SSpeed = 1400, SRange = 725, SDelay = 0, SRadius = 55, CC = true }, 
+["ViR"] = { slot = _R, champName = "Vi", SType = "target", SRange = 800, CC = true }, 
+["ViktorSiphonPower"] = { slot = _Q, champName = "Viktor", SType = "target", SRange = 600, CC = false }, 
+["ViktorGravitonField"] = { slot = _W, champName = "Viktor", SType = "circular", SSpeed = math.huge, SRange = 700, SDelay = 1333, SRadius = 290, CC = true }, 
+["ViktorDeathRay"] = { slot = _E, champName = "Viktor", SType = "linear", SSpeed = 1350, SRange = 1025, SDelay = 0, SRadius = 80, CC = false }, 
+["ViktorChaosStorm"] = { slot = _R, champName = "Viktor", SType = "circular", SSpeed = math.huge, SRange = 700, SDelay = 250, SRadius = 290, CC = false }, 
+["VladimirQ"] = { slot = _Q, champName = "Vladimir", SType = "target", SRange = 600, CC = false }, 
+["VladimirE"] = { slot = _E, champName = "Vladimir", SType = "aoe", SRange = 600, CC = true }, 
+["VladimirHemoplague"] = { slot = _R, champName = "Vladimir", SType = "circular", SSpeed = math.huge, SRange = 700, SDelay = 389, SRadius = 350, CC = false }, 
+["VolibearE"] = { slot = _E, champName = "Volibear", SType = "aoe", SRange = 425, CC = true }, -- Check
+["WarwickQ"] = { slot = _Q, champName = "Warwick", SType = "target", SRange = 350, CC = true }, 
+["WarwickE"] = { slot = _E, champName = "Warwick", SType = "aoe", SRange = 375, CC = true }, 
+["WarwickR"] = { slot = _R, champName = "Warwick", SType = "linear", SSpeed = 1800, SRange = 2000, SDelay = 100, SRadius = 45, CC = true }, 
+["MonkeyKingDecoy"] = { slot = _W, champName = "MonkeyKing", SType = "aoe", SRange = 175, CC = false }, 
+["MonkeyKingNimbus"] = { slot = _E, champName = "MonkeyKing", SType = "linear", SSpeed = 1200, SRange = 625, SDelay = 0, SRadius = 188, CC = false }, 
+["MonkeyKingSpinToWin"] = { slot = _R, champName = "MonkeyKing", SType = "aoe", SRange = 325, CC = true }, 
+["XayahR"] = { slot = _R, champName = "Xayah", SType = "aoe", SRange = 1100, CC = false }, 
+["XerathArcanopulse2"] = { slot = _Q, champName = "Xerath", SType = "linear", SSpeed = math.huge, SRange = 1400, SDelay = 500, SRadius = 75, CC = false }, 
+["XerathArcaneBarrage2"] = { slot = _W, champName = "Xerath", SType = "circular", SSpeed = math.huge, SRange = 1100, SDelay = 500, SRadius = 235, CC = true }, 
+["XerathMageSpearMissile"] = { slot = _E, champName = "Xerath", SType = "linear", SSpeed = 1350, SRange = 1050, SDelay = 250, SRadius = 60, CC = true }, 
+["XerathRMissileWrapper"] = { slot = _R, champName = "Xerath", SType = "circular", SSpeed = math.huge, SRange = 6160, SDelay = 600, SRadius = 200, CC = false }, 
+["XinZhaoE"] = { slot = _E, champName = "XinZhao", SType = "target", SRange = 650, CC = true }, 
+["XinZhaoR"] = { slot = _R, champName = "XinZhao", SType = "aoe", SRange = 550, CC = true }, 
+["YasuoQ3"] = { slot = _Q, champName = "Yasuo", SType = "linear", SSpeed = 1500, SRange = 1000, SDelay = 180, SRadius = 75, CC = true }, 
+["YasuoE"] = { slot = _E, champName = "Yasuo", SType = "target", SRange = 475, CC = false }, 
+["YasuoR"] = { slot = _R, champName = "Yasuo", SType = "aoe", SRange = 1400, CC = true }, 
+["YorickE"] = { slot = _E, champName = "Yorick", SType = "aoe", SRange = 700, CC = true }, 
+["ZacQ"] = { slot = _Q, champName = "Zac", SType = "linear", SSpeed = math.huge, SRange = 800, SDelay = 330, SRadius = 85, CC = true }, 
+["ZacW"] = { slot = _W, champName = "Zac", SType = "aoe", SRange = 350, CC = true }, 
+["ZacE"] = { slot = _E, champName = "Zac", SType = "circular", SSpeed = 1330, SRange = 1800, SDelay = 0, SRadius = 300, CC = true }, 
+["ZacR"] = { slot = _R, champName = "Zac", SType = "aoe", SRange = 300, CC = true }, 
+["ZedE"] = { slot = _E, champName = "Zed", SType = "aoe", SRange = 290, CC = true }, 
+["ZiggsQ"] = { slot = _Q, champName = "Ziggs", SType = "circular", SSpeed = 1700, SRange = 1400, SDelay = 250, SRadius = 180, CC = false }, 
+["ZiggsW"] = { slot = _W, champName = "Ziggs", SType = "circular", SSpeed = 2000, SRange = 1000, SDelay = 250, SRadius = 325, CC = true }, 
+["ZiggsE"] = { slot = _E, champName = "Ziggs", SType = "circular", SSpeed = 1800, SRange = 900, SDelay = 250, SRadius = 325, CC = true }, 
+["ZiggsR"] = { slot = _R, champName = "Ziggs", SType = "circular", SSpeed = 1500, SRange = 5300, SDelay = 375, SRadius = 550, CC = false }, 
+["ZileanQ"] = { slot = _Q, champName = "Zilean", SType = "circular", SSpeed = 2050, SRange = 900, SDelay = 250, SRadius = 180, CC = true }, 
+["ZileanE"] = { slot = _E, champName = "Zilean", SType = "target", SRange = 550, CC = true }, 
+["ZoeQ"] = { slot = _Q, champName = "Zoe", SType = "linear", SSpeed = 1280, SRange = 800, SDelay = 250, SRadius = 40, CC = false }, 
+["ZoeQRecast"] = { slot = _Q, champName = "Zoe", SType = "linear", SSpeed = 2370, SRange = 1600, SDelay = 0, SRadius = 40, CC = false }, 
+["ZoeE"] = { slot = _Q, champName = "Zoe", SType = "linear", SSpeed = 1950, SRange = 800, SDelay = 300, SRadius = 55, CC = true }, 
+["ZyraQPlantMissile"] = { slot = _Q, champName = "Zyra", SType = "circular", SSpeed = math.huge, SRange = 800, SDelay = 625, SRadius = 100, CC = false }, 
+["ZyraE"] = { slot = _E, champName = "Zyra", SType = "linear", SSpeed = 1150, SRange = 1100, SDelay = 250, SRadius = 60, CC = true }, 
+["ZyraR"] = { slot = _R, champName = "Zyra", SType = "circular", SSpeed = math.huge, SRange = 700, SDelay = 1175, SRadius = 575, CC = true }
+}
+
+local BGlobalTicker = 0
+OnProcessSpell(function(unit, spellProc)
+	if SivirMenu.Auto.UseE:Value() then
+		local BlockSpell = Block[spellProc.name]
+		if BlockSpell then
+			if BlockSpell.champName == GetObjectName(unit) and GetTeam(unit) ~= GetTeam(myHero) and GetObjectType(unit) == Obj_AI_Hero and CanUseSpell(myHero,_E) == READY then
+				if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 >= SivirMenu.Auto.HP:Value() then
+					if BlockSpell.CC then
+						if spellProc.target == myHero and BlockSpell.SType == "target" and SivirMenu.Blocklist.BT:Value() then
+							CastSpell(_E)
+						end
+						if BlockSpell.SType == "linear" and IsInDistance(unit, BlockSpell.SRange+GetMoveSpeed(myHero)) and SivirMenu.Blocklist.BL:Value() then
+							BlockVector = VectorWay(spellProc.startPos, spellProc.endPos)
+							BlockDistanceStartEnd = DistanceBetween(spellProc.startPos, spellProc.endPos)
+							BlockVector = (BlockVector/BlockDistanceStartEnd)*BlockSpell.SRange
+							BlockSpellTimeNeed = ((BlockSpell.SRange/(BlockSpell.SSpeed+50))*1000)+BlockSpell.SDelay
+							WayOnTime = BlockVector/BlockSpellTimeNeed
+							startTime = GetGameTimer()
+							startingPos = spellProc.startPos
+							endingPos = spellProc.startPos + BlockVector
+							radius = BlockSpell.SRadius
+						end
+						if BlockSpell.SType == "circular" and IsInDistance(unit, BlockSpell.SRange+GetMoveSpeed(myHero)) and SivirMenu.Blocklist.BC:Value() then
+							local spellTime = (DistanceBetween((GetOrigin(unit)),spellProc.endPos)/BlockSpell.SSpeed)*1000+BlockSpell.SDelay
+							local Ticker = GetTickCount()	
+							if (BGlobalTicker) < Ticker then
+								DelayAction(function()
+									if GetDistance(spellProc.endPos) < BlockSpell.SRadius then
+										CastSpell(_E)
+									end
+								end, (spellTime)/1000 - 0.23)
+								BGlobalTicker = Ticker
+							end	
+						end
+						if BlockSpell.SType == "aoe" and IsInDistance(unit, BlockSpell.SRange) and SivirMenu.Blocklist.BA:Value() then
+							CastSpell(_E)
+						end
+					end
+				else
+					if spellProc.target == myHero and BlockSpell.SType == "target" and SivirMenu.Blocklist.BT:Value() then
+						CastSpell(_E)
+					end
+					if BlockSpell.SType == "linear" and IsInDistance(unit, BlockSpell.SRange+GetMoveSpeed(myHero)) and SivirMenu.Blocklist.BL:Value() then
+						BlockVector = VectorWay(spellProc.startPos, spellProc.endPos)
+						BlockDistanceStartEnd = DistanceBetween(spellProc.startPos, spellProc.endPos)
+						BlockVector = (BlockVector/BlockDistanceStartEnd)*BlockSpell.SRange
+						BlockSpellTimeNeed = ((BlockSpell.SRange/(BlockSpell.SSpeed+50))*1000)+BlockSpell.SDelay
+						WayOnTime = BlockVector/BlockSpellTimeNeed
+						startTime = GetGameTimer()
+						startingPos = spellProc.startPos
+						endingPos = spellProc.startPos + BlockVector
+						radius = BlockSpell.SRadius
+					end
+					if BlockSpell.SType == "circular" and IsInDistance(unit, BlockSpell.SRange+GetMoveSpeed(myHero)) and SivirMenu.Blocklist.BC:Value() then
+						local spellTime = (DistanceBetween((GetOrigin(unit)),spellProc.endPos)/BlockSpell.SSpeed)*1000+BlockSpell.SDelay
+						local Ticker = GetTickCount()	
+						if (BGlobalTicker) < Ticker then
+							DelayAction(function()
+								if GetDistance(spellProc.endPos) < BlockSpell.SRadius then
+									CastSpell(_E)
+								end
+							end, (spellTime)/1000 - 0.23)
+							BGlobalTicker = Ticker
+						end	
+					end
+					if BlockSpell.SType == "aoe" and IsInDistance(unit, BlockSpell.SRange) and SivirMenu.Blocklist.BA:Value() then
+						CastSpell(_E)
+					end
+				end
+			end
+		end
+	end
+end)
+function LineE()
+	if SivirMenu.Auto.UseE:Value() then
+		if startTime ~= nil then
+			local Time = GetGameTimer() - startTime
+			Time = Time*1000
+			local spellPos = startingPos+(Time*WayOnTime)
+			local spellPos1 = startingPos+((Time-150)*WayOnTime)
+			local spellPos2 = startingPos+((Time-100)*WayOnTime)
+			local spellPos3 = startingPos+((Time-50)*WayOnTime)
+			if CanUseSpell(myHero,_E) == READY then
+				if GetDistance(spellPos) <= radius+GetHitBox(myHero)*1.2 then
+					CastSpell(_E)
+				end
+				if GetDistance(spellPos1) <= radius+GetHitBox(myHero)*1.2 then
+					CastSpell(_E)
+				end
+				if GetDistance(spellPos2) <= radius+GetHitBox(myHero)*1.2 then
+					CastSpell(_E)
+				end
+				if GetDistance(spellPos3) <= radius+GetHitBox(myHero)*1.2 then
+					CastSpell(_E)
+				end
+			end
+			if Time >= BlockSpellTimeNeed then
+				startTime = nil
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if SivirMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY and AA == true then
+				if ValidTarget(target, SivirQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if SivirMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY and AA == true then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					CastSpell(_W)
+					if _G.IOW then
+						IOW:ResetAA()
+					elseif _G.GoSWalkLoaded then
+						_G.GoSWalk:ResetAttack()
+					end
+				end
+			end
+		end
+		if SivirMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, SivirMenu.Combo.Distance:Value()) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < SivirMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, 1500) >= SivirMenu.Combo.X:Value() then
+							CastSpell(_R)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if SivirMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SivirMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					if ValidTarget(target, SivirQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if SivirMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SivirMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY and AA == true then
+					if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+						CastSpell(_W)
+						if _G.IOW then
+							IOW:ResetAA()
+						elseif _G.GoSWalkLoaded then
+							_G.GoSWalk:ResetAttack()
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_Q) == READY then
+			if SivirMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, SivirQ.range) then
+					local SivirQDmg = (37*GetCastLevel(myHero,_Q)+27.75)+((0.185*GetCastLevel(myHero,_Q)+1.11)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.925*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < SivirQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if SivirMenu.LaneClear.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SivirMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY and AA == true then
+					local BestPos, BestHit = GetLineFarmPosition(SivirQ.range, SivirQ.radius, MINION_ENEMY)
+					if BestPos and BestHit > 4 then
+						CastSkillShot(_Q, BestPos)
+					end
+				end
+			end
+		end
+		if SivirMenu.LaneClear.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > SivirMenu.LaneClear.MP:Value() then
+				for _, minion in pairs(minionManager.objects) do
+					if GetTeam(minion) == MINION_ENEMY then
+						if ValidTarget(minion, GetRange(myHero)+GetHitBox(myHero)) then
+							if CanUseSpell(myHero,_W) == READY and AA == true then
+								CastSpell(_W)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function DistanceBetween(p1,p2)
+	return math.sqrt(math.pow((p2.x - p1.x),2) + math.pow((p2.y - p1.y),2) + math.pow((p2.z - p1.z),2))
+end
 function VectorWay(A,B)
 	WayX = B.x - A.x
 	WayY = B.y - A.y
