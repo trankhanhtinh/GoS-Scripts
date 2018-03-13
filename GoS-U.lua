@@ -12,11 +12,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.3
+-- Current version: 1.1.4
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista, KogMaw,
---   Lucian, MissFortune, Sivir, Vayne
+--   Lucian, MissFortune, Sivir, Varus, Vayne
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.4
+-- + Added Varus
 -- 1.1.3
 -- + Added Sivir
 -- 1.1.2.1
@@ -74,7 +76,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.13
+local GSVer = 1.14
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -159,8 +161,10 @@ GAPCLOSER_SPELLS = {
     ["JarvanIV"]                    = {_Q, _R},
     ["Jax"]                         = {_Q},
     ["Jayce"]                       = {_Q},
+    ["Kaisa"]                       = {_E, _R},
     ["Katarina"]                    = {_E},
     ["Kassadin"]                    = {_R},
+    ["Kayn"]                        = {_Q},
     ["Kennen"]                      = {_E},
     ["KhaZix"]                      = {_E},
     ["Lissandra"]                   = {_E},
@@ -377,7 +381,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) or "Jhin" == GetObjectName(myHero) or "Jinx" == GetObjectName(myHero) or "MissFortune" == GetObjectName(myHero) or "Vayne" == GetObjectName(myHero) then
+		elseif "Caitlyn" == GetObjectName(myHero) or "Draven" == GetObjectName(myHero) or "Jhin" == GetObjectName(myHero) or "Jinx" == GetObjectName(myHero) or "MissFortune" == GetObjectName(myHero) or "Sivir" == GetObjectName(myHero) or "Vayne" == GetObjectName(myHero) then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -389,6 +393,11 @@ function LevelUp()
 			end
 		elseif "Kalista" == GetObjectName(myHero) then
 			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif "Varus" == GetObjectName(myHero) then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
@@ -2844,7 +2853,7 @@ function useE(target)
 				CastSkillShot(_W, WPred.CastPosition)
 			end
 		elseif JinxMenu.Prediction.PredictionE:Value() == 4 then
-			local WSpell = IPrediction.Prediction({name="JinxE", range=JinxE.range, speed=JinxE.speed, delay=JinxE.delay, width=JinxE.width, type="circular", collision=false})
+			local ESpell = IPrediction.Prediction({name="JinxE", range=JinxE.range, speed=JinxE.speed, delay=JinxE.delay, width=JinxE.width, type="circular", collision=false})
 			ts = TargetSelector()
 			target = ts:GetTarget(JinxE.range)
 			local x, y = ESpell:Predict(target)
@@ -5553,6 +5562,430 @@ function VectorWay(A,B)
 	WayZ = B.z - A.z
 	return Vector(WayX, WayY, WayZ)
 end
+
+-- Varus
+
+elseif "Varus" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Varus loaded successfully!")
+local VarusMenu = Menu("[GoS-U] Varus", "[GoS-U] Varus")
+VarusMenu:Menu("Auto", "Auto")
+VarusMenu.Auto:Boolean('UseQ', 'Use Q [Piercing Arrow]', false)
+VarusMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+VarusMenu:Menu("Combo", "Combo")
+VarusMenu.Combo:Boolean('UseQ', 'Use Q [Piercing Arrow]', true)
+VarusMenu.Combo:Boolean('UseE', 'Use E [Hail of Arrows]', true)
+VarusMenu.Combo:Boolean('UseR', 'Use R [Chain of Corruption]', true)
+VarusMenu.Combo:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+VarusMenu.Combo:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+VarusMenu:Menu("Harass", "Harass")
+VarusMenu.Harass:Boolean('UseQ', 'Use Q [Piercing Arrow]', true)
+VarusMenu.Harass:Boolean('UseE', 'Use E [Hail of Arrows]', true)
+VarusMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+VarusMenu:Menu("KillSteal", "KillSteal")
+VarusMenu.KillSteal:Boolean('UseQ', 'Use Q [Piercing Arrow]', true)
+VarusMenu.KillSteal:Boolean('UseR', 'Use R [Chain of Corruption]', false)
+VarusMenu:Menu("LaneClear", "LaneClear")
+VarusMenu.LaneClear:Boolean('UseQ', 'Use Q [Piercing Arrow]', true)
+VarusMenu.LaneClear:Boolean('UseE', 'Use E [Hail of Arrows]', true)
+VarusMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+VarusMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+VarusMenu.AntiGapcloser:Boolean('UseE', 'Use E [Hail of Arrows]', true)
+VarusMenu.AntiGapcloser:Boolean('UseR', 'Use R [Chain of Corruption]', true)
+VarusMenu.AntiGapcloser:Slider('DistanceE','Distance: E', 400, 25, 500, 25)
+VarusMenu.AntiGapcloser:Slider('DistanceR','Distance: R', 300, 25, 500, 25)
+VarusMenu:Menu("Interrupter", "Interrupter")
+VarusMenu.Interrupter:Boolean('UseR', 'Use R [Chain of Corruption]', true)
+VarusMenu.Interrupter:Slider('Distance','Distance: R', 400, 25, 500, 25)
+VarusMenu:Menu("Prediction", "Prediction")
+VarusMenu.Prediction:DropDown("PredictionQ", "Prediction: Q", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+VarusMenu.Prediction:DropDown("PredictionE", "Prediction: E", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+VarusMenu.Prediction:DropDown("PredictionR", "Prediction: R", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+VarusMenu:Menu("Drawings", "Drawings")
+VarusMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+VarusMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+VarusMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
+VarusMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWER Damage', false)
+VarusMenu:Menu("Misc", "Misc")
+VarusMenu.Misc:Key("UseQ", "Release Q Key", string.byte("A"))
+VarusMenu.Misc:Slider("StacksQ","Min W Stacks To Use Q", 2, 0, 3, 1)
+VarusMenu.Misc:Slider("StacksE","Min W Stacks To Use E", 2, 0, 3, 1)
+VarusMenu.Misc:Slider("StacksR","Min W Stacks To Use R", 1, 0, 3, 1)
+
+local VarusQ = { minrange = 925, range = 1625, radius = 40, width = 80, speed = 1850, delay = 0, type = "linear", collision = true, source = myHero, col = {"yasuowall"}}
+local VarusE = { range = 925, radius = 280, width = 560, speed = 1500, delay = 0.242, type = "circular", collision = false, source = myHero }
+local VarusR = { range = 1075, radius = 120, width = 240, speed = 1850, delay = 0.242, type = "linear", collision = true, source = myHero, col = {"yasuowall"}}
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	QCheck()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	AntiGapcloser()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if VarusMenu.Drawings.DrawQ:Value() then DrawCircle(pos,VarusQ.range,1,25,0xff00bfff) end
+if VarusMenu.Drawings.DrawE:Value() then DrawCircle(pos,VarusE.range,1,25,0xff1e90ff) end
+if VarusMenu.Drawings.DrawR:Value() then DrawCircle(pos,VarusR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local QDmg = (55*GetCastLevel(myHero,_Q)-40)+(1.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
+		local WDmg = (4*GetCastLevel(myHero,_W)+6)+(0.25*GetBonusAP(myHero))+((0.0225*GetCastLevel(myHero,_W)+0.0375)+((0.06*GetBonusAP(myHero)/100)*GetMaxHP(enemy)))
+		local EDmg = (35*GetCastLevel(myHero,_E)+35)+(0.6*GetBonusDmg(myHero))
+		local RDmg = (75*GetCastLevel(myHero,_R)+25)+GetBonusAP(myHero)
+		local ComboDmg = QDmg + WDmg + EDmg + RDmg
+		local WERDmg = WDmg + EDmg + RDmg
+		local QERDmg = QDmg + EDmg + RDmg
+		local QWRDmg = QDmg + WDmg + RDmg
+		local QWEDmg = QDmg + WDmg + EDmg
+		local ERDmg = EDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local QRDmg = QDmg + RDmg
+		local WEDmg = WDmg + EDmg
+		local QEDmg = QDmg + EDmg
+		local QWDmg = QDmg + WDmg
+		if ValidTarget(enemy) then
+			if VarusMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QERDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWEDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useQ(target)
+	if IsInDistance(target, VarusQ.range) then
+		if GotBuff(myHero, "VarusQLaunch") > 0 then
+			if VarusMenu.Misc.UseQ:Value() then
+				if VarusMenu.Prediction.PredictionQ:Value() == 1 then
+					CastSkillShot2(_Q,GetOrigin(target))
+				elseif VarusMenu.Prediction.PredictionQ:Value() == 2 then
+					local QPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),VarusQ.speed,VarusQ.delay*1000,VarusQ.range,VarusQ.width,false,true)
+					if QPred.HitChance == 1 then
+						CastSkillShot2(_Q, QPred.PredPos)
+					end
+				elseif VarusMenu.Prediction.PredictionQ:Value() == 3 then
+					local qPred = _G.gPred:GetPrediction(target,myHero,VarusQ,false,true)
+					if qPred and qPred.HitChance >= 3 then
+						CastSkillShot2(_Q, qPred.CastPosition)
+					end
+				elseif VarusMenu.Prediction.PredictionQ:Value() == 4 then
+					local QSpell = IPrediction.Prediction({name="VarusQ", range=VarusQ.range, speed=VarusQ.speed, delay=VarusQ.delay, width=VarusQ.width, type="linear", collision=false})
+					ts = TargetSelector()
+					target = ts:GetTarget(VarusQ.range)
+					local x, y = QSpell:Predict(target)
+					if x > 2 then
+						CastSkillShot2(_Q, y.x, y.y, y.z)
+					end
+				elseif VarusMenu.Prediction.PredictionQ:Value() == 5 then
+					local QPrediction = GetLinearAOEPrediction(target,VarusQ)
+					if QPrediction.hitChance > 0.9 then
+						CastSkillShot2(_Q, QPrediction.castPos)
+					end
+				end
+			end
+		else
+			CastSkillShot(_Q,GetMousePos())
+		end
+	end
+end
+function useE(target)
+	if GetDistance(target) < VarusE.range then
+		if VarusMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif VarusMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),VarusE.speed,VarusE.delay*1000,VarusE.range,VarusE.width,false,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif VarusMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,VarusE,true,false)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif VarusMenu.Prediction.PredictionE:Value() == 4 then
+			local ESpell = IPrediction.Prediction({name="VarusE", range=VarusE.range, speed=VarusE.speed, delay=VarusE.delay, width=VarusE.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(VarusE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif VarusMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetCircularAOEPrediction(target,VarusE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+function useR(target)
+	if GetDistance(target) < VarusR.range then
+		if VarusMenu.Prediction.PredictionR:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif VarusMenu.Prediction.PredictionR:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),VarusR.speed,VarusR.delay*1000,VarusR.range,VarusR.width,false,false)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif VarusMenu.Prediction.PredictionR:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,VarusR,false,true)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif VarusMenu.Prediction.PredictionR:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="VarusR", range=VarusR.range, speed=VarusR.speed, delay=VarusR.delay, width=VarusR.width, type="linear", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(VarusR.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif VarusMenu.Prediction.PredictionR:Value() == 5 then
+			local RPrediction = GetLinearAOEPrediction(target,VarusR)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+
+function QCheck()
+	if GotBuff(myHero, "VarusQLaunch") > 0 then
+		if _G.IOW then
+			IOW.attacksEnabled = false
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableAttack(false)
+		end
+	else
+		if _G.IOW then
+			IOW.attacksEnabled = true
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableAttack(true)
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if VarusMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VarusMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, VarusQ.range) then
+					if GotBuff(target, "VarusWDebuff") >= VarusMenu.Misc.StacksQ:Value() then
+						useQ(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if VarusMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, VarusQ.range) then
+					if GotBuff(target, "VarusWDebuff") >= VarusMenu.Misc.StacksQ:Value() then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if VarusMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, VarusE.range) then
+					if GotBuff(target, "VarusWDebuff") >= VarusMenu.Misc.StacksE:Value() then
+						useE(target)
+					end
+				end
+			end
+		end
+		if VarusMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, VarusR.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < VarusMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, VarusR.range) >= VarusMenu.Combo.X:Value() then
+							if GotBuff(target, "VarusWDebuff") >= VarusMenu.Misc.StacksR:Value() then
+								CastSpell(_R)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if VarusMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VarusMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, VarusQ.range) then
+						if GotBuff(target, "VarusWDebuff") >= VarusMenu.Misc.StacksQ:Value() then
+							useQ(target)
+						end
+					end
+				end
+			end
+		end
+		if VarusMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VarusMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY and AA == true then
+					if ValidTarget(target, VarusE.range) then
+						if GotBuff(target, "VarusWDebuff") >= VarusMenu.Misc.StacksE:Value() then
+							useE(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if VarusMenu.KillSteal.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(enemy, VarusQ.range) then
+					local VarusQDmg = (36.7*GetCastLevel(myHero,_Q)-26.7)+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*4) < VarusQDmg then
+						useQ(enemy)
+					end
+				end
+			end
+		end
+		if VarusMenu.KillSteal.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(enemy, VarusR.range) then
+					local VarusRDmg = (75*GetCastLevel(myHero,_R)+25)+GetBonusAP(myHero)
+					if (GetCurrentHP(enemy)+GetMagicResist(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < VarusRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if CanUseSpell(myHero,_Q) == READY then
+			if VarusMenu.LaneClear.UseQ:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VarusMenu.LaneClear.MP:Value() then
+					local BestPos, BestHit = GetLineFarmPosition(VarusQ.range, VarusQ.radius, MINION_ENEMY)
+					if BestPos and BestHit > 2 then
+						if GotBuff(myHero, "VarusQLaunch") > 0 then
+							DelayAction(function() CastSkillShot2(_Q, BestPos) end, 0.4)
+						else
+							CastSkillShot(_Q,GetMousePos())
+						end
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_E) == READY and AA == true then
+			if VarusMenu.LaneClear.UseE:Value() then
+				if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VarusMenu.LaneClear.MP:Value() then
+					local BestPos, BestHit = GetFarmPosition(VarusE.range, VarusE.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then
+						CastSkillShot(_E, BestPos)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- AntiGapcloser
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_E) == READY then
+			if VarusMenu.AntiGapcloser.UseE:Value() then
+				if ValidTarget(antigap, VarusMenu.AntiGapcloser.DistanceE:Value()) then
+					useE(antigap)
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if VarusMenu.AntiGapcloser.UseR:Value() then
+				if ValidTarget(antigap, VarusMenu.AntiGapcloser.DistanceR:Value()) then
+					useR(antigap)
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+OnProcessSpell(function(unit, spell)
+	if VarusMenu.Interrupter.UseR:Value() then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, VarusMenu.Interrupter.Distance:Value()) then
+				if CanUseSpell(myHero,_R) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useR(enemy) end
+						end
+					end
+				end
+			end
+		end
+    end
+end)
 
 -- Vayne
 
