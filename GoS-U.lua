@@ -409,12 +409,12 @@ function SS()
 	if EnemiesAround(myHero, 2500) >= 1 then
 		if UtilityMenu.SS.UseHeal:Value() then
 			if Heal then
-				if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.HealMe:Value() then
+				if GetCurrentHP(myHero) > 0 and (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.HealMe:Value() then
 					CastSpell(Heal)
 				end
 				for _, ally in pairs(GetAllyHeroes()) do
 					if ValidTarget(ally, 850) then
-						if (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= UtilityMenu.SS.HealAlly:Value() then
+						if GetCurrentHP(ally) > 0 and (GetCurrentHP(ally)/GetMaxHP(ally))*100 <= UtilityMenu.SS.HealAlly:Value() then
 							CastTargetSpell(ally, Heal)
 						end
 					end
@@ -423,7 +423,7 @@ function SS()
 		end
 		if UtilityMenu.SS.UseBarrier:Value() then
 			if Barrier then
-				if (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.BarrierMe:Value() then
+				if GetCurrentHP(myHero) > 0 and (GetCurrentHP(myHero)/GetMaxHP(myHero))*100 <= UtilityMenu.SS.BarrierMe:Value() then
 					CastSpell(Barrier)
 				end
 			end
