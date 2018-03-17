@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.4.1
+-- Current version: 1.1.5
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista, KogMaw,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5
+-- + Added Tristana
 -- 1.1.4.1
 -- + Improved Kaisa's E
 -- 1.1.4
@@ -78,7 +80,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.141
+local GSVer = 1.15
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -393,7 +395,7 @@ function LevelUp()
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
 			end
-		elseif "Kalista" == GetObjectName(myHero) then
+		elseif "Kalista" == GetObjectName(myHero) or "Tristana" == GetObjectName(myHero) then
 			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
 			if GetLevelPoints(myHero) > 0 then
 				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
@@ -5568,6 +5570,305 @@ function VectorWay(A,B)
 	WayZ = B.z - A.z
 	return Vector(WayX, WayY, WayZ)
 end
+
+-- Tristana
+
+elseif "Tristana" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>GoS-U<font color='#1E90FF'>] <font color='#00BFFF'>Tristana loaded successfully!")
+local TristanaMenu = Menu("[GoS-U] Tristana", "[GoS-U] Tristana")
+TristanaMenu:Menu("Auto", "Auto")
+TristanaMenu.Auto:Boolean('UseE', 'Use E [Explosive Charge]', true)
+TristanaMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+TristanaMenu:Menu("Combo", "Combo")
+TristanaMenu.Combo:Boolean('UseQ', 'Use Q [Rapid Fire]', true)
+TristanaMenu.Combo:Boolean('UseW', 'Use W [Rocket Jump]', true)
+TristanaMenu.Combo:Boolean('UseE', 'Use E [Explosive Charge]', true)
+TristanaMenu.Combo:DropDown("ModeW", "Cast Mode: W", 1, {"Gapclose To Target", "Mouse Position"})
+TristanaMenu:Menu("Harass", "Harass")
+TristanaMenu.Harass:Boolean('UseQ', 'Use Q [Rapid Fire]', true)
+TristanaMenu.Harass:Boolean('UseW', 'Use W [Rocket Jump]', true)
+TristanaMenu.Harass:Boolean('UseE', 'Use E [Explosive Charge]', true)
+TristanaMenu.Harass:DropDown("ModeW", "Cast Mode: W", 2, {"Gapclose To Target", "Mouse Position"})
+TristanaMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+TristanaMenu:Menu("KillSteal", "KillSteal")
+TristanaMenu.KillSteal:Boolean('UseE', 'Use E [Explosive Charge]', true)
+TristanaMenu.KillSteal:Boolean('UseR', 'Use R [Buster Shot]', true)
+TristanaMenu:Menu("LaneClear", "LaneClear")
+TristanaMenu.LaneClear:Boolean('UseQ', 'Use Q [Rapid Fire]', true)
+TristanaMenu.LaneClear:Boolean('UseE', 'Use E [Explosive Charge]', true)
+TristanaMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+TristanaMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+TristanaMenu.AntiGapcloser:Boolean('UseR', 'Use R [Buster Shot]', true)
+TristanaMenu.AntiGapcloser:Slider('Distance','Distance: R', 200, 25, 500, 25)
+TristanaMenu:Menu("Interrupter", "Interrupter")
+TristanaMenu.Interrupter:Boolean('UseR', 'Use R [Buster Shot]', true)
+TristanaMenu.Interrupter:Slider('Distance','Distance: R', 400, 50, 1000, 50)
+TristanaMenu:Menu("Prediction", "Prediction")
+TristanaMenu.Prediction:DropDown("PredictionW", "Prediction: W", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+TristanaMenu:Menu("Drawings", "Drawings")
+TristanaMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+TristanaMenu.Drawings:Boolean('DrawER', 'Draw ER Range', true)
+TristanaMenu.Drawings:Boolean('DrawDMG', 'Draw Max WER Damage', false)
+
+local TristanaW = { range = 900, radius = 250, width = 500, speed = 1100, delay = 0.25, type = "circular", collision = false, source = myHero }
+local TristanaE = { range = 525+(8*(GetLevel(myHero)-1)) }
+local TristanaR = { range = 525+(8*(GetLevel(myHero)-1)) }
+
+OnTick(function(myHero)
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	AntiGapcloser()
+end)
+OnDraw(function(myHero)
+	Ranges()
+	DrawDamage()
+end)
+
+function Ranges()
+local pos = GetOrigin(myHero)
+if TristanaMenu.Drawings.DrawW:Value() then DrawCircle(pos,TristanaW.range,1,25,0xff4169e1) end
+if TristanaMenu.Drawings.DrawER:Value() then DrawCircle(pos,TristanaR.range,1,25,0xff0000ff) end
+end
+
+function DrawDamage()
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		local WDmg = (50*GetCastLevel(myHero,_W)+35)+(0.5*GetBonusAP(myHero))
+		local EDmg = (22*GetCastLevel(myHero,_E)+110)+((0.22*GetCastLevel(myHero,_E)+0.88)*GetBonusDmg(myHero))+(1.1*GetBonusAP(myHero))
+		local RDmg = (100*GetCastLevel(myHero,_R)+200)+GetBonusAP(myHero)
+		local ComboDmg = WDmg + EDmg + RDmg
+		local ERDmg = EDmg + RDmg
+		local WRDmg = WDmg + RDmg
+		local WEDmg = WDmg + EDmg
+		if ValidTarget(enemy) then
+			if TristanaMenu.Drawings.DrawDMG:Value() then
+				if Ready(_W) and Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_E) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ERDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WRDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				elseif Ready(_R) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, RDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end
+
+function useW(target)
+	if TristanaMenu.Prediction.PredictionW:Value() == 1 then
+		CastSkillShot(_W,GetOrigin(target))
+	elseif TristanaMenu.Prediction.PredictionW:Value() == 2 then
+		local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),TristanaW.speed,TristanaW.delay*1000,TristanaW.range,TristanaW.width,false,true)
+		if WPred.HitChance == 1 then
+			CastSkillShot(_W, WPred.PredPos)
+		end
+	elseif TristanaMenu.Prediction.PredictionW:Value() == 3 then
+		local WPred = _G.gPred:GetPrediction(target,myHero,TristanaW,true,false)
+		if WPred and WPred.HitChance >= 3 then
+			CastSkillShot(_W, WPred.CastPosition)
+		end
+	elseif TristanaMenu.Prediction.PredictionW:Value() == 4 then
+		local WSpell = IPrediction.Prediction({name="TristanaW", range=TristanaW.range, speed=TristanaW.speed, delay=TristanaW.delay, width=TristanaW.width, type="circular", collision=false})
+		ts = TargetSelector()
+		target = ts:GetTarget(TristanaW.range)
+		local x, y = WSpell:Predict(target)
+		if x > 2 then
+			CastSkillShot(_W, y.x, y.y, y.z)
+		end
+	elseif TristanaMenu.Prediction.PredictionW:Value() == 5 then
+		local WPrediction = GetCircularAOEPrediction(target,TristanaW)
+		if WPrediction.hitChance > 0.9 then
+			CastSkillShot(_W, WPrediction.castPos)
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if TristanaMenu.Auto.UseE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TristanaMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, TristanaE.range) then
+					CastTargetSpell(target, _E)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if TristanaMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+					CastSpell(_Q)
+				end
+			end
+		end
+		if TristanaMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, TristanaW.range) then
+					if TristanaMenu.Combo.ModeW:Value() == 1 then
+						useW(target)
+					elseif TristanaMenu.Combo.ModeW:Value() == 2 then
+						CastSkillShot(_W, GetMousePos())
+					end
+				end
+			end
+		end
+		if TristanaMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY and AA == true then
+				if ValidTarget(target, TristanaE.range) then
+					CastTargetSpell(target, _E)
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if TristanaMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TristanaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+						CastSpell(_Q)
+					end
+				end
+			end
+		end
+		if TristanaMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TristanaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, TristanaW.range) then
+						if TristanaMenu.Harass.ModeW:Value() == 1 then
+							useW(target)
+						elseif TristanaMenu.Harass.ModeW:Value() == 2 then
+							CastSkillShot(_W, GetMousePos())
+						end
+					end
+				end
+			end
+		end
+		if TristanaMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > TristanaMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, TristanaE.range) then
+						CastTargetSpell(target, _E)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- KillSteal
+
+function KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_E) == READY then
+			if TristanaMenu.KillSteal.UseE:Value() then
+				if ValidTarget(enemy, TristanaE.range) then
+					local TristanaEDmg = (10*GetCastLevel(myHero,_E)+50)+((0.1*GetCastLevel(myHero,_E)+0.4)*GetBonusDmg(myHero))+(0.5*GetBonusAP(myHero))
+					if (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*10) < TristanaEDmg then
+						useE(enemy)
+					end
+				end
+			end
+		elseif CanUseSpell(myHero,_R) == READY then
+			if TristanaMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, TristanaR.range) then
+					local TristanaRDmg = (100*GetCastLevel(myHero,_R)+200)+GetBonusAP(myHero)
+					if (GetCurrentHP(enemy)+GetMagicResist(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2) < TristanaRDmg then
+						useR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if TristanaMenu.LaneClear.UseQ:Value() then
+					if ValidTarget(minion, GetRange(myHero)+GetHitBox(myHero)) then
+						if CanUseSpell(myHero,_Q) == READY then
+							CastSpell(_Q)
+						end
+					end
+				end
+				if TristanaMenu.LaneClear.UseE:Value() then
+					if ValidTarget(minion, TristanaE.range) then
+						if CanUseSpell(myHero,_E) == READY then
+							if MinionsAround(minion, 150) <= 3 then
+								CastTargetSpell(minion, _E)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if CanUseSpell(myHero,_R) == READY then
+			if TristanaMenu.AntiGapcloser.UseR:Value() then
+				if ValidTarget(antigap, TristanaMenu.AntiGapcloser.Distance:Value()) then
+					CastTargetSpell(antigap, _R)
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+OnProcessSpell(function(unit, spell)
+	if TristanaMenu.Interrupter.UseR:Value() then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, TristanaMenu.Interrupter.Distance:Value()) then
+				if CanUseSpell(myHero,_R) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitChanellingSpells then
+						for _, slot in pairs(UnitChanellingSpells) do
+							if spell.name == GetCastName(enemy, slot) then CastTargetSpell(enemy, _R) end
+						end
+					elseif UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then CastTargetSpell(enemy, _R) end
+						end
+					end
+				end
+			end
+		end
+    end
+end)
 
 -- Varus
 
