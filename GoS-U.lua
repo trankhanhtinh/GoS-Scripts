@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.4
+-- Current version: 1.1.4.1
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista, KogMaw,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.4.1
+-- + Improved Kaisa's E
 -- 1.1.4
 -- + Added Varus
 -- 1.1.3
@@ -76,7 +78,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.14
+local GSVer = 1.141
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -3280,10 +3282,12 @@ function Combo()
 			end
 		end
 		if KaisaMenu.Combo.UseE:Value() then
-			if CanUseSpell(myHero,_E) == READY and AA == true then
-				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
-					if GotBuff(myHero, "KaisaE") == 0 then
-						CastSpell(_E)
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, 600+GetRange(myHero)+GetHitBox(myHero)) then
+					if GetDistance(target) > GetRange(myHero) then
+						if GotBuff(myHero, "KaisaE") == 0 then
+							CastSpell(_E)
+						end
 					end
 				end
 			end
@@ -3315,10 +3319,12 @@ function Harass()
 		end
 		if KaisaMenu.Harass.UseE:Value() then
 			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > KaisaMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_E) == READY and AA == true then
-					if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
-						if GotBuff(myHero, "KaisaE") == 0 then
-							CastSpell(_E)
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, 600+GetRange(myHero)+GetHitBox(myHero)) then
+						if GetDistance(target) > GetRange(myHero) then
+							if GotBuff(myHero, "KaisaE") == 0 then
+								CastSpell(_E)
+							end
 						end
 					end
 				end
