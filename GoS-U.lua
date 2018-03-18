@@ -215,6 +215,7 @@ UtilityMenu:Menu("BaseUlt", "BaseUlt")
 UtilityMenu.BaseUlt:Boolean('BU', 'Enable BaseUlt', true)
 UtilityMenu:Menu("Draws", "Draws")
 UtilityMenu.Draws:Boolean('DrawAA', 'Draw Killable AAs', true)
+UtilityMenu.Draws:Boolean('DrawJng', 'Draw Jungler Info', true)
 UtilityMenu:Menu("Items", "Items")
 UtilityMenu.Items:Boolean('UseBC', 'Use Bilgewater Cutlass', true)
 UtilityMenu.Items:Boolean('UseBOTRK', 'Use BOTRK', true)
@@ -323,22 +324,26 @@ end)
 
 OnDraw(function(myHero)
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if GetCastName(enemy,SUMMONER_1):lower():find("smite") and SUMMONER_1 or (GetCastName(enemy,SUMMONER_2):lower():find("smite") and SUMMONER_2 or nil) then
-			DrawJng = WorldToScreen(1,GetOrigin(myHero).x, GetOrigin(myHero).y, GetOrigin(myHero).z)
-			if IsObjectAlive(enemy) then
-				if GetDistance(myHero, enemy) > 2500 then
-					DrawText("Jungler: Far Away", 17, DrawJng.x-60, DrawJng.y+10, 0xffffd700)
+		if UtilityMenu.Draws.DrawJng:Value() then
+			if GetCastName(enemy,SUMMONER_1):lower():find("smite") and SUMMONER_1 or (GetCastName(enemy,SUMMONER_2):lower():find("smite") and SUMMONER_2 or nil) then
+				DrawJng = WorldToScreen(1,GetOrigin(myHero).x, GetOrigin(myHero).y, GetOrigin(myHero).z)
+				if IsObjectAlive(enemy) then
+					if GetDistance(myHero, enemy) > 2500 then
+						DrawText("Jungler: Far Away", 17, DrawJng.x-60, DrawJng.y+10, 0xffffd700)
+					else
+						DrawText("Jungler: Near", 17, DrawJng.x-45, DrawJng.y+10, 0xffff0000)
+					end
 				else
-					DrawText("Jungler: Near", 17, DrawJng.x-45, DrawJng.y+10, 0xffff0000)
+					DrawText("Jungler: Dead", 17, DrawJng.x-45, DrawJng.y+10, 0xff32cd32)
 				end
-			else
-				DrawText("Jungler: Dead", 17, DrawJng.x-45, DrawJng.y+10, 0xff32cd32)
 			end
 		end
-		if ValidTarget(enemy) then
-			DrawAA = WorldToScreen(1,GetOrigin(enemy).x, GetOrigin(enemy).y, GetOrigin(enemy).z)
-			AALeft = (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy))/(GetBonusDmg(myHero)+GetBaseDamage(myHero))
-			DrawText("AA Left: "..tostring(math.ceil(AALeft)), 17, DrawAA.x-38, DrawAA.y+10, 0xff00bfff)
+		if UtilityMenu.Draws.DrawAA:Value() then
+			if ValidTarget(enemy) then
+				DrawAA = WorldToScreen(1,GetOrigin(enemy).x, GetOrigin(enemy).y, GetOrigin(enemy).z)
+				AALeft = (GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy))/(GetBonusDmg(myHero)+GetBaseDamage(myHero))
+				DrawText("AA Left: "..tostring(math.ceil(AALeft)), 17, DrawAA.x-38, DrawAA.y+10, 0xff00bfff)
+			end
 		end
 	end
 end)
