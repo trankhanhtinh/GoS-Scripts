@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.1
+-- Current version: 1.1.5.2
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5.2
+-- + Reworked Jungler Tracker
 -- 1.1.5.1
 -- + Imported Jungler Tracker
 -- 1.1.5
@@ -82,7 +84,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.151
+local GSVer = 1.152
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -328,14 +330,14 @@ OnDraw(function(myHero)
 			if GetCastName(enemy,SUMMONER_1):lower():find("smite") and SUMMONER_1 or (GetCastName(enemy,SUMMONER_2):lower():find("smite") and SUMMONER_2 or nil) then
 				DrawJng = WorldToScreen(1,GetOrigin(myHero).x, GetOrigin(myHero).y, GetOrigin(myHero).z)
 				if IsObjectAlive(enemy) then
-					if GetDistance(myHero, enemy) > 2500 then
-						DrawText("Jungler: Far Away", 17, DrawJng.x-60, DrawJng.y+10, 0xffffd700)
-					else
-						if ValidTarget(enemy) then
-							DrawText("Jungler: Near", 17, DrawJng.x-45, DrawJng.y+10, 0xffff0000)
+					if ValidTarget(enemy) then
+						if GetDistance(myHero, enemy) > 3000 then
+							DrawText("Jungler: Visible", 17, DrawJng.x-45, DrawJng.y+10, 0xff32cd32)
 						else
-							DrawText("Jungler: Far Away", 17, DrawJng.x-60, DrawJng.y+10, 0xffffd700)
+							DrawText("Jungler: Near", 17, DrawJng.x-43, DrawJng.y+10, 0xffff0000)
 						end
+					else
+						DrawText("Jungler: Invisible", 17, DrawJng.x-55, DrawJng.y+10, 0xffffd700)
 					end
 				else
 					DrawText("Jungler: Dead", 17, DrawJng.x-45, DrawJng.y+10, 0xff32cd32)
