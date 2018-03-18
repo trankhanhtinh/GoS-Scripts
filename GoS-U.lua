@@ -331,7 +331,11 @@ OnDraw(function(myHero)
 					if GetDistance(myHero, enemy) > 2500 then
 						DrawText("Jungler: Far Away", 17, DrawJng.x-60, DrawJng.y+10, 0xffffd700)
 					else
-						DrawText("Jungler: Near", 17, DrawJng.x-45, DrawJng.y+10, 0xffff0000)
+						if ValidTarget(enemy) then
+							DrawText("Jungler: Near", 17, DrawJng.x-45, DrawJng.y+10, 0xffff0000)
+						else
+							DrawText("Jungler: Far Away", 17, DrawJng.x-60, DrawJng.y+10, 0xffffd700)
+						end
 					end
 				else
 					DrawText("Jungler: Dead", 17, DrawJng.x-45, DrawJng.y+10, 0xff32cd32)
