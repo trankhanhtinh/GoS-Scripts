@@ -323,7 +323,7 @@ end)
 
 OnDraw(function(myHero)
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if GetCastName(enemy,SUMMONER_1):lower():find("smite") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("smite") and SUMMONER_2 or nil) then
+		if GetCastName(enemy,SUMMONER_1):lower():find("smite") and SUMMONER_1 or (GetCastName(enemy,SUMMONER_2):lower():find("smite") and SUMMONER_2 or nil) then
 			DrawJng = WorldToScreen(1,GetOrigin(myHero).x, GetOrigin(myHero).y, GetOrigin(myHero).z)
 			if IsObjectAlive(enemy) then
 				if GetDistance(myHero, enemy) > 2500 then
