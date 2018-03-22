@@ -16,6 +16,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [22-03] Updated for patch 8.6
+-- (Graves W, LeeSin Q)
 -- [07-03] Updated for patch 8.5
 -- (Kaisa W, Nocturne Q, Swain W & E)
 -- [22-02] Updated for patch 8.4
@@ -106,14 +108,14 @@ Spells = {
 	["GravesQLineSpell"]={charName="Graves",slot=_Q,type="linear",speed=3700,range=925,delay=0.25,radius=40,hitbox=true,aoe=true,cc=false,collision=false},
 	["GravesQLineMis"]={charName="Graves",slot=_Q,type="rectangle",speed=math.huge,range=925,delay=0.25,radius1=250,radius2=100,hitbox=true,aoe=true,cc=false,collision=false},
 	["GravesQReturn"]={charName="Graves",slot=_Q,type="linear",speed=1850,range=925,delay=0.25,radius=40,hitbox=true,aoe=true,cc=false,collision=false},
-	["GravesSmokeGrenade"]={charName="Graves",slot=_W,type="circular",speed=1450,range=950,delay=0.25,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
+	["GravesSmokeGrenade"]={charName="Graves",slot=_W,type="circular",speed=1450,range=950,delay=0.15,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
 	["GravesMove"]={charName="Graves",slot=_E,type="linear",speed=1400,range=425,delay=0.25,radius=50,hitbox=true,aoe=false,cc=false,collision=false},
 	["GravesChargeShot"]={charName="Graves",slot=_R,type="linear",speed=1950,range=1000,delay=0.25,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
 	["GravesChargeShotFxMissile"]={charName="Graves",slot=_R,type="conic",speed=math.huge,range=800,delay=0.3,angle=80,hitbox=true,aoe=true,cc=false,collision=false},
 	["HecarimRapidSlash"]={charName="Hecarim",slot=_Q,type="circular",speed=math.huge,range=0,delay=0,radius=350,hitbox=false,aoe=true,cc=false,collision=false},
 	["HecarimUlt"]={charName="Hecarim",slot=_R,type="linear",speed=1200,range=1000,delay=0.01,radius=210,hitbox=true,aoe=true,cc=true,collision=false},
 	["HeimerdingerQ"]={charName="Heimerdinger",slot=_Q,type="circular",speed=math.huge,range=450,delay=0.25,radius=55,hitbox=true,aoe=true,cc=false,collision=false},
-	["HeimerdingerW"]={charName="Heimerdinger",slot=_W,type="linear",speed=2050,range=1325,delay=0.25,radius=,hitbox=true,aoe=true,cc=false,collision=true},
+	["HeimerdingerW"]={charName="Heimerdinger",slot=_W,type="linear",speed=2050,range=1325,delay=0.25,radius=70,hitbox=true,aoe=true,cc=false,collision=true},
 	["HeimerdingerE"]={charName="Heimerdinger",slot=_E,type="circular",speed=1200,range=970,delay=0.25,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
 	["HeimerdingerEUlt"]={charName="Heimerdinger",slot=_E,type="circular",speed=1200,range=970,delay=0.25,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
 	["IllaoiQ"]={charName="Illaoi",slot=_Q,type="linear",speed=math.huge,range=850,delay=0.75,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
@@ -171,7 +173,7 @@ Spells = {
 	["LeBlancE"]={charName="LeBlanc",slot=_E,type="linear",speed=1750,range=925,delay=0.25,radius=55,hitbox=true,aoe=false,cc=true,collision=true},
 	["LeBlancRW"]={charName="LeBlanc",slot=_W,type="circular",speed=1600,range=600,delay=0.25,radius=260,hitbox=true,aoe=true,cc=false,collision=false},
 	["LeBlancRE"]={charName="LeBlanc",slot=_E,type="linear",speed=1750,range=925,delay=0.25,radius=55,hitbox=true,aoe=false,cc=true,collision=true},
-	["BlinkMonkQOne"]={charName="LeeSin",slot=_Q,type="linear",speed=1750,range=1100,delay=0.25,radius=50,hitbox=true,aoe=false,cc=false,collision=true},
+	["BlinkMonkQOne"]={charName="LeeSin",slot=_Q,type="linear",speed=1750,range=1200,delay=0.25,radius=50,hitbox=true,aoe=false,cc=false,collision=true},
 	["BlinkMonkEOne"]={charName="LeeSin",slot=_E,type="circular",speed=math.huge,range=0,delay=0.25,radius=350,hitbox=false,aoe=true,cc=false,collision=false},
 	["LeonaZenithBlade"]={charName="Leona",slot=_E,type="linear",speed=2000,range=875,delay=0.25,radius=70,hitbox=true,aoe=false,cc=true,collision=false},
 	["LeonaSolarFlare"]={charName="Leona",slot=_R,type="circular",speed=math.huge,range=1200,delay=0.625,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
