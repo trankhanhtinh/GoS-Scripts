@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.2
+-- Current version: 1.1.5.3
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5.3
+-- + Corrected data for Kaisa & Lucian
 -- 1.1.5.2
 -- + Reworked Jungler Tracker
 -- 1.1.5.1
@@ -84,7 +86,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.152
+local GSVer = 1.153
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -3178,7 +3180,7 @@ KaisaMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
 KaisaMenu.Drawings:Boolean('DrawR', 'Draw R Range', true)
 KaisaMenu.Drawings:Boolean('DrawDMG', 'Draw Max QW Damage', false)
 
-local KaisaQ = { range = 575 }
+local KaisaQ = { range = 600 }
 local KaisaW = { range = 3000, radius = 65, width = 130, speed = 1750, delay = 0.4, type = "line", collision = true, source = myHero, col = {"minion","yasuowall"}}
 local KaisaR = { range = GetCastRange(myHero,_R) }
 
@@ -3204,8 +3206,8 @@ end
 
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		local QDmg = (39.625*GetCastLevel(myHero,_Q)+72.875)+GetBonusDmg(myHero)+(0.5*GetBonusAP(myHero))
-		local WDmg = (25*GetCastLevel(myHero,_W)-5)+(1.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.65*GetBonusAP(myHero))
+		local QDmg = (39.625*GetCastLevel(myHero,_Q)+72.875)+GetBonusDmg(myHero)+GetBonusAP(myHero)
+		local WDmg = (25*GetCastLevel(myHero,_W)-5)+(1.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.45*GetBonusAP(myHero))
 		local ComboDmg = QDmg + WDmg
 		if ValidTarget(enemy) then
 			if KaisaMenu.Drawings.DrawDMG:Value() then
@@ -4202,8 +4204,8 @@ end
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 		local QDmg = (35*GetCastLevel(myHero,_Q)+50)+((0.1*GetCastLevel(myHero,_Q)+0.5)*GetBonusDmg(myHero))
-		local WDmg = (40*GetCastLevel(myHero,_W)+20)+(0.9*GetBonusAP(myHero))
-		local RDmg = ((15*GetCastLevel(myHero,_R)+5)+(0.2*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.1*GetBonusAP(myHero)))*(5*GetCastLevel(myHero,_R)+15)
+		local WDmg = (40*GetCastLevel(myHero,_W)+45)+(0.9*GetBonusAP(myHero))
+		local RDmg = ((15*GetCastLevel(myHero,_R)+5)+(0.25*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.1*GetBonusAP(myHero)))*(5*GetCastLevel(myHero,_R)+15)
 		local ComboDmg = QDmg + WDmg + RDmg
 		local WRDmg = WDmg + RDmg
 		local QRDmg = QDmg + RDmg
