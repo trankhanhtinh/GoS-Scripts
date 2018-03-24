@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.5
+-- Current version: 1.2.1.6
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1.6
+-- + Corrected damage calc for Zed
 -- 1.2.1.5
 -- + Corrected Ryze's E damage
 -- 1.2.1.4
@@ -143,7 +145,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.215
+local TSVer = 1.216
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -10255,9 +10257,9 @@ if ZedMenu.Drawings.DrawR:Value() then DrawCircle(pos,ZedR.range,1,25,0xff0000ff
 end)
 
 OnDraw(function(myHero)
-	local QDmg = (35*GetCastLevel(myHero,_Q)+45)+(0.9*GetBonusDmg(myHero))+(26.25*GetCastLevel(myHero,_Q)+33.75)+(0.675*GetBonusDmg(myHero))
+	local QDmg = (35*GetCastLevel(myHero,_Q)+45)+(0.9*GetBonusDmg(myHero))
 	local EDmg = (25*GetCastLevel(myHero,_E)+45)+(0.8*GetBonusDmg(myHero))
-	local RDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+((0.1*GetCastLevel(myHero,_R)+0.15)*(QDmg+EDmg))
+	local RDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+((0.1*GetCastLevel(myHero,_R)+0.15)*(2*(QDmg+EDmg)))
 	local ComboDmg = QDmg + EDmg + RDmg
 	local QRDmg = QDmg + RDmg
 	local ERDmg = EDmg + RDmg
