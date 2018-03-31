@@ -1835,11 +1835,9 @@ function Stacking()
 	NasusQstacks = GetBuffData(myHero,"nasusqstacks")
 	QStack = NasusQstacks.Stacks
 end
-OnLoop(function(myHero)
-	Stacking()
-end)
 
 OnTick(function(myHero)
+	Stacking()
 	if Mode() == "LaneClear" then
 		for _, minion in pairs(minionManager.objects) do
 			if GetTeam(minion) == MINION_ENEMY then
