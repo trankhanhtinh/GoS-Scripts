@@ -143,7 +143,7 @@ SCMenu.RSpell:Key('RKey', 'Cast Key', string.byte("A"))
 SCMenu:Menu("SS2", "SkillShot2")
 SCMenu.SS2:Key('SS2Key', 'Release Key', string.byte("A"))
 SCMenu:Menu("SS3", "SkillShot3")
-SCMenu.SS3:Slider('SS3Range', 'Additional Range', 500, 5, 2000, 5)
+SCMenu.SS3:Slider('SS3Range', 'Effect Range', 500, 5, 2000, 5)
 
 OnDraw(function(myHero)
 	if SCMenu.QSpell.QRangeDraw:Value() then DrawCircle(GetOrigin(myHero),SCMenu.QSpell.QRange:Value(),1,25,0xff00bfff) end
