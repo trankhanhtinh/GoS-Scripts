@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.6
+-- Current version: 1.2.1.7
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.1.7
+-- + Added Kaisa's & Ornn's spells to windwall database
 -- 1.2.1.6
 -- + Corrected damage calc for Zed
 -- 1.2.1.5
@@ -145,7 +147,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.216
+local TSVer = 1.217
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -9467,6 +9469,7 @@ WALL_SPELLS = {
     ["Jayce"]                      = {_Q},
     ["Jhin"]                      = {_Q,_R},
     ["Jinx"]                      = {_W,_R},
+    ["Kaisa"]                      = {_Q,_W},
     ["Kalista"]                      = {_Q},
     ["Karma"]                      = {_Q},
     ["Kassadin"]                      = {_Q},
@@ -9491,6 +9494,7 @@ WALL_SPELLS = {
     ["Nami"]                      = {_W,_R},
     ["Nautilus"]                      = {_Q},
     ["Nocturne"]                      = {_Q},
+    ["Ornn"]                      = {_R},
     ["Pantheon"]                      = {_Q},
     ["Quinn"]                      = {_Q},
     ["Rakan"]                      = {_Q},
@@ -9587,6 +9591,8 @@ WALL_SPELLS = {
     ["JhinRShot"]                      = {Spellname ="JhinRShot",Name ="Jhin",Spellslot =_R},
     ["JinxW"]                      = {Spellname ="JinxW",Name ="Jinx",Spellslot =_W},
     ["JinxR"]                      = {Spellname ="JinxR",Name ="Jinx",Spellslot =_R},
+    ["KaisaQ"]                      = {Spellname ="KaisaQ",Name ="Kaisa",Spellslot =_Q},
+    ["KaisaW"]                      = {Spellname ="KaisaW",Name ="Kaisa",Spellslot =_W},
     ["KalistaMysticShot"]                      = {Spellname ="KalistaMysticShot",Name ="Kalista",Spellslot =_Q},
     ["KarmaQ"]                      = {Spellname ="KarmaQ",Name ="Karma",Spellslot =_Q},
     ["NullLance"]                      = {Spellname ="NullLance",Name ="Kassadin",Spellslot =_Q},
@@ -9620,7 +9626,8 @@ WALL_SPELLS = {
     ["NautilusAnchorDrag"]                      = {Spellname ="NautilusAnchorDrag",Name ="Nautilus",Spellslot =_Q},
     ["JavelinToss"]                      = {Spellname ="JavelinToss",Name ="Nidalee",Spellslot =_Q},
     ["NocturneDuskbringer"]                      = {Spellname ="NocturneDuskbringer",Name ="Nocturne",Spellslot =_Q},
-    ["Pantheon_Throw"]                      = {Spellname ="Pantheon_Throw",Name ="Pantheon",Spellslot =_Q},
+    ["OrnnR"]                      = {Spellname ="OrnnR",Name ="Ornn",Spellslot =_R},
+    ["PantheonQ"]                      = {Spellname ="PantheonQ",Name ="Pantheon",Spellslot =_Q},
     ["QuinnQ"]                      = {Spellname ="QuinnQ",Name ="Quinn",Spellslot =_Q},
     ["RakanQ"]                      = {Spellname ="RakanQ",Name ="Rakan",Spellslot =_Q},
     ["reksaiqburrowed"]                      = {Spellname ="reksaiqburrowed",Name ="RekSai",Spellslot =_Q},
