@@ -16,6 +16,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [05-04] Updated for patch 8.7
+-- (Ivern W)
 -- [22-03] Updated for patch 8.6
 -- (Graves W, LeeSin Q)
 -- [07-03] Updated for patch 8.5
@@ -123,7 +125,7 @@ Spells = {
 	["IllaoiR"]={charName="Illaoi",slot=_R,type="circular",speed=math.huge,range=0,delay=0.5,radius=450,hitbox=false,aoe=true,cc=false,collision=false},
 	["IreliaTranscendentBlades"]={charName="Irelia",slot=_R,type="linear",speed=1350,range=1000,delay=0.25,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
 	["IvernQ"]={charName="Ivern",slot=_Q,type="linear",speed=1300,range=1075,delay=0.25,radius=50,hitbox=true,aoe=false,cc=true,collision=true},
-	["IvernW"]={charName="Ivern",slot=_W,type="circular",speed=math.huge,range=800,delay=0.25,radius=150,hitbox=true,aoe=true,cc=false,collision=false},
+	["IvernW"]={charName="Ivern",slot=_W,type="circular",speed=math.huge,range=1000,delay=0.25,radius=150,hitbox=true,aoe=true,cc=false,collision=false},
 	["HowlingGale"]={charName="Janna",slot=_Q,type="linear",speed=1167,range=1750,delay=0,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
 	["ReapTheWhirlwind"]={charName="Janna",slot=_R,type="circular",speed=math.huge,range=0,delay=0.001,radius=725,hitbox=false,aoe=true,cc=true,collision=false},
 	["JarvanIVDragonStrike"]={charName="JarvanIV",slot=_Q,type="linear",speed=math.huge,range=770,delay=0.4,radius=60,hitbox=true,aoe=true,cc=false,collision=false},
