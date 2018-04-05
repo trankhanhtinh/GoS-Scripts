@@ -33,7 +33,7 @@
 -- ===============
 -- 1.2.2
 -- + Optimized code & data
--- + Removed Veigar
+-- + Removed Vayne
 -- 1.2.1.7
 -- + Added Kaisa's & Ornn's spells to windwall database
 -- 1.2.1.6
