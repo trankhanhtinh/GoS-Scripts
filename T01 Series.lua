@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.8
+-- Current version: 1.2.2
 -- Intermediate GoS script which supports currently 20 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -5711,7 +5711,6 @@ local RyzeE = { range = 615 }
 local RyzeR = { range = GetCastRange(myHero,_R) }
 
 OnTick(function(myHero)
-	local pos = GetOrigin(myHero)
 	target = GetCurrentTarget()
 	Auto()
 	Combo()
@@ -5724,10 +5723,12 @@ OnTick(function(myHero)
 end)
 
 OnDrawMinimap(function()
+local pos = GetOrigin(myHero)
 if RyzeMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,RyzeR.range,0,255,0xff0000ff) end
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
 	if RyzeMenu.Drawings.DrawQ:Value() then DrawCircle(pos,RyzeQ.range,1,25,0xff00bfff) end
 	if RyzeMenu.Drawings.DrawWE:Value() then DrawCircle(pos,RyzeW.range,1,25,0xff4169e1) end
 	if RyzeMenu.Drawings.DrawR:Value() then DrawCircle(pos,RyzeR.range,1,25,0xff0000ff) end
@@ -6622,7 +6623,6 @@ local TwistedFateR = { range = GetCastRange(myHero,_R) }
 local GlobalTimer = 0
 
 OnTick(function(myHero)
-	local pos = GetOrigin(myHero)
 	target = GetCurrentTarget()
 	Auto()
 	Combo()
@@ -6634,10 +6634,12 @@ OnTick(function(myHero)
 end)
 
 OnDrawMinimap(function()
+local pos = GetOrigin(myHero)
 if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,TwistedFateR.range,0,255,0xff0000ff) end
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
 	if TwistedFateMenu.Drawings.DrawQ:Value() then DrawCircle(pos,TwistedFateQ.range,1,25,0xff00bfff) end
 	if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircle(pos,TwistedFateR.range,1,25,0xff0000ff) end
 	local QDmg = (45*GetCastLevel(myHero,_Q)+15)+(0.65*GetBonusAP(myHero))
@@ -8445,7 +8447,6 @@ local XerathE = { range = 1050, radius = 60, width = 120, speed = 1350, delay = 
 local XerathR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
 
 OnTick(function(myHero)
-	local pos = GetOrigin(myHero)
 	target = GetCurrentTarget()
 	Auto()
 	Combo()
@@ -8459,10 +8460,12 @@ OnTick(function(myHero)
 end)
 
 OnDrawMinimap(function()
+local pos = GetOrigin(myHero)
 if XerathMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,XerathR.range,0,255,0xff0000ff) end
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
 	if XerathMenu.Drawings.DrawQ:Value() then DrawCircle(pos,XerathQ.range,1,25,0xff00bfff) end
 	if XerathMenu.Drawings.DrawW:Value() then DrawCircle(pos,XerathW.range,1,25,0xff4169e1) end
 	if XerathMenu.Drawings.DrawE:Value() then DrawCircle(pos,XerathE.range,1,25,0xff1e90ff) end
