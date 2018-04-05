@@ -8,11 +8,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.1.7
--- Intermediate GoS script which supports currently 21 champions.
+-- Current version: 1.2.1.8
+-- Intermediate GoS script which supports currently 20 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
--- Riven, Ryze, Syndra, TwistedFate, Vayne, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+--   Riven, Ryze, Syndra, TwistedFate, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -31,6 +31,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.2
+-- + Optimized code & data
+-- + Removed Veigar
 -- 1.2.1.7
 -- + Added Kaisa's & Ornn's spells to windwall database
 -- 1.2.1.6
@@ -147,7 +150,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.217
+local TSVer = 1.22
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -228,8 +231,10 @@ GAPCLOSER_SPELLS = {
     ["JarvanIV"]                    = {_Q, _R},
     ["Jax"]                         = {_Q},
     ["Jayce"]                       = {_Q},
+    ["Kaisa"]                       = {_E, _R},
     ["Katarina"]                    = {_E},
     ["Kassadin"]                    = {_R},
+    ["Kayn"]                        = {_Q},
     ["Kennen"]                      = {_E},
     ["KhaZix"]                      = {_E},
     ["Lissandra"]                   = {_E},
@@ -323,15 +328,23 @@ local AhriW = { range = 700 }
 local AhriE = { range = 975, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local AhriR = { range = 450 }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if AhriMenu.Drawings.DrawQ:Value() then DrawCircle(pos,AhriQ.range,1,25,0xff00bfff) end
-if AhriMenu.Drawings.DrawW:Value() then DrawCircle(pos,AhriW.range,1,25,0xff4169e1) end
-if AhriMenu.Drawings.DrawE:Value() then DrawCircle(pos,AhriE.range,1,25,0xff1e90ff) end
-if AhriMenu.Drawings.DrawR:Value() then DrawCircle(pos,AhriR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if AhriMenu.Drawings.DrawQ:Value() then DrawCircle(pos,AhriQ.range,1,25,0xff00bfff) end
+	if AhriMenu.Drawings.DrawW:Value() then DrawCircle(pos,AhriW.range,1,25,0xff4169e1) end
+	if AhriMenu.Drawings.DrawE:Value() then DrawCircle(pos,AhriE.range,1,25,0xff1e90ff) end
+	if AhriMenu.Drawings.DrawR:Value() then DrawCircle(pos,AhriR.range,1,25,0xff0000ff) end
 	local QDmg = (50*GetCastLevel(myHero,_Q)+30)+(0.7*GetBonusAP(myHero))
 	local WDmg = (40*GetCastLevel(myHero,_W)+24)+(0.48*GetBonusAP(myHero))
 	local EDmg = (45*GetCastLevel(myHero,_E)+15)+(0.6*GetBonusAP(myHero))
@@ -384,15 +397,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -661,7 +665,7 @@ end)
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if AhriMenu.AntiGapcloser.UseE:Value() then
 			if ValidTarget(antigap, 350) then
@@ -671,11 +675,11 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if AhriMenu.Misc.LvlUp:Value() then
 		if AhriMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -709,7 +713,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Annie
 
@@ -761,13 +765,22 @@ local AnnieQ = { range = 625 }
 local AnnieW = { range = 600, angle = 50, radius = 50, width = 100, speed = math.huge, delay = 0.25, type = "cone", collision = false, source = myHero }
 local AnnieR = { range = 600, radius = 290, width = 580, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if AnnieMenu.Drawings.DrawQ:Value() then DrawCircle(pos,AnnieQ.range,1,25,0xff00bfff) end
-if AnnieMenu.Drawings.DrawWR:Value() then DrawCircle(pos,AnnieW.range,1,25,0xff4169e1) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if AnnieMenu.Drawings.DrawQ:Value() then DrawCircle(pos,AnnieQ.range,1,25,0xff00bfff) end
+	if AnnieMenu.Drawings.DrawWR:Value() then DrawCircle(pos,AnnieW.range,1,25,0xff4169e1) end
 	local QDmg = (35*GetCastLevel(myHero,_Q)+45)+(0.8*GetBonusAP(myHero))
 	local WDmg = (45*GetCastLevel(myHero,_W)+25)+(0.85*GetBonusAP(myHero))
 	local RDmg = (125*GetCastLevel(myHero,_R)+25)+(0.65*GetBonusAP(myHero))
@@ -796,17 +809,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -1086,7 +1088,7 @@ end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if AnnieMenu.Misc.LvlUp:Value() then
 		if AnnieMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -1120,7 +1122,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Brand
 
@@ -1175,15 +1177,23 @@ local BrandW = { range = 900, radius = 250, width = 500, speed = math.huge, dela
 local BrandE = { range = 625 }
 local BrandR = { range = 750 }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if BrandMenu.Drawings.DrawQ:Value() then DrawCircle(pos,BrandQ.range,1,25,0xff00bfff) end
-if BrandMenu.Drawings.DrawW:Value() then DrawCircle(pos,BrandW.range,1,25,0xff4169e1) end
-if BrandMenu.Drawings.DrawE:Value() then DrawCircle(pos,BrandE.range,1,25,0xff1e90ff) end
-if BrandMenu.Drawings.DrawR:Value() then DrawCircle(pos,BrandR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if BrandMenu.Drawings.DrawQ:Value() then DrawCircle(pos,BrandQ.range,1,25,0xff00bfff) end
+	if BrandMenu.Drawings.DrawW:Value() then DrawCircle(pos,BrandW.range,1,25,0xff4169e1) end
+	if BrandMenu.Drawings.DrawE:Value() then DrawCircle(pos,BrandE.range,1,25,0xff1e90ff) end
+	if BrandMenu.Drawings.DrawR:Value() then DrawCircle(pos,BrandR.range,1,25,0xff0000ff) end
 	local QDmg = (30*GetCastLevel(myHero,_Q)+50)+(0.55*GetBonusAP(myHero))
 	local WDmg = ((45*GetCastLevel(myHero,_W)+30)+(0.6*GetBonusAP(myHero)))*1.25
 	local EDmg = (20*GetCastLevel(myHero,_E)+50)+(0.35*GetBonusAP(myHero))
@@ -1236,16 +1246,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -1559,7 +1559,7 @@ end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if BrandMenu.Misc.LvlUp:Value() then
 		if BrandMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -1593,7 +1593,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Cassiopeia
 
@@ -1659,15 +1659,25 @@ local CassiopeiaW = { range = 800, radius = 160, width = 320, speed = math.huge,
 local CassiopeiaE = { range = 700 }
 local CassiopeiaR = { range = 825, angle = 80, radius = 80, width = 160, speed = math.huge, delay = 0.5, type = "cone", collision = false, source = myHero }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if CassiopeiaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,CassiopeiaQ.range,1,25,0xff00bfff) end
-if CassiopeiaMenu.Drawings.DrawW:Value() then DrawCircle(pos,CassiopeiaW.range,1,25,0xff4169e1) end
-if CassiopeiaMenu.Drawings.DrawE:Value() then DrawCircle(pos,CassiopeiaE.range,1,25,0xff1e90ff) end
-if CassiopeiaMenu.Drawings.DrawR:Value() then DrawCircle(pos,CassiopeiaR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if CassiopeiaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,CassiopeiaQ.range,1,25,0xff00bfff) end
+	if CassiopeiaMenu.Drawings.DrawW:Value() then DrawCircle(pos,CassiopeiaW.range,1,25,0xff4169e1) end
+	if CassiopeiaMenu.Drawings.DrawE:Value() then DrawCircle(pos,CassiopeiaE.range,1,25,0xff1e90ff) end
+	if CassiopeiaMenu.Drawings.DrawR:Value() then DrawCircle(pos,CassiopeiaR.range,1,25,0xff0000ff) end
 	local QDmg = (45*GetCastLevel(myHero,_Q)+30)+(0.7*GetBonusAP(myHero))
 	local WDmg = (75*GetCastLevel(myHero,_W)+25)+(0.75*GetBonusAP(myHero))
 	local EDmg = ((4*GetLevel(myHero)+48)+(0.1*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_E)-10)+(0.6*GetBonusAP(myHero)))
@@ -1720,17 +1730,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -2093,7 +2092,7 @@ end
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if CanUseSpell(myHero,_W) == READY then
 			if CassiopeiaMenu.AntiGapcloser.UseW:Value() then
@@ -2109,7 +2108,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Interrupter
 
@@ -2156,7 +2155,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if CassiopeiaMenu.Misc.LvlUp:Value() then
 		if CassiopeiaMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -2190,7 +2189,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Fizz
 
@@ -2243,14 +2242,22 @@ local FizzQ = { range = 550 }
 local FizzE = { range = 400 }
 local FizzR = { range = 1300, radius = 120, width = 240, speed = 1300, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if FizzMenu.Drawings.DrawQ:Value() then DrawCircle(pos,FizzQ.range,1,25,0xff00bfff) end
-if FizzMenu.Drawings.DrawE:Value() then DrawCircle(pos,FizzE.range,1,25,0xff1e90ff) end
-if FizzMenu.Drawings.DrawR:Value() then DrawCircle(pos,FizzR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if FizzMenu.Drawings.DrawQ:Value() then DrawCircle(pos,FizzQ.range,1,25,0xff00bfff) end
+	if FizzMenu.Drawings.DrawE:Value() then DrawCircle(pos,FizzE.range,1,25,0xff1e90ff) end
+	if FizzMenu.Drawings.DrawR:Value() then DrawCircle(pos,FizzR.range,1,25,0xff0000ff) end
 	local QDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(15*GetCastLevel(myHero,_Q)-5)+(0.55*GetBonusAP(myHero))
 	local WDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+(30*GetCastLevel(myHero,_E)+30)+(1.2*GetBonusAP(myHero))
 	local EDmg = (50*GetCastLevel(myHero,_E)+20)+(0.75*GetBonusAP(myHero))
@@ -2303,16 +2310,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -2566,7 +2563,7 @@ end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if FizzMenu.Misc.LvlUp:Value() then
 		if FizzMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -2600,7 +2597,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Gnar
 
@@ -2669,6 +2666,18 @@ local GnarQMega = { range = 1100, radius = 90, width = 180, speed = 2100, delay 
 local GnarWMega = { range = 550, radius = 100, width = 200, speed = math.huge, delay = 0.6, type = "line", collision = false, source = myHero }
 local GnarEMega = { range = 600, radius = 375, width = 750, speed = 800, delay = 0.25, type = "circular", collision = false, source = myHero }
 local GnarRMega = { range = 475 }
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
+end)
 
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
@@ -2776,16 +2785,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQMini(target)
@@ -3248,7 +3247,7 @@ end
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if GnarMenu.AntiGapcloser.UseWMega:Value() then
 			if ValidTarget(antigap, GnarWMega.range) then
@@ -3258,7 +3257,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Misc
 
@@ -3307,7 +3306,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if GnarMenu.Misc.LvlUp:Value() then
 		if GnarMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -3341,7 +3340,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Jayce
 
@@ -3407,6 +3406,17 @@ local JayceQHammer = { range = 600 }
 local JayceWHammer = { range = 285 }
 local JayceEHammer = { range = 240 }
 
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	JungleClear()
+	LevelUp()
+end)
+
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
 	if JayceMenu.Drawings.DrawQ:Value() then
@@ -3453,7 +3463,6 @@ OnTick(function(myHero)
 			end
 		end
 	elseif GetRange(myHero) < 300 then
-		local target = GetCurrentTarget()
 		local QDmg = (35*GetCastLevel(myHero,_Q)+10)+(1.2*GetBonusDmg(myHero))
 		local WDmg = (60*GetCastLevel(myHero,_W)+40)+GetBonusAP(myHero)
 		local EDmg = ((0.024*GetCastLevel(myHero,_E)+0.056)*GetMaxHP(target))+GetBonusDmg(myHero)
@@ -3483,16 +3492,6 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQCannon(target)
@@ -3903,7 +3902,7 @@ end)
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if JayceMenu.Misc.LvlUp:Value() then
 		if JayceMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _W, _Q, _W, _Q, _W, _Q, _W, _W, _E, _E, _E, _E, _E}
@@ -3917,7 +3916,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 OnTick(function(myHero)
 	if Mode() == "Combo" then
@@ -4018,15 +4017,24 @@ local KatarinaW = { range = 340 }
 local KatarinaE = { range = 725, radius = 150, width = 300, speed = math.huge, delay = 0.15, type = "circular", collision = false, source = myHero }
 local KatarinaR = { range = 550 }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if KatarinaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,KatarinaQ.range,1,25,0xff00bfff) end
-if KatarinaMenu.Drawings.DrawW:Value() then DrawCircle(pos,KatarinaW.range,1,25,0xff4169e1) end
-if KatarinaMenu.Drawings.DrawE:Value() then DrawCircle(pos,KatarinaE.range,1,25,0xff1e90ff) end
-if KatarinaMenu.Drawings.DrawR:Value() then DrawCircle(pos,KatarinaR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if KatarinaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,KatarinaQ.range,1,25,0xff00bfff) end
+	if KatarinaMenu.Drawings.DrawW:Value() then DrawCircle(pos,KatarinaW.range,1,25,0xff4169e1) end
+	if KatarinaMenu.Drawings.DrawE:Value() then DrawCircle(pos,KatarinaE.range,1,25,0xff1e90ff) end
+	if KatarinaMenu.Drawings.DrawR:Value() then DrawCircle(pos,KatarinaR.range,1,25,0xff0000ff) end
 	local QDmg = (30*GetCastLevel(myHero,_Q)+45)+(0.3*GetBonusAP(myHero))
 	local EDmg = (15*GetCastLevel(myHero,_E))+(0.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.25*GetBonusAP(myHero))
 	local RDmg = (187.5*GetCastLevel(myHero,_R)+187.5)+(3.3*GetBonusDmg(myHero))+(2.85*GetBonusAP(myHero))
@@ -4055,17 +4063,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -4458,7 +4455,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if KatarinaMenu.Misc.LvlUp:Value() then
 		if KatarinaMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -4492,7 +4489,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 function VectorWay(A,B)
 	WayX = B.x - A.x
@@ -4539,18 +4536,19 @@ MasterYiMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local MasterYiQ = { range = 600 }
 
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	JungleClear()
+	LevelUp()
+end)
+
 OnDraw(function(myHero)
 local pos = GetOrigin(myHero)
 if MasterYiMenu.Drawings.DrawQ:Value() then DrawCircle(pos,MasterYiQ.range,1,25,0xff00bfff) end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Combo()
-		Harass()
-		KillSteal()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -4754,7 +4752,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if MasterYiMenu.Misc.LvlUp:Value() then
 		if MasterYiMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -4788,7 +4786,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Orianna
 
@@ -4862,15 +4860,23 @@ local OriannaW = { range = 250 }
 local OriannaE = { range = 1125, radius = 60 }
 local OriannaR = { range = 325 }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if OriannaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,OriannaQ.range,1,25,0xff00bfff) end
-if OriannaMenu.Drawings.DrawW:Value() then DrawCircle(GetOrigin(Ball),OriannaW.range,1,25,0xff4169e1) end
-if OriannaMenu.Drawings.DrawE:Value() then DrawCircle(pos,OriannaE.range,1,25,0xff1e90ff) end
-if OriannaMenu.Drawings.DrawR:Value() then DrawCircle(GetOrigin(Ball),OriannaR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if OriannaMenu.Drawings.DrawQ:Value() then DrawCircle(pos,OriannaQ.range,1,25,0xff00bfff) end
+	if OriannaMenu.Drawings.DrawW:Value() then DrawCircle(GetOrigin(Ball),OriannaW.range,1,25,0xff4169e1) end
+	if OriannaMenu.Drawings.DrawE:Value() then DrawCircle(pos,OriannaE.range,1,25,0xff1e90ff) end
+	if OriannaMenu.Drawings.DrawR:Value() then DrawCircle(GetOrigin(Ball),OriannaR.range,1,25,0xff0000ff) end
 	local QDmg = (30*GetCastLevel(myHero,_Q)+30)+(0.5*GetBonusAP(myHero))
 	local WDmg = (45*GetCastLevel(myHero,_W)+15)+(0.7*GetBonusAP(myHero))
 	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.3*GetBonusAP(myHero))
@@ -4923,16 +4929,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -5240,7 +5236,7 @@ end)
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if OriannaMenu.Misc.LvlUp:Value() then
 		if OriannaMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -5274,7 +5270,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Riven
 
@@ -5322,15 +5318,23 @@ local RivenW = { range = 270 }
 local RivenE = { range = 325, radius = 100, width = 200, speed = 1100, delay = 0, type = "line", collision = false, source = myHero }
 local RivenR = { range = 900, angle = 50, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "cone", collision = false, source = myHero }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if RivenMenu.Drawings.DrawQ:Value() then DrawCircle(pos,260,1,25,0xff00bfff) end
-if RivenMenu.Drawings.DrawW:Value() then DrawCircle(pos,RivenW.range,1,25,0xff4169e1) end
-if RivenMenu.Drawings.DrawE:Value() then DrawCircle(pos,RivenE.range,1,25,0xff1e90ff) end
-if RivenMenu.Drawings.DrawR:Value() then DrawCircle(pos,RivenR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if RivenMenu.Drawings.DrawQ:Value() then DrawCircle(pos,260,1,25,0xff00bfff) end
+	if RivenMenu.Drawings.DrawW:Value() then DrawCircle(pos,RivenW.range,1,25,0xff4169e1) end
+	if RivenMenu.Drawings.DrawE:Value() then DrawCircle(pos,RivenE.range,1,25,0xff1e90ff) end
+	if RivenMenu.Drawings.DrawR:Value() then DrawCircle(pos,RivenR.range,1,25,0xff0000ff) end
 	for _, enemy in pairs(GetEnemyHeroes()) do
 		local QDmg = (60*GetCastLevel(myHero,_Q)-15)+((0.15*GetCastLevel(myHero,_Q)+1.2)*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
 		local WDmg = (30*GetCastLevel(myHero,_W)+25)+(GetBonusDmg(myHero))
@@ -5359,16 +5363,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -5627,7 +5621,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if RivenMenu.Misc.LvlUp:Value() then
 		if RivenMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -5661,7 +5655,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Ryze
 
@@ -5716,18 +5710,27 @@ local RyzeW = { range = 615 }
 local RyzeE = { range = 615 }
 local RyzeR = { range = GetCastRange(myHero,_R) }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if RyzeMenu.Drawings.DrawQ:Value() then DrawCircle(pos,RyzeQ.range,1,25,0xff00bfff) end
-if RyzeMenu.Drawings.DrawWE:Value() then DrawCircle(pos,RyzeW.range,1,25,0xff4169e1) end
-if RyzeMenu.Drawings.DrawR:Value() then DrawCircle(pos,RyzeR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	local pos = GetOrigin(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
 end)
+
 OnDrawMinimap(function()
-local pos = GetOrigin(myHero)
 if RyzeMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,RyzeR.range,0,255,0xff0000ff) end
 end)
 
 OnDraw(function(myHero)
+	if RyzeMenu.Drawings.DrawQ:Value() then DrawCircle(pos,RyzeQ.range,1,25,0xff00bfff) end
+	if RyzeMenu.Drawings.DrawWE:Value() then DrawCircle(pos,RyzeW.range,1,25,0xff4169e1) end
+	if RyzeMenu.Drawings.DrawR:Value() then DrawCircle(pos,RyzeR.range,1,25,0xff0000ff) end
 	local QDmg = (25*GetCastLevel(myHero,_Q)+35)+(0.45*GetBonusAP(myHero))+(0.03*GetMaxMana(myHero))
 	local QBDmg = QDmg*(0.1*GetCastLevel(myHero,_Q)+1.3)
 	local WDmg = (20*GetCastLevel(myHero,_W)+60)+(0.6*GetBonusAP(myHero))+(0.01*GetMaxMana(myHero))
@@ -5757,16 +5760,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-	Auto()
-	Combo()
-	Harass()
-	LastHit()
-	LaneClear()
-	JungleClear()
 end)
 
 function useQ(target)
@@ -6042,7 +6035,7 @@ end)
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if RyzeMenu.AntiGapcloser.UseW:Value() then
 			if ValidTarget(antigap, 250) then
@@ -6052,7 +6045,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Misc
 
@@ -6074,7 +6067,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if RyzeMenu.Misc.LvlUp:Value() then
 		if RyzeMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -6108,7 +6101,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Syndra
 
@@ -6180,15 +6173,24 @@ local SyndraW = { range = 950, radius = 225, width = 450, speed = 1450, delay = 
 local SyndraE = { range = 700, angle = 40, radius = 40, width = 80, speed = 2500, delay = 0.25, type = "cone", collision = false, source = myHero }
 local SyndraR = { range = GetCastRange(myHero,_R) }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if SyndraMenu.Drawings.DrawQ:Value() then DrawCircle(pos,SyndraQ.range,1,25,0xff00bfff) end
-if SyndraMenu.Drawings.DrawW:Value() then DrawCircle(pos,SyndraW.range,1,25,0xff4169e1) end
-if SyndraMenu.Drawings.DrawE:Value() then DrawCircle(pos,SyndraE.range,1,25,0xff1e90ff) end
-if SyndraMenu.Drawings.DrawR:Value() then DrawCircle(pos,SyndraR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if SyndraMenu.Drawings.DrawQ:Value() then DrawCircle(pos,SyndraQ.range,1,25,0xff00bfff) end
+	if SyndraMenu.Drawings.DrawW:Value() then DrawCircle(pos,SyndraW.range,1,25,0xff4169e1) end
+	if SyndraMenu.Drawings.DrawE:Value() then DrawCircle(pos,SyndraE.range,1,25,0xff1e90ff) end
+	if SyndraMenu.Drawings.DrawR:Value() then DrawCircle(pos,SyndraR.range,1,25,0xff0000ff) end
 	local QDmg = (45*GetCastLevel(myHero,_Q)+5)+(0.65*GetBonusAP(myHero))
 	local WDmg = (40*GetCastLevel(myHero,_W)+30)+(0.7*GetBonusAP(myHero))
 	local EDmg = (45*GetCastLevel(myHero,_E)+25)+(0.6*GetBonusAP(myHero))
@@ -6241,16 +6243,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -6525,7 +6517,7 @@ end
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if SyndraMenu.AntiGapcloser.UseE:Value() then
 			if ValidTarget(antigap, 200) then
@@ -6535,11 +6527,11 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if SyndraMenu.Misc.LvlUp:Value() then
 		if SyndraMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -6573,7 +6565,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 function VectorWay(A,B)
 	WayX = B.x - A.x
@@ -6629,17 +6621,25 @@ local TwistedFateQ = { range = 1450, radius = 35, width = 70, speed = 1000, dela
 local TwistedFateR = { range = GetCastRange(myHero,_R) }
 local GlobalTimer = 0
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if TwistedFateMenu.Drawings.DrawQ:Value() then DrawCircle(pos,TwistedFateQ.range,1,25,0xff00bfff) end
-if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircle(pos,TwistedFateR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	local pos = GetOrigin(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
+
 OnDrawMinimap(function()
-local pos = GetOrigin(myHero)
 if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,TwistedFateR.range,0,255,0xff0000ff) end
 end)
 
 OnDraw(function(myHero)
+	if TwistedFateMenu.Drawings.DrawQ:Value() then DrawCircle(pos,TwistedFateQ.range,1,25,0xff00bfff) end
+	if TwistedFateMenu.Drawings.DrawR:Value() then DrawCircle(pos,TwistedFateR.range,1,25,0xff0000ff) end
 	local QDmg = (45*GetCastLevel(myHero,_Q)+15)+(0.65*GetBonusAP(myHero))
 	local WDmg = (7.5*GetCastLevel(myHero,_W)+7.5)+(0.5*GetBonusAP(myHero))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
 	local EDmg = (25*GetCastLevel(myHero,_E)+30)+(0.5*GetBonusAP(myHero))
@@ -6668,16 +6668,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -6995,7 +6985,7 @@ end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if TwistedFateMenu.Misc.LvlUp:Value() then
 		if TwistedFateMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -7029,409 +7019,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
-
--- Vayne
-
-elseif "Vayne" == GetObjectName(myHero) then
-
-require('MapPositionGOS')
-
-PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Vayne loaded successfully!")
-local VayneMenu = Menu("[T01] Vayne", "[T01] Vayne")
-VayneMenu:Menu("Auto", "Auto")
-VayneMenu.Auto:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
-VayneMenu:Menu("Combo", "Combo")
-VayneMenu.Combo:Boolean('UseQ', 'Use Q [Tumble]', true)
-VayneMenu.Combo:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu.Combo:Boolean('UseR', 'Use R [Final Hour]', true)
-VayneMenu.Combo:DropDown("ModeQ", "Cast Mode: Q", 2, {"Standard", "On Stack"})
-VayneMenu:Menu("Harass", "Harass")
-VayneMenu.Harass:Boolean('UseQ', 'Use Q [Tumble]', true)
-VayneMenu.Harass:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu.Harass:DropDown("ModeQ", "Cast Mode: Q", 1, {"Standard", "On Stack"})
-VayneMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
-VayneMenu:Menu("KillSteal", "KillSteal")
-VayneMenu.KillSteal:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu:Menu("LastHit", "LastHit")
-VayneMenu.LastHit:Boolean('UseQ', 'Use Q [Tumble]', true)
-VayneMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
-VayneMenu:Menu("LaneClear", "LaneClear")
-VayneMenu.LaneClear:Boolean('UseQ', 'Use Q [Tumble]', false)
-VayneMenu.LaneClear:Boolean('UseE', 'Use E [Condemn]', false)
-VayneMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
-VayneMenu:Menu("JungleClear", "JungleClear")
-VayneMenu.JungleClear:Boolean('UseQ', 'Use Q [Tumble]', true)
-VayneMenu.JungleClear:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
-VayneMenu.AntiGapcloser:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu:Menu("Interrupter", "Interrupter")
-VayneMenu.Interrupter:Boolean('UseE', 'Use E [Condemn]', true)
-VayneMenu:Menu("Drawings", "Drawings")
-VayneMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
-VayneMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
-VayneMenu:Menu("Misc", "Misc")
-VayneMenu.Misc:Boolean('UI', 'Use Offensive Items', true)
-VayneMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
-VayneMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
-VayneMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
-VayneMenu.Misc:Slider("ED","Extended Delay: Q", 0.4, 0, 1, 0.05)
-VayneMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
-VayneMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
-
-local VayneQ = { range = 300 }
-local VayneE = { range = 550 }
-
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if VayneMenu.Drawings.DrawQ:Value() then DrawCircle(pos,VayneQ.range,1,25,0xff00bfff) end
-if VayneMenu.Drawings.DrawE:Value() then DrawCircle(pos,VayneE.range,1,25,0xff1e90ff) end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
-end)
-
-function useQ(target)
-	if AA == true then
-		if VayneMenu.Misc.ExtraDelay:Value() then
-			DelayAction(function() CastSkillShot(_Q,GetMousePos()) end, VayneMenu.Misc.ED:Value())
-		else
-			CastSkillShot(_Q,GetMousePos())
-		end
-	end
 end
-function useE(target)
-	local VayneEStun = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,VayneE.range,1,false,true).PredPos
-	local VectorPos = Vector(VayneEStun)
-	for Length = 0, 475, GetHitBox(target) do
-		local TotalPos = VectorPos+Vector(VectorPos-Vector(myHero)):normalized()*Length
-		if MapPosition:inWall(TotalPos) then
-			CastTargetSpell(target, _E)
-			break
-		end
-	end
-end
-function useR(target)
-	if 100*GetCurrentHP(target)/GetMaxHP(target) < VayneMenu.Misc.HP:Value() then
-		if EnemiesAround(myHero, GetRange(myHero)+VayneQ.range) >= VayneMenu.Misc.X:Value() then
-			CastTargetSpell(target, _R)
-		end
-	end
-end
-
--- Auto
-
-function Auto()
-	if VayneMenu.Auto.UseE:Value() then
-		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Auto.MP:Value() then
-			if CanUseSpell(myHero,_E) == READY then
-				if ValidTarget(target, VayneE.range) then
-					useE(target)
-				end
-			end
-		end
-	end
-end
-
--- Combo
-
-function Combo()
-	if Mode() == "Combo" then
-		if VayneMenu.Combo.UseQ:Value() then
-			if CanUseSpell(myHero,_Q) == READY then
-				if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
-					if VayneMenu.Combo.ModeQ:Value() == 1 then
-						useQ(target)
-					elseif VayneMenu.Combo.ModeQ:Value() == 2 then
-						if GotBuff(target, "VayneSilveredDebuff") > 0 then
-							useQ(target)
-						end
-					end
-				end
-			end
-		end
-		if VayneMenu.Combo.UseE:Value() then
-			if CanUseSpell(myHero,_E) == READY then
-				if ValidTarget(target, VayneE.range) then
-					useE(target)
-				end
-			end
-		end
-		if VayneMenu.Combo.UseR:Value() then
-			if CanUseSpell(myHero,_R) == READY then
-				if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
-					useR(target)
-				end
-			end
-		end
-	end
-end
-
--- Harass
-
-function Harass()
-	if Mode() == "Harass" then
-		if VayneMenu.Harass.UseQ:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_Q) == READY then
-					if ValidTarget(target, GetRange(myHero)+VayneQ.range) then
-						if VayneMenu.Harass.ModeQ:Value() == 1 then
-							useQ(target)
-						elseif VayneMenu.Harass.ModeQ:Value() == 2 then
-							if GotBuff(target, "VayneSilveredDebuff") > 0 then
-								useQ(target)
-							end
-						end
-					end
-				end
-			end
-		end
-		if VayneMenu.Harass.UseE:Value() then
-			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.Harass.MP:Value() then
-				if CanUseSpell(myHero,_E) == READY then
-					if ValidTarget(target, VayneE.range) then
-						useE(target)
-					end
-				end
-			end
-		end
-	end
-end
-
--- KillSteal
-
-function KillSteal()
-	for i,enemy in pairs(GetEnemyHeroes()) do
-		if VayneMenu.KillSteal.UseE:Value() then
-			if ValidTarget(enemy, VayneE.range) then
-				if CanUseSpell(myHero,_E) == READY then
-					local VayneEDmg = (40*GetCastLevel(myHero,_E)+10)+(0.5*GetBonusDmg(myHero))
-					if GetCurrentHP(enemy)+GetArmor(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*2 < VayneEDmg then
-						CastTargetSpell(enemy, _E)
-					end
-				end
-			end
-		end
-	end
-end
-
--- LastHit
-
-function LastHit()
-	if Mode() == "LaneClear" then
-		for _, minion in pairs(minionManager.objects) do
-			if GetTeam(minion) == MINION_ENEMY then
-				if ValidTarget(minion, GetRange(myHero)) then
-					if VayneMenu.LastHit.UseQ:Value() then
-						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.LastHit.MP:Value() then
-							if CanUseSpell(myHero,_Q) == READY then
-								local VayneQDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+((0.05*GetCastLevel(myHero,_Q)+0.45)*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
-								local MinionToLastHit = minion
-								if GetCurrentHP(MinionToLastHit) < VayneQDmg then
-									if _G.IOW then
-										IOW.attacksEnabled = false
-									elseif _G.GoSWalkLoaded then
-										_G.GoSWalk:EnableAttack(false)
-									end
-									CastSkillShot(_Q,GetMousePos())
-									AttackUnit(MinionToLastHit)
-									if _G.IOW then
-										IOW.attacksEnabled = true
-									elseif _G.GoSWalkLoaded then
-										_G.GoSWalk:EnableAttack(true)
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-end
-
--- LaneClear
-
-function LaneClear()
-	if Mode() == "LaneClear" then
-		for _, minion in pairs(minionManager.objects) do
-			if GetTeam(minion) == MINION_ENEMY then
-				if VayneMenu.LaneClear.UseQ:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.LaneClear.MP:Value() then
-						if ValidTarget(minion, GetRange(myHero)) then
-							if CanUseSpell(myHero,_Q) == READY and AA == true then
-								CastSkillShot(_Q,GetMousePos())
-							end
-						end
-					end
-				end
-				if VayneMenu.LaneClear.UseE:Value() then
-					if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > VayneMenu.LaneClear.MP:Value() then
-						if ValidTarget(minion, VayneE.range) then
-							if CanUseSpell(myHero,_E) == READY then
-								CastTargetSpell(minion, _E)
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-end
-
--- JungleClear
-
-function JungleClear()
-	if Mode() == "LaneClear" then
-		for _,mob in pairs(minionManager.objects) do
-			if GetTeam(mob) == 300 then
-				if CanUseSpell(myHero,_Q) == READY and AA == true then
-					if ValidTarget(mob, GetRange(myHero)) then
-						if VayneMenu.JungleClear.UseQ:Value() then
-							CastSkillShot(_Q,GetMousePos())
-						end
-					end
-				end
-				if CanUseSpell(myHero,_E) == READY then
-					if ValidTarget(mob, VayneE.range) then
-						if VayneMenu.JungleClear.UseE:Value() then
-							CastTargetSpell(mob, _E)
-						end
-					end
-				end
-			end
-		end
-	end
-end
-
--- Anti-Gapcloser
-
-OnTick(function(myHero)
-	if VayneMenu.AntiGapcloser.UseE:Value() then
-		if ValidTarget(target, 150) then
-			if CanUseSpell(myHero,_E) == READY then
-				CastTargetSpell(target, _E)
-			end
-		end
-	end
-end)
-
--- Interrupter
-
-OnProcessSpell(function(unit, spell)
-	if VayneMenu.Interrupter.UseE:Value() then
-		for _, enemy in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemy, VayneE.range) then
-				if CanUseSpell(myHero,_E) == READY then
-					local UnitName = GetObjectName(enemy)
-					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
-					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
-					if UnitChanellingSpells then
-						for _, slot in pairs(UnitChanellingSpells) do
-							if spell.name == GetCastName(enemy, slot) then CastTargetSpell(enemy, _E) end
-						end
-					elseif UnitGapcloserSpells then
-						for _, slot in pairs(UnitGapcloserSpells) do
-							if spell.name == GetCastName(enemy, slot) then CastTargetSpell(enemy, _E) end
-						end
-					end
-				end
-			end
-		end
-    end
-end)
-
--- Misc
-
-OnTick(function(myHero)
-	if Mode() == "Combo" then
-		if VayneMenu.Misc.UI:Value() then
-			if GetItemSlot(myHero, 3074) >= 1 and ValidTarget(target, 400) then
-				if CanUseSpell(myHero, GetItemSlot(myHero, 3074)) == READY then
-					CastSpell(GetItemSlot(myHero, 3074))
-				end -- Ravenous Hydra
-			end
-			if GetItemSlot(myHero, 3077) >= 1 and ValidTarget(target, 400) then
-				if CanUseSpell(myHero, GetItemSlot(myHero, 3077)) == READY then
-					CastSpell(GetItemSlot(myHero, 3077))
-				end -- Tiamat
-			end
-			if GetItemSlot(myHero, 3144) >= 1 and ValidTarget(target, 550) then
-				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
-					if CanUseSpell(myHero, GetItemSlot(myHero, 3144)) == READY then
-						CastTargetSpell(target, GetItemSlot(myHero, 3144))
-					end -- Bilgewater Cutlass
-				end
-			end
-			if GetItemSlot(myHero, 3146) >= 1 and ValidTarget(target, 700) then
-				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
-					if CanUseSpell(myHero, GetItemSlot(myHero, 3146)) == READY then
-						CastTargetSpell(target, GetItemSlot(myHero, 3146))
-					end -- Hextech Gunblade
-				end
-			end
-			if GetItemSlot(myHero, 3153) >= 1 and ValidTarget(target, 550) then
-				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
-					if CanUseSpell(myHero, GetItemSlot(myHero, 3153)) == READY then
-						CastTargetSpell(target, GetItemSlot(myHero, 3153))
-					end -- BOTRK
-				end
-			end
-			if GetItemSlot(myHero, 3748) >= 1 and ValidTarget(target, 300) then
-				if (GetCurrentHP(target) / GetMaxHP(target)) <= 0.5 then
-					if CanUseSpell(myHero,GetItemSlot(myHero, 3748)) == READY then
-						CastSpell(GetItemSlot(myHero, 3748))
-					end -- Titanic Hydra
-				end
-			end
-		end
-	end
-end)
-
-OnTick(function(myHero)
-	if VayneMenu.Misc.LvlUp:Value() then
-		if VayneMenu.Misc.AutoLvlUp:Value() == 1 then
-			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
-			if GetLevelPoints(myHero) > 0 then
-				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
-			end
-		elseif VayneMenu.Misc.AutoLvlUp:Value() == 2 then
-			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
-			if GetLevelPoints(myHero) > 0 then
-				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
-			end
-		elseif VayneMenu.Misc.AutoLvlUp:Value() == 3 then
-			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
-			if GetLevelPoints(myHero) > 0 then
-				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
-			end
-		elseif VayneMenu.Misc.AutoLvlUp:Value() == 4 then
-			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
-			if GetLevelPoints(myHero) > 0 then
-				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
-			end
-		elseif VayneMenu.Misc.AutoLvlUp:Value() == 5 then
-			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
-			if GetLevelPoints(myHero) > 0 then
-				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
-			end
-		elseif VayneMenu.Misc.AutoLvlUp:Value() == 6 then
-			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
-			if GetLevelPoints(myHero) > 0 then
-				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
-			end
-		end
-	end
-end)
 
 -- Veigar
 
@@ -7489,15 +7077,25 @@ local VeigarW = { range = 900, radius = 225, width = 450, speed = math.huge, del
 local VeigarE = { range = 700, radius = 375, width = 750, speed = math.huge, delay = 0.75, type = "circular", collision = false, source = myHero }
 local VeigarR = { range = 650 }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if VeigarMenu.Drawings.DrawQ:Value() then DrawCircle(pos,VeigarQ.range,1,25,0xff00bfff) end
-if VeigarMenu.Drawings.DrawW:Value() then DrawCircle(pos,VeigarW.range,1,25,0xff4169e1) end
-if VeigarMenu.Drawings.DrawE:Value() then DrawCircle(pos,VeigarE.range,1,25,0xff1e90ff) end
-if VeigarMenu.Drawings.DrawR:Value() then DrawCircle(pos,VeigarR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if VeigarMenu.Drawings.DrawQ:Value() then DrawCircle(pos,VeigarQ.range,1,25,0xff00bfff) end
+	if VeigarMenu.Drawings.DrawW:Value() then DrawCircle(pos,VeigarW.range,1,25,0xff4169e1) end
+	if VeigarMenu.Drawings.DrawE:Value() then DrawCircle(pos,VeigarE.range,1,25,0xff1e90ff) end
+	if VeigarMenu.Drawings.DrawR:Value() then DrawCircle(pos,VeigarR.range,1,25,0xff0000ff) end
 	for _, enemy in pairs(GetEnemyHeroes()) do
 		local QDmg = (40*GetCastLevel(myHero,_Q)+30)+(0.6*GetBonusAP(myHero))
 		local WDmg = (50*GetCastLevel(myHero,_W)+50)+(GetBonusAP(myHero))
@@ -7527,17 +7125,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -7846,7 +7433,7 @@ end
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if VeigarMenu.AntiGapcloser.UseE:Value() then
 			if ValidTarget(antigap, VeigarE.radius) then
@@ -7856,11 +7443,11 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if VeigarMenu.Misc.LvlUp:Value() then
 		if VeigarMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -7894,7 +7481,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Viktor
 
@@ -7950,14 +7537,22 @@ local ViktorW = { range = 700, radius = 290, width = 580, speed = math.huge, del
 local ViktorE = { range = 1025, radius = 80, width = 160, speed = 1350, delay = 0, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local ViktorR = { range = 700, radius = 290, width = 580, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if ViktorMenu.Drawings.DrawQ:Value() then DrawCircle(pos,ViktorQ.range,1,25,0xff00bfff) end
-if ViktorMenu.Drawings.DrawWR:Value() then DrawCircle(pos,ViktorW.range,1,25,0xff0000ff) end
-if ViktorMenu.Drawings.DrawE:Value() then DrawCircle(pos,ViktorE.range,1,25,0xff1e90ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if ViktorMenu.Drawings.DrawQ:Value() then DrawCircle(pos,ViktorQ.range,1,25,0xff00bfff) end
+	if ViktorMenu.Drawings.DrawWR:Value() then DrawCircle(pos,ViktorW.range,1,25,0xff0000ff) end
+	if ViktorMenu.Drawings.DrawE:Value() then DrawCircle(pos,ViktorE.range,1,25,0xff1e90ff) end
 	local QDmg = ((20*GetCastLevel(myHero,_Q)+40)+(0.4*GetBonusAP(myHero)))+((20*GetCastLevel(myHero,_Q))+(GetBonusDmg(myHero)+GetBaseDamage(myHero))+(0.5*GetBonusAP(myHero)))
 	local EDmg = (60*GetCastLevel(myHero,_E)+30)+(1.2*GetBonusAP(myHero))
 	local RDmg = (375*GetCastLevel(myHero,_R)+175)+(2.3*GetBonusAP(myHero))
@@ -7986,16 +7581,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -8325,7 +7910,7 @@ end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if ViktorMenu.Misc.LvlUp:Value() then
 		if ViktorMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -8359,7 +7944,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Vladimir
 
@@ -8412,14 +7997,24 @@ local VladimirW = { range = 300 }
 local VladimirE = { range = 600 }
 local VladimirR = { range = 700, radius = 350, width = 700, speed = math.huge, delay = 0.389, type = "circular", collision = false, source = myHero }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if VladimirMenu.Drawings.DrawQE:Value() then DrawCircle(pos,VladimirQ.range,1,25,0xff00bfff) end
-if VladimirMenu.Drawings.DrawW:Value() then DrawCircle(pos,VladimirW.range,1,25,0xff4169e1) end
-if VladimirMenu.Drawings.DrawR:Value() then DrawCircle(pos,VladimirR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if VladimirMenu.Drawings.DrawQE:Value() then DrawCircle(pos,VladimirQ.range,1,25,0xff00bfff) end
+	if VladimirMenu.Drawings.DrawW:Value() then DrawCircle(pos,VladimirW.range,1,25,0xff4169e1) end
+	if VladimirMenu.Drawings.DrawR:Value() then DrawCircle(pos,VladimirR.range,1,25,0xff0000ff) end
 	local QDmg = (20*GetCastLevel(myHero,_Q)+60)+(0.6*GetBonusAP(myHero))
 	local WDmg = 55*GetCastLevel(myHero,_W)+25
 	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.06*GetMaxHP(myHero))+GetBonusAP(myHero)
@@ -8472,17 +8067,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -8749,7 +8333,7 @@ end
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if VladimirMenu.AntiGapcloser.UseW:Value() then
 			if ValidTarget(antigap, 150) then
@@ -8759,11 +8343,11 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if VladimirMenu.Misc.LvlUp:Value() then
 		if VladimirMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -8797,7 +8381,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Xerath
 
@@ -8860,19 +8444,29 @@ local XerathW = { range = 1100, radius = 235, width = 470, speed = math.huge, de
 local XerathE = { range = 1050, radius = 60, width = 120, speed = 1350, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local XerathR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if XerathMenu.Drawings.DrawQ:Value() then DrawCircle(pos,XerathQ.range,1,25,0xff00bfff) end
-if XerathMenu.Drawings.DrawW:Value() then DrawCircle(pos,XerathW.range,1,25,0xff4169e1) end
-if XerathMenu.Drawings.DrawE:Value() then DrawCircle(pos,XerathE.range,1,25,0xff1e90ff) end
-if XerathMenu.Drawings.DrawR:Value() then DrawCircle(pos,XerathR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	local pos = GetOrigin(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
 end)
+
 OnDrawMinimap(function()
-local pos = GetOrigin(myHero)
 if XerathMenu.Drawings.DrawR:Value() then DrawCircleMinimap(pos,XerathR.range,0,255,0xff0000ff) end
 end)
 
 OnDraw(function(myHero)
+	if XerathMenu.Drawings.DrawQ:Value() then DrawCircle(pos,XerathQ.range,1,25,0xff00bfff) end
+	if XerathMenu.Drawings.DrawW:Value() then DrawCircle(pos,XerathW.range,1,25,0xff4169e1) end
+	if XerathMenu.Drawings.DrawE:Value() then DrawCircle(pos,XerathE.range,1,25,0xff1e90ff) end
+	if XerathMenu.Drawings.DrawR:Value() then DrawCircle(pos,XerathR.range,1,25,0xff0000ff) end
 	local QDmg = (40*GetCastLevel(myHero,_Q)+40)+(0.75*GetBonusAP(myHero))
 	local WDmg = (45*GetCastLevel(myHero,_W)+45)+(0.9*GetBonusAP(myHero))
 	local EDmg = (30*GetCastLevel(myHero,_E)+50)+(0.45*GetBonusAP(myHero))
@@ -8925,17 +8519,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -9377,7 +8960,7 @@ end
 
 -- Anti-Gapcloser
 
-OnTick(function(myHero)
+function AntiGapcloser()
 	for i,antigap in pairs(GetEnemyHeroes()) do
 		if XerathMenu.AntiGapcloser.UseE:Value() then
 			if ValidTarget(antigap, 400) then
@@ -9387,11 +8970,11 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Misc
 
-OnTick(function(myHero)
+function LevelUp()
 	if XerathMenu.Misc.LvlUp:Value() then
 		if XerathMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -9425,7 +9008,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Yasuo
 
@@ -9765,15 +9348,24 @@ local YasuoE = { range = 475 }
 local YasuoR = { range = 1400 }
 local ETravelTime = true
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if YasuoMenu.Drawings.DrawQE:Value() then DrawCircle(pos,YasuoQ.range,1,25,0xff00bfff) end
-if YasuoMenu.Drawings.DrawQ3:Value() then DrawCircle(pos,YasuoQ3.range,1,25,0xff4169e1) end
-if YasuoMenu.Drawings.DrawW:Value() then DrawCircle(pos,YasuoW.range,1,25,0xff1e90ff) end
-if YasuoMenu.Drawings.DrawR:Value() then DrawCircle(pos,YasuoR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	KillSteal()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if YasuoMenu.Drawings.DrawQE:Value() then DrawCircle(pos,YasuoQ.range,1,25,0xff00bfff) end
+	if YasuoMenu.Drawings.DrawQ3:Value() then DrawCircle(pos,YasuoQ3.range,1,25,0xff4169e1) end
+	if YasuoMenu.Drawings.DrawW:Value() then DrawCircle(pos,YasuoW.range,1,25,0xff1e90ff) end
+	if YasuoMenu.Drawings.DrawR:Value() then DrawCircle(pos,YasuoR.range,1,25,0xff0000ff) end
 	local QDmg = (25*GetCastLevel(myHero,_Q)-5)+(GetBonusDmg(myHero)+GetBaseDamage(myHero))
 	local EDmg = (10*GetCastLevel(myHero,_E)+50)+(0.2*GetBonusDmg(myHero))+(0.6*GetBonusAP(myHero))
 	local RDmg = (100*GetCastLevel(myHero,_R)+100)+(1.5*GetBonusDmg(myHero))
@@ -9802,17 +9394,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		KillSteal()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -10168,7 +9749,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if YasuoMenu.Misc.LvlUp:Value() then
 		if YasuoMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -10202,7 +9783,7 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 
 -- Zed
 
@@ -10255,15 +9836,23 @@ local ZedE = { range = 290 }
 local ZedR = { range = 625 }
 local GlobalTimer = 0
 
-OnDraw(function(myHero)
-local pos = GetOrigin(myHero)
-if ZedMenu.Drawings.DrawQ:Value() then DrawCircle(pos,ZedQ.range,1,25,0xff00bfff) end
-if ZedMenu.Drawings.DrawW:Value() then DrawCircle(pos,ZedW.range,1,25,0xff4169e1) end
-if ZedMenu.Drawings.DrawE:Value() then DrawCircle(pos,ZedE.range,1,25,0xff1e90ff) end
-if ZedMenu.Drawings.DrawR:Value() then DrawCircle(pos,ZedR.range,1,25,0xff0000ff) end
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	LevelUp()
 end)
 
 OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if ZedMenu.Drawings.DrawQ:Value() then DrawCircle(pos,ZedQ.range,1,25,0xff00bfff) end
+	if ZedMenu.Drawings.DrawW:Value() then DrawCircle(pos,ZedW.range,1,25,0xff4169e1) end
+	if ZedMenu.Drawings.DrawE:Value() then DrawCircle(pos,ZedE.range,1,25,0xff1e90ff) end
+	if ZedMenu.Drawings.DrawR:Value() then DrawCircle(pos,ZedR.range,1,25,0xff0000ff) end
 	local QDmg = (35*GetCastLevel(myHero,_Q)+45)+(0.9*GetBonusDmg(myHero))
 	local EDmg = (25*GetCastLevel(myHero,_E)+45)+(0.8*GetBonusDmg(myHero))
 	local RDmg = (GetBonusDmg(myHero)+GetBaseDamage(myHero))+((0.1*GetCastLevel(myHero,_R)+0.15)*(2*(QDmg+EDmg)))
@@ -10292,16 +9881,6 @@ OnDraw(function(myHero)
 			end
 		end
 	end
-end)
-
-OnTick(function(myHero)
-	target = GetCurrentTarget()
-		Auto()
-		Combo()
-		Harass()
-		LastHit()
-		LaneClear()
-		JungleClear()
 end)
 
 function useQ(target)
@@ -10599,7 +10178,7 @@ OnTick(function(myHero)
 	end
 end)
 
-OnTick(function(myHero)
+function LevelUp()
 	if ZedMenu.Misc.LvlUp:Value() then
 		if ZedMenu.Misc.AutoLvlUp:Value() == 1 then
 			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
@@ -10633,5 +10212,5 @@ OnTick(function(myHero)
 			end
 		end
 	end
-end)
+end
 end
