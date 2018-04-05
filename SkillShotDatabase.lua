@@ -17,7 +17,7 @@
 -- == Changelog ==
 -- ===============
 -- [05-04] Updated for patch 8.7
--- (Ivern W)
+-- (Irelia, Ivern W)
 -- [22-03] Updated for patch 8.6
 -- (Graves W, LeeSin Q)
 -- [07-03] Updated for patch 8.5
@@ -123,7 +123,10 @@ Spells = {
 	["IllaoiQ"]={charName="Illaoi",slot=_Q,type="linear",speed=math.huge,range=850,delay=0.75,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
 	["IllaoiE"]={charName="Illaoi",slot=_E,type="linear",speed=1800,range=900,delay=0.25,radius=45,hitbox=true,aoe=false,cc=false,collision=true},
 	["IllaoiR"]={charName="Illaoi",slot=_R,type="circular",speed=math.huge,range=0,delay=0.5,radius=450,hitbox=false,aoe=true,cc=false,collision=false},
-	["IreliaTranscendentBlades"]={charName="Irelia",slot=_R,type="linear",speed=1350,range=1000,delay=0.25,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
+	["IreliaW2"]={charName="Irelia",slot=_W,type="circular",speed=math.huge,range=0,delay=0.25,radius=275,hitbox=false,aoe=true,cc=false,collision=false},
+	["IreliaW2"]={charName="Irelia",slot=_W,type="linear",speed=math.huge,range=825,delay=0.25,radius=90,hitbox=false,aoe=true,cc=false,collision=false},
+	["IreliaE"]={charName="Irelia",slot=_E,type="circular",speed=2000,range=900,delay=0,radius=90,hitbox=true,aoe=true,cc=true,collision=false},
+	["IreliaR"]={charName="Irelia",slot=_R,type="linear",speed=1900,range=1000,delay=0.4,radius=135,hitbox=true,aoe=true,cc=true,collision=false},
 	["IvernQ"]={charName="Ivern",slot=_Q,type="linear",speed=1300,range=1075,delay=0.25,radius=50,hitbox=true,aoe=false,cc=true,collision=true},
 	["IvernW"]={charName="Ivern",slot=_W,type="circular",speed=math.huge,range=1000,delay=0.25,radius=150,hitbox=true,aoe=true,cc=false,collision=false},
 	["HowlingGale"]={charName="Janna",slot=_Q,type="linear",speed=1167,range=1750,delay=0,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
