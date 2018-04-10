@@ -22,25 +22,6 @@ local function dRectangleOutline(s, e, w, t, c, v)
 	DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
 end
 
-local function dRectangleOutline2(s, e, w, t, c, v)
-	local z1 = s+Vector(Vector(e)-s):perpendicular():normalized()*w
-	local z2 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w
-	local z3 = e+Vector(Vector(s)-e):perpendicular():normalized()*w
-	local z4 = e+Vector(Vector(s)-e):perpendicular2():normalized()*w
-	local c1 = WorldToScreen(0,z1)
-	local c2 = WorldToScreen(0,z2)
-	local c3 = WorldToScreen(0,z3)
-	local c4 = WorldToScreen(0,z4)
-	if v then
-		DrawLine(c1.x,c1.y,c2.x,c2.y,t,ARGB(255,128,223,223))
-	else
-		DrawLine(c1.x,c1.y,c2.x,c2.y,t,ARGB(255,128,223,223))
-	end
-	DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
-	DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
-	DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
-end
-
 local function DrawRectangle(s,e,r,r2,t,c)
     local spos = Vector(e) - (Vector(e) - Vector(s)):normalized():perpendicular() * (r2 or 400)
     local epos = Vector(e) + (Vector(e) - Vector(s)):normalized():perpendicular() * (r2 or 400)
@@ -295,7 +276,7 @@ self.Spells = {
 	["MissFortuneScattershot"]={charName="MissFortune",slot=_E,type="circular",killTime=2,speed=math.huge,range=1000,delay=0.5,radius=400,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["MissFortuneBulletTime"]={charName="MissFortune",slot=_R,type="conic",killTime=0,speed=math.huge,range=1400,delay=0.001,angle=40,hitbox=false,aoe=true,cc=false,mcollision=false},
 	["MordekaiserSiphonOfDestruction"]={charName="Mordekaiser",slot=_E,type="conic",killTime=0,speed=math.huge,range=675,delay=0.25,angle=50,hitbox=false,aoe=true,cc=false,mcollision=false},
-	["DarkBinding"]={charName="Morgana",slot=_Q,type="linear",killTime=0,speed=1200,range=1175,delay=0.25,radius=60,hitbox=true,aoe=false,cc=true,mcollision=true},
+	["DarkBindingMissile"]={charName="Morgana",slot=_Q,type="linear",killTime=0,speed=1200,range=1175,delay=0.25,radius=60,hitbox=true,aoe=false,cc=true,mcollision=true},
 	["TormentedSoil"]={charName="Morgana",slot=_W,type="circular",killTime=5,speed=math.huge,range=900,delay=0.25,radius=325,hitbox=true,aoe=true,cc=false,mcollision=false},
 	["NamiQ"]={charName="Nami",slot=_Q,type="circular",killTime=0,speed=math.huge,range=875,delay=0.95,radius=200,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["NamiR"]={charName="Nami",slot=_R,type="linear",killTime=0,speed=850,range=2750,delay=0.5,radius=215,hitbox=true,aoe=true,cc=true,mcollision=false},
@@ -419,7 +400,7 @@ self.Spells = {
 	["ZoeQ"]={charName="Zoe",slot=_Q,type="linear",killTime=0,speed=1280,range=800,delay=0.25,radius=40,hitbox=true,aoe=false,cc=false,mcollision=true},
 	["ZoeQRecast"]={charName="Zoe",slot=_Q,type="linear",killTime=0,speed=2370,range=1600,delay=0,radius=40,hitbox=true,aoe=false,cc=false,mcollision=true},
 	["ZoeE"]={charName="Zoe",slot=_E,type="linear",killTime=0,speed=1950,range=800,delay=0.3,radius=55,hitbox=true,aoe=false,cc=true,mcollision=true},
-	["ZyraQ"]={charName="Zyra",slot=_Q,type="rectangle",speed=math.huge,range=800,delay=0.625,radius2=400,radius=100,hitbox=true,aoe=true,cc=false,mcollision=false},
+	["ZyraQ"]={charName="Zyra",slot=_Q,type="rectangle",killTime=0,speed=math.huge,range=800,delay=0.625,radius2=400,radius=100,hitbox=true,aoe=true,cc=false,mcollision=false},
 	["ZyraE"]={charName="Zyra",slot=_E,type="linear",killTime=0,speed=1150,range=1100,delay=0.25,radius=60,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["ZyraR"]={charName="Zyra",slot=_R,type="circular",killTime=0,speed=math.huge,range=700,delay=1.775,radius=575,hitbox=true,aoe=true,cc=true,mcollision=false},
 }
