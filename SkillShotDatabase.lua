@@ -103,7 +103,7 @@ Spells = {
 	["GnarBigQ"]={charName="Gnar",slot=_Q,type="linear",speed=2100,range=1100,delay=0.5,radius=90,hitbox=true,aoe=true,cc=true,collision=true},
 	["GnarBigW"]={charName="Gnar",slot=_W,type="linear",speed=math.huge,range=550,delay=0.6,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
 	["GnarBigE"]={charName="Gnar",slot=_E,type="circular",speed=800,range=600,delay=0.25,radius=375,hitbox=true,aoe=true,cc=true,collision=false},
-	["GnarR"]={charName="Gnar",slot=_R,type="linear",speed=math.huge,range=475,delay=0.25,radius=475,hitbox=true,aoe=true,cc=true,collision=false},
+	["GnarR"]={charName="Gnar",slot=_R,type="circular",speed=math.huge,range=0,delay=0.25,radius=475,hitbox=true,aoe=true,cc=true,collision=false},
 	["GragasQ"]={charName="Gragas",slot=_Q,type="circular",speed=1000,range=850,delay=0.25,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
 	["GragasE"]={charName="Gragas",slot=_E,type="linear",speed=900,range=600,delay=0.25,radius=170,hitbox=true,aoe=true,cc=true,collision=true},
 	["GragasR"]={charName="Gragas",slot=_R,type="circular",speed=1800,range=1000,delay=0.25,radius=400,hitbox=true,aoe=true,cc=true,collision=false},
