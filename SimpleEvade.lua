@@ -1,94 +1,4 @@
 
-local function dRectangleOutline(s, e, w, t, c, v)
-	local z1 = s+Vector(Vector(e)-s):perpendicular():normalized()*w/2
-	local z2 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w/2
-	local z3 = e+Vector(Vector(s)-e):perpendicular():normalized()*w/2
-	local z4 = e+Vector(Vector(s)-e):perpendicular2():normalized()*w/2
-	local z5 = s+Vector(Vector(e)-s):perpendicular():normalized()*w
-	local z6 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w
-	local c1 = WorldToScreen(0,z1)
-	local c2 = WorldToScreen(0,z2)
-	local c3 = WorldToScreen(0,z3)
-	local c4 = WorldToScreen(0,z4)
-	local c5 = WorldToScreen(0,z5)
-	local c6 = WorldToScreen(0,z6)
-	if v then
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
-	else
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
-	end
-	DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
-	DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
-	DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
-end
-
-local function DrawRectangle(s,e,r,r2,t,c)
-    local spos = Vector(e) - (Vector(e) - Vector(s)):normalized():perpendicular() * (r2 or 400)
-    local epos = Vector(e) + (Vector(e) - Vector(s)):normalized():perpendicular() * (r2 or 400)
-	local ePos = Vector(epos)
-	local sPos = Vector(spos)
-	local dVec = Vector(ePos - sPos)
-	local sVec = dVec:normalized():perpendicular()*((r)*.5)
-	local TopD1 = WorldToScreen(0,sPos-sVec)
-	local TopD2 = WorldToScreen(0,sPos+sVec)
-	local BotD1 = WorldToScreen(0,ePos-sVec)
-	local BotD2 = WorldToScreen(0,ePos+sVec)
-	DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,t,c)
-	DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,t,c)
-	DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,t,c)
-	DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,t,c)
-end
-
-local function DrawCone(v1,v2,angle,width,color)
-	angle = angle * math.pi / 180
-	v1 = Vector(v1)
-	v2 = Vector(v2)
-	local a1 = Vector(Vector(v2)-Vector(v1)):rotated(0,-angle*.5,0)
-	local a2 = nil
-	DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,width,color)
-	for i = -angle*.5,angle*.5,angle*.1 do
-		a2 = Vector(v2-v1):rotated(0,i,0)
-		DrawLine3D(v1.x+a2.x,v1.y+a2.y,v1.z+a2.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,width,color)
-		a1 = a2
-	end    
-	DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,width,color)
-end
-
-local ta = {_G.HoldPosition, _G.AttackUnit}
-local function DisableHoldPosition(boolean)
-	if boolean then
-		_G.HoldPosition, _G.AttackUnit = function() end, function() end
-	else
-		_G.HoldPosition, _G.AttackUnit = ta[1], ta[2]
-	end
-end
-
-local function DisableAll(b)
-	if b then
-		if _G.IOW then
-			IOW.movementEnabled = false
-			IOW.attacksEnabled = false
-		elseif _G.GoSWalkLoaded then
-			_G.GoSWalk:EnableMovement(false)
-			_G.GoSWalk:EnableAttack(false)
-		end
-		BlockF7OrbWalk(true)
-		BlockF7Dodge(true)
-		BlockInput(true)
-	else
-		if _G.IOW then
-			IOW.movementEnabled = true
-			IOW.attacksEnabled = true
-		elseif _G.GoSWalkLoaded then
-			_G.GoSWalk:EnableMovement(true)
-			_G.GoSWalk:EnableAttack(true)
-		end
-		BlockF7OrbWalk(false)
-		BlockF7Dodge(false)
-		BlockInput(false)
-	end
-end
-
 Callback.Add("Load", function()	
 	SimpleEvade()
 	require 'MapPositionGOS'
@@ -99,28 +9,24 @@ class 'SimpleEvade'
 function SimpleEvade:__init()
 	self.supportedtypes = {["linear"]={supported=true},["circular"]={supported=true},["conic"]={supported=true},["rectangular"]={supported=true}}
 	self.globalults = {["EzrealTrueshotBarrage"]={s=true},["EnchantedCrystalArrow"]={s=true},["DravenRCast"]={s=true},["JinxR"]={s=true}}
+	self.endposs = nil
 	self.obj = {}
+	self.asd = false
+	self.mposs = nil
+	self.mposs2 = nil
+	self.mposs3 = nil
+	self.mposs4 = nil
+	self.mV = nil
+	self.opos = nil
 	self.patha = nil
 	self.patha2 = nil
 	self.pathb = nil
 	self.pathb2 = nil
-	self.asd = false
-	self.mposs = nil
-	self.ues = false
-	self.ut = false
-	self.usp = false
-	self.mposs2 = nil
-	self.opos = nil
-	self.cpos = nil
-	self.endposs = nil 
-	self.mV = nil 
-	self.YasuoWall = {} 
 	self.pathc = nil
 	self.pathc2 = nil
-	self.mposs3 = nil
-	self.mposs4 = nil
 	self.pathd = nil
 	self.pathd2 = nil
+	self.YasuoWall = {} 
 	Callback.Add("Tick", function() self:Tickp() end)
 	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detection(unit,spellProc) end)
 	Callback.Add("CreateObj", function(obj) self:CreateObject(obj) end)
@@ -405,6 +311,96 @@ self.Spells = {
 	["ZyraR"]={charName="Zyra",slot=_R,type="circular",killTime=0,speed=math.huge,range=700,delay=1.775,radius=575,hitbox=true,aoe=true,cc=true,mcollision=false},
 }
 offer = 0
+end
+
+local function dRectangleOutline(s, e, w, t, c, v)
+	local z1 = s+Vector(Vector(e)-s):perpendicular():normalized()*w/2
+	local z2 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w/2
+	local z3 = e+Vector(Vector(s)-e):perpendicular():normalized()*w/2
+	local z4 = e+Vector(Vector(s)-e):perpendicular2():normalized()*w/2
+	local z5 = s+Vector(Vector(e)-s):perpendicular():normalized()*w
+	local z6 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w
+	local c1 = WorldToScreen(0,z1)
+	local c2 = WorldToScreen(0,z2)
+	local c3 = WorldToScreen(0,z3)
+	local c4 = WorldToScreen(0,z4)
+	local c5 = WorldToScreen(0,z5)
+	local c6 = WorldToScreen(0,z6)
+	if v then
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
+	else
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
+	end
+	DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
+	DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
+	DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
+end
+
+local function DrawRectangle(s,e,r,r2,t,c)
+    local spos = Vector(e) - (Vector(e) - Vector(s)):normalized():perpendicular() * (r2 or 400)
+    local epos = Vector(e) + (Vector(e) - Vector(s)):normalized():perpendicular() * (r2 or 400)
+	local ePos = Vector(epos)
+	local sPos = Vector(spos)
+	local dVec = Vector(ePos - sPos)
+	local sVec = dVec:normalized():perpendicular()*((r)*.5)
+	local TopD1 = WorldToScreen(0,sPos-sVec)
+	local TopD2 = WorldToScreen(0,sPos+sVec)
+	local BotD1 = WorldToScreen(0,ePos-sVec)
+	local BotD2 = WorldToScreen(0,ePos+sVec)
+	DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,t,c)
+	DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,t,c)
+	DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,t,c)
+	DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,t,c)
+end
+
+local function DrawCone(v1,v2,angle,width,color)
+	angle = angle * math.pi / 180
+	v1 = Vector(v1)
+	v2 = Vector(v2)
+	local a1 = Vector(Vector(v2)-Vector(v1)):rotated(0,-angle*.5,0)
+	local a2 = nil
+	DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,width,color)
+	for i = -angle*.5,angle*.5,angle*.1 do
+		a2 = Vector(v2-v1):rotated(0,i,0)
+		DrawLine3D(v1.x+a2.x,v1.y+a2.y,v1.z+a2.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,width,color)
+		a1 = a2
+	end    
+	DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,width,color)
+end
+
+local ta = {_G.HoldPosition, _G.AttackUnit}
+local function DisableHoldPosition(boolean)
+	if boolean then
+		_G.HoldPosition, _G.AttackUnit = function() end, function() end
+	else
+		_G.HoldPosition, _G.AttackUnit = ta[1], ta[2]
+	end
+end
+
+local function DisableAll(b)
+	if b then
+		if _G.IOW then
+			IOW.movementEnabled = false
+			IOW.attacksEnabled = false
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableMovement(false)
+			_G.GoSWalk:EnableAttack(false)
+		end
+		BlockF7OrbWalk(true)
+		BlockF7Dodge(true)
+		BlockInput(true)
+	else
+		if _G.IOW then
+			IOW.movementEnabled = true
+			IOW.attacksEnabled = true
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableMovement(true)
+			_G.GoSWalk:EnableAttack(true)
+		end
+		BlockF7OrbWalk(false)
+		BlockF7Dodge(false)
+		BlockInput(false)
+	end
 end
 
 function SimpleEvade:WndMsg(s1,s2)
