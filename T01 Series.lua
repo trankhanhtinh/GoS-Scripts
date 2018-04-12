@@ -4599,7 +4599,7 @@ function Combo()
 			if CanUseSpell(myHero,_R) == READY then
 				if ValidTarget(target, 1000) then
 					if 100*GetCurrentHP(target)/GetMaxHP(target) < MasterYiMenu.Misc.HP:Value() then
-						if EnemiesAround(myHero, MasterYiR.range) >= MasterYiMenu.Misc.X:Value() then
+						if EnemiesAround(myHero, 1000) >= MasterYiMenu.Misc.X:Value() then
 							useR(target)
 						end
 					end
