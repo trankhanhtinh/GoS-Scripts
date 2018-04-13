@@ -340,6 +340,7 @@ Spells = {
 	["ZiggsE"]={charName="Ziggs",slot=_E,type="circular",speed=1800,range=900,delay=0.25,radius=325,hitbox=true,aoe=true,cc=true,collision=false},
 	["ZiggsR"]={charName="Ziggs",slot=_R,type="circular",speed=1500,range=5300,delay=0.375,radius=550,hitbox=true,aoe=true,cc=false,collision=false},
 	["ZileanQ"]={charName="Zilean",slot=_Q,type="circular",speed=2050,range=900,delay=0.25,radius=180,hitbox=true,aoe=true,cc=true,collision=false},
+	["ZileanQAttachAudio"]={charName="Zilean",slot=_Q,type="circular",speed=2050,range=900,delay=0.25,radius=180,hitbox=true,aoe=true,cc=true,collision=false},
 	["ZoeQ"]={charName="Zoe",slot=_Q,type="linear",speed=1280,range=800,delay=0.25,radius=40,hitbox=true,aoe=false,cc=false,collision=true},
 	["ZoeQRecast"]={charName="Zoe",slot=_Q,type="linear",speed=2370,range=1600,delay=0,radius=40,hitbox=true,aoe=false,cc=false,collision=true},
 	["ZoeE"]={charName="Zoe",slot=_E,type="linear",speed=1950,range=800,delay=0.3,radius=55,hitbox=true,aoe=false,cc=true,collision=true},
