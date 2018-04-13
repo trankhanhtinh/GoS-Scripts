@@ -29,6 +29,7 @@ function SimpleEvade:__init()
 	self.YasuoWall = {}
 	SEMenu:Boolean("Dodge", "Dodge Spells", true)
 	SEMenu:Boolean("Draw", "Draw Spells", true)
+	SEMenu:Boolean("Print", "Print Names", false)
 	Callback.Add("Tick", function() self:TickP() end)
 	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detection(unit,spellProc) end)
 	Callback.Add("CreateObj", function(obj) self:CreateObject(obj) end)
@@ -223,7 +224,7 @@ self.Spells = {
 	["RumbleCarpetBombDummy"]={charName="Rumble",slot=_R,type="rectangular",killTime=0,speed=1600,range=1700,delay=0.583,radius=130,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["RyzeQ"]={charName="Ryze",slot=_Q,type="linear",killTime=0,speed=1700,range=1000,delay=0.25,radius=50,hitbox=true,aoe=false,cc=false,mcollision=true},
 	["SejuaniQ"]={charName="Sejuani",slot=_Q,type="linear",killTime=0,speed=1300,range=650,delay=0.25,radius=150,hitbox=true,aoe=true,cc=true,mcollision=false},
-	["SejuaniW"]={charName="Sejuani",slot=_W,type="conic",killTime=0,speed=math.huge,range=600,delay=0.25,radius=75,angle=75,hitbox=false,aoe=true,cc=true,mcollision=false},
+	["SejuaniW"]={charName="Sejuani",slot=_W,type="conic",killTime=0.25,speed=math.huge,range=600,delay=0.25,radius=75,angle=75,hitbox=false,aoe=true,cc=true,mcollision=false},
 	["SejuaniR"]={charName="Sejuani",slot=_R,type="linear",killTime=0,speed=1650,range=1300,delay=0.25,radius=100,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["ShenE"]={charName="Shen",slot=_E,type="linear",killTime=0,speed=1200,range=600,delay=0,radius=60,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["ShyvanaFireball"]={charName="Shyvana",slot=_E,type="linear",killTime=0,speed=1575,range=925,delay=0.25,radius=60,hitbox=true,aoe=true,cc=false,mcollision=false},
@@ -233,12 +234,12 @@ self.Spells = {
 	["SionQ"]={charName="Sion",slot=_Q,type="linear",killTime=2,speed=math.huge,range=600,delay=0,radius=300,hitbox=false,aoe=true,cc=true,mcollision=false},
 	["SionE"]={charName="Sion",slot=_E,type="linear",killTime=0,speed=1900,range=725,delay=0.25,radius=80,hitbox=false,aoe=true,cc=true,mcollision=false},
 	["SivirQ"]={charName="Sivir",slot=_Q,type="linear",killTime=0,speed=1350,range=1250,delay=0.25,radius=75,hitbox=true,aoe=true,cc=false,mcollision=false},
-	["SkarnerVirulentSlash"]={charName="Skarner",slot=_Q,type="circular",killTime=0,speed=math.huge,range=0,delay=0.25,radius=350,hitbox=false,aoe=true,cc=false,mcollision=false},
+	["SkarnerVirulentSlash"]={charName="Skarner",slot=_Q,type="circular",killTime=0.25,speed=math.huge,range=0,delay=0.25,radius=350,hitbox=false,aoe=true,cc=false,mcollision=false},
 	["SkarnerFracture"]={charName="Skarner",slot=_E,type="linear",killTime=0,speed=1500,range=1000,delay=0.25,radius=70,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["SonaR"]={charName="Sona",slot=_R,type="linear",killTime=0,speed=2250,range=900,delay=0.25,radius=120,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["SorakaQ"]={charName="Soraka",slot=_Q,type="circular",killTime=0,speed=1150,range=800,delay=0.25,radius=235,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["SorakaE"]={charName="Soraka",slot=_E,type="circular",killTime=1.5,speed=math.huge,range=925,delay=0.25,radius=300,hitbox=true,aoe=true,cc=true,mcollision=false},
-	["SwainQ"]={charName="Swain",slot=_Q,type="conic",killTime=0,speed=math.huge,range=725,delay=0.25,radius=45,angle=45,hitbox=false,aoe=true,cc=false,mcollision=false},
+	["SwainQ"]={charName="Swain",slot=_Q,type="conic",killTime=0.25,speed=math.huge,range=725,delay=0.25,radius=45,angle=45,hitbox=false,aoe=true,cc=false,mcollision=false},
 	["SwainW"]={charName="Swain",slot=_W,type="circular",killTime=1.5,speed=math.huge,range=3500,delay=0.25,radius=325,hitbox=false,aoe=true,cc=false,mcollision=false},
 	["SwainE"]={charName="Swain",slot=_E,type="linear",killTime=0,speed=1550,range=850,delay=0.25,radius=100,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["SyndraQ"]={charName="Syndra",slot=_Q,type="circular",killTime=0,speed=math.huge,range=800,delay=0.625,radius=200,hitbox=true,aoe=true,cc=false,mcollision=false},
@@ -255,7 +256,7 @@ self.Spells = {
 	["ThreshQ"]={charName="Thresh",slot=_Q,type="linear",killTime=0,speed=1900,range=1100,delay=0.5,radius=55,hitbox=true,aoe=false,cc=true,mcollision=true},
 	["ThreshEFlay"]={charName="Thresh",slot=_E,type="linear",killTime=0,proj="ThreshEMissile1",speed=math.huge,range=400,delay=0.389,radius=95,hitbox=false,aoe=true,cc=true,mcollision=false},
 	["TristanaW"]={charName="Tristana",slot=_W,type="circular",killTime=0,speed=1100,range=900,delay=0.25,radius=250,hitbox=true,aoe=true,cc=true,mcollision=false},
-	["TrundleCircle"]={charName="Trundle",slot=_E,type="circular",killTime=0,speed=math.huge,range=1000,delay=0.25,radius=375,hitbox=true,aoe=true,cc=true,mcollision=false},
+	["TrundleCircle"]={charName="Trundle",slot=_E,type="circular",killTime=0.25,speed=math.huge,range=1000,delay=0.25,radius=375,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["TryndamereE"]={charName="Tryndamere",slot=_E,type="linear",killTime=0,speed=1300,range=660,delay=0,radius=225,hitbox=true,aoe=true,cc=false,mcollision=false},
 	["WildCards"]={charName="TwistedFate",slot=_Q,type="linear",killTime=0,speed=1000,range=1450,delay=0.25,radius=35,hitbox=true,aoe=true,cc=false,mcollision=false},
 	["TwitchVenomCask"]={charName="Twitch",slot=_W,type="circular",killTime=0,speed=1400,range=950,delay=0.25,radius=340,hitbox=true,aoe=true,cc=true,mcollision=false},
@@ -292,7 +293,7 @@ self.Spells = {
 	["YasuoQ3"]={charName="Yasuo",slot=_Q,type="linear",killTime=0,speed=1500,range=1000,delay=0.339,radius=75,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["YorickW"]={charName="Yorick",slot=_W,type="annular",killTime=4,speed=math.huge,range=600,delay=0.25,radius=300,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["ZacQ"]={charName="Zac",slot=_Q,type="linear",killTime=0,speed=math.huge,range=800,delay=0.33,radius=85,hitbox=true,aoe=true,cc=true,mcollision=true},
-	["ZacW"]={charName="Zac",slot=_W,type="circular",killTime=0,speed=math.huge,range=0,delay=0.25,radius=350,hitbox=false,aoe=true,cc=false,mcollision=false},
+	["ZacW"]={charName="Zac",slot=_W,type="circular",killTime=0.25,speed=math.huge,range=0,delay=0.25,radius=350,hitbox=false,aoe=true,cc=false,mcollision=false},
 	["ZacE"]={charName="Zac",slot=_E,type="circular",killTime=0,speed=1330,range=1800,delay=0,radius=300,hitbox=false,aoe=true,cc=true,mcollision=false},
 	["ZacR"]={charName="Zac",slot=_R,type="circular",killTime=2.5,speed=math.huge,range=1000,delay=0,radius=300,hitbox=false,aoe=true,cc=true,mcollision=false},
 	["ZedQ"]={charName="Zed",slot=_Q,type="linear",killTime=0,speed=1700,range=900,delay=0.25,radius=50,hitbox=true,aoe=true,cc=false,mcollision=false},
@@ -1004,6 +1005,9 @@ end
 
 function SimpleEvade:Detection(unit,spellProc)
 	if unit and unit.isHero and unit.team == MINION_ENEMY then
+		if SEMenu.Print:Value() then
+			print(spellProc.name)
+		end
 		for _,l in pairs(self.Spells) do
 			if not self.Object1[spellProc.name] and self.Spells[spellProc.name] and _ == spellProc.name then
 				if not self.Object1[spellProc.name] then self.Object1[spellProc.name] = {} end
