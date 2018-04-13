@@ -289,8 +289,9 @@ self.Spells = {
 	["XinZhaoW"]={charName="XinZhao",slot=_W,type="conic",killTime=0,speed=math.huge,range=125,delay=0,radius=180,angle=180,hitbox=false,aoe=true,cc=false,mcollision=false},
 	["XinZhaoW"]={charName="XinZhao",slot=_W,type="linear",killTime=0,speed=math.huge,range=900,delay=0.5,radius=45,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["XinZhaoR"]={charName="XinZhao",slot=_R,type="circular",killTime=0,speed=math.huge,range=0,delay=0.325,radius=550,hitbox=false,aoe=true,cc=true,mcollision=false},
-	["YasuoQ"]={charName="Yasuo",slot=_Q,type="linear",killTime=0,speed=math.huge,range=475,delay=0.339,radius=45,hitbox=true,aoe=true,cc=false,mcollision=false},
-	["YasuoQ3"]={charName="Yasuo",slot=_Q,type="linear",killTime=0,speed=1500,range=1000,delay=0.339,radius=75,hitbox=true,aoe=true,cc=true,mcollision=false},
+	["YasuoQW"]={charName="Yasuo",slot=_Q,type="linear",killTime=0,speed=math.huge,range=475,delay=0.339,radius=45,hitbox=true,aoe=true,cc=false,mcollision=false},
+	["YasuoQ2W"]={charName="Yasuo",slot=_Q,type="linear",killTime=0,speed=math.huge,range=475,delay=0.339,radius=45,hitbox=true,aoe=true,cc=false,mcollision=false},
+	["YasuoQ3W"]={charName="Yasuo",slot=_Q,type="linear",killTime=0,speed=1500,range=1000,delay=0.339,radius=75,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["YorickW"]={charName="Yorick",slot=_W,type="annular",killTime=4,speed=math.huge,range=600,delay=0.25,radius=300,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["ZacQ"]={charName="Zac",slot=_Q,type="linear",killTime=0,speed=math.huge,range=800,delay=0.33,radius=85,hitbox=true,aoe=true,cc=true,mcollision=true},
 	["ZacW"]={charName="Zac",slot=_W,type="circular",killTime=0.25,speed=math.huge,range=0,delay=0.25,radius=350,hitbox=false,aoe=true,cc=false,mcollision=false},
@@ -306,6 +307,7 @@ self.Spells = {
 	["ZiggsE"]={charName="Ziggs",slot=_E,type="circular",killTime=2,speed=1800,range=900,delay=0.25,radius=325,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["ZiggsR"]={charName="Ziggs",slot=_R,type="circular",killTime=0,speed=1500,range=5300,delay=0.375,radius=550,hitbox=true,aoe=true,cc=false,mcollision=false},
 	["ZileanQ"]={charName="Zilean",slot=_Q,type="circular",killTime=3,speed=2050,range=900,delay=0.25,radius=180,hitbox=true,aoe=true,cc=true,mcollision=false},
+	["ZileanQAttachAudio"]={charName="Zilean",slot=_Q,type="circular",killTime=3,speed=2050,range=900,delay=0.25,radius=180,hitbox=true,aoe=true,cc=true,mcollision=false},
 	["ZoeQ"]={charName="Zoe",slot=_Q,type="linear",killTime=0,speed=1280,range=800,delay=0.25,radius=40,hitbox=true,aoe=false,cc=false,mcollision=true},
 	["ZoeQRecast"]={charName="Zoe",slot=_Q,type="linear",killTime=0,speed=2370,range=1600,delay=0,radius=40,hitbox=true,aoe=false,cc=false,mcollision=true},
 	["ZoeE"]={charName="Zoe",slot=_E,type="linear",killTime=0,speed=1950,range=800,delay=0.3,radius=55,hitbox=true,aoe=false,cc=true,mcollision=true},
@@ -330,9 +332,9 @@ local function dRectangleOutline(s, e, w, t, c, v)
 	local c5 = WorldToScreen(0,z5)
 	local c6 = WorldToScreen(0,z6)
 	if v then
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,255,255,255))
 	else
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,255,255,255))
 	end
 	DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
 	DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
@@ -558,7 +560,7 @@ function SimpleEvade:sCircPos(_,i)
 end
 
 function SimpleEvade:Status()
-	DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,255,255,255))
+	DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,128,223,223))
 end
 
 function SimpleEvade:Position()
@@ -911,7 +913,7 @@ function SimpleEvade:Drawings(_,i)
 	if i.spell.type == "linear" then
 		local sPos = Vector(self.OPosition)
 		local ePos = Vector(self.EndPosition)
-		dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius*2, 1, ARGB(255,255,255,255), i.debug)
+		dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius*2, 1, ARGB(255,128,223,223), i.debug)
 	end
 	if i.spell.type == "circular" then
 		if _ == "AbsoluteZero" then
@@ -919,17 +921,17 @@ function SimpleEvade:Drawings(_,i)
 		else
 			i.p.endPos = Vector(i.p.endPos)
 		end
-		DrawCircle(i.p.endPos,i.spell.radius,1,75,ARGB(255,255,255,255))
+		DrawCircle(i.p.endPos,i.spell.radius,1,75,ARGB(255,128,223,223))
 	end
 	if i.spell.type == "rectangular" then
-		DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,1,ARGB(255,255,255,255))
+		DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,1,ARGB(255,128,223,223))
 	end
 	if i.spell.type == "conic" then
-		DrawCone(i.p.startPos,Vector(self.EndPosition),i.spell.angle or 40,1,ARGB(255,255,255,255))
+		DrawCone(i.p.startPos,Vector(self.EndPosition),i.spell.angle or 40,1,ARGB(255,128,223,223))
 	end
 	if i.spell.type == "annular" then
-		DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,1,75,ARGB(255,255,255,255))
-		DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius/1.5,1,75,ARGB(255,255,255,255))
+		DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,1,75,ARGB(255,128,223,223))
+		DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius/1.5,1,75,ARGB(255,128,223,223))
 	end
 	if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "linear" then
 		i.safe = nil
