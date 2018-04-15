@@ -1,5 +1,5 @@
 
-OnLoad(function()
+Callback.Add("Load", function()
 	SEMenu = Menu("SimpleEvade", "SimpleEvade")
 	SimpleEvade()
 	require 'MapPositionGOS'
@@ -26,10 +26,22 @@ function SimpleEvade:__init()
 	self.PathC2 = nil
 	self.PathD = nil
 	self.PathD2 = nil
+	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.YasuoWall = {}
-	SEMenu:Boolean("Dodge", "Dodge Spells", true)
-	SEMenu:Boolean("Draw", "Draw Spells", true)
 	SEMenu:Boolean("Print", "Print Names", false)
+	SEMenu:SubMenu("Spells", "Spell Settings")
+	DelayAction(function()
+		for _,i in pairs(self.Spells) do
+			for l,k in pairs(GetEnemyHeroes()) do
+				if not self.Spells[_] then return end
+				if i.charName == k.charName then
+					if not SEMenu.Spells[_] then SEMenu.Spells:Menu(_,""..i.charName.." "..self.SpSlot[i.slot]) end
+						SEMenu.Spells[_]:Boolean("Dodge".._, "Dodge Spell", true)
+						SEMenu.Spells[_]:Boolean("Draw".._, "Draw Spell", true)
+				end
+			end
+		end
+	end,.1)
 	Callback.Add("Tick", function() self:TickP() end)
 	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detection(unit,spellProc) end)
 	Callback.Add("CreateObj", function(obj) self:CreateObject(obj) end)
@@ -332,9 +344,9 @@ local function dRectangleOutline(s, e, w, t, c, v)
 	local c5 = WorldToScreen(0,z5)
 	local c6 = WorldToScreen(0,z6)
 	if v then
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,255,255,255))
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
 	else
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,255,255,255))
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,128,223,223))
 	end
 	DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
 	DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
@@ -442,55 +454,51 @@ function SimpleEvade:Skillshot()
 end
 
 function SimpleEvade:TickP()
-	if SEMenu.Dodge:Value() then
-		heroes[myHero.networkID] = nil
-		for _,i in pairs(self.Object1) do
-			if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 6200 and not self.GlobalUlts[_] then return end
-			if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 6200 and not self.GlobalUlts[_] then return end
-			if i.p and i.spell.type == "conic" and GetDistance(myHero,i.p.endPos) >= 6200 and not self.GlobalUlts[_] then return end
-			if i.p and i.spell.type == "rectangular" and GetDistance(myHero,i.p.endPos) >= 6200 and not self.GlobalUlts[_] then return end
-			if not i.jp or not i.safe then
-				self.ASD = false
-				DisableHoldPosition(false)
-				DisableAll(false)
-			end
-			if i.o then
-				i.p = {}
-				i.p.startPos = Vector(i.o.startPos)
-				i.p.endPos = Vector(i.o.endPos)
-			end
-			if i.p then
-				self:CleanObj(_,i) 
-				self:Dodge(_,i) 
-				self:Pathfinding(_,i)
-				self:UDodge(_,i)
-				self:Mpos(_,i)
-			end
+	heroes[myHero.networkID] = nil
+	for _,i in pairs(self.Object1) do
+		if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 6200 and not self.GlobalUlts[_] then return end
+		if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 6200 and not self.GlobalUlts[_] then return end
+		if i.p and i.spell.type == "conic" and GetDistance(myHero,i.p.endPos) >= 6200 and not self.GlobalUlts[_] then return end
+		if i.p and i.spell.type == "rectangular" and GetDistance(myHero,i.p.endPos) >= 6200 and not self.GlobalUlts[_] then return end
+		if not i.jp or not i.safe then
+			self.ASD = false
+			DisableHoldPosition(false)
+			DisableAll(false)
+		end
+		if i.o then
+			i.p = {}
+			i.p.startPos = Vector(i.o.startPos)
+			i.p.endPos = Vector(i.o.endPos)
+		end
+		if i.p then
+			self:CleanObj(_,i) 
+			self:Dodge(_,i) 
+			self:Pathfinding(_,i)
+			self:UDodge(_,i)
+			self:Mpos(_,i)
 		end
 	end
 end
 
 function SimpleEvade:DrawP()
-	if SEMenu.Draw:Value() then
-		for _,i in pairs(self.Object1) do
-			if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 3000 and not self.GlobalUlts[_] then return end
-			if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.GlobalUlts[_] then return end
-			if i.p and i.spell.type == "conic" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.GlobalUlts[_] then return end
-			if i.p and i.spell.type == "rectangular" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.GlobalUlts[_] then return end
-			if i.o then
-				i.p = {}
-				i.p.startPos = Vector(i.o.startPos)
-				i.p.endPos = Vector(i.o.endPos)
-			end
-			if i.p then
-				if i.spell.type ~= ("circular" or "annular") then self.EndPosition = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*i.spell.range end
-				self.OPosition = self:sObjpos(_,i)
-				self:Drawings(_,i)
-			end
-		self:HeroCollsion(_,i)
-		self:MinionCollision(_,i)
-		self:WallCollision(_,i)
+	for _,i in pairs(self.Object1) do
+		if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 3000 and not self.GlobalUlts[_] then return end
+		if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.GlobalUlts[_] then return end
+		if i.p and i.spell.type == "conic" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.GlobalUlts[_] then return end
+		if i.p and i.spell.type == "rectangular" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.GlobalUlts[_] then return end
+		if i.o then
+			i.p = {}
+			i.p.startPos = Vector(i.o.startPos)
+			i.p.endPos = Vector(i.o.endPos)
 		end
+		if i.p then
+			if i.spell.type ~= ("circular" or "annular") then self.EndPosition = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*i.spell.range end
+			self.OPosition = self:sObjpos(_,i)
+			self:Drawings(_,i)
+		end
+	self:HeroCollsion(_,i)
+	self:MinionCollision(_,i)
+	self:WallCollision(_,i)
 	end
 end
 
@@ -560,7 +568,7 @@ function SimpleEvade:sCircPos(_,i)
 end
 
 function SimpleEvade:Status()
-	DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,128,223,223))
+	DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,255,255,255))
 end
 
 function SimpleEvade:Position()
@@ -910,54 +918,58 @@ function SimpleEvade:Pathfinding(_,i)
 end
 
 function SimpleEvade:Drawings(_,i)
-	if i.spell.type == "linear" then
-		local sPos = Vector(self.OPosition)
-		local ePos = Vector(self.EndPosition)
-		dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius*2, 1, ARGB(255,128,223,223), i.debug)
-	end
-	if i.spell.type == "circular" then
-		if _ == "AbsoluteZero" then
-			i.p.endPos = Vector(i.caster.pos)
-		else
-			i.p.endPos = Vector(i.p.endPos)
+	if i.debug or SEMenu.Spells[_]["Draw".._]:Value() then
+		if i.spell.type == "linear" then
+			local sPos = Vector(self.OPosition)
+			local ePos = Vector(self.EndPosition)
+			dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius*2, 1, ARGB(255,255,255,255), i.debug)
 		end
-		DrawCircle(i.p.endPos,i.spell.radius,1,75,ARGB(255,128,223,223))
-	end
-	if i.spell.type == "rectangular" then
-		DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,1,ARGB(255,128,223,223))
-	end
-	if i.spell.type == "conic" then
-		DrawCone(i.p.startPos,Vector(self.EndPosition),i.spell.angle or 40,1,ARGB(255,128,223,223))
-	end
-	if i.spell.type == "annular" then
-		DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,1,75,ARGB(255,128,223,223))
-		DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius/1.5,1,75,ARGB(255,128,223,223))
-	end
-	if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "linear" then
-		i.safe = nil
-	elseif i.p and (GetDistance(myHero,i.p.endPos) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "circular" then
-		i.safe = nil
-	elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "rectangular" then
-		i.safe = nil
-	elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "conic" then
-		i.safe = nil
+		if i.spell.type == "circular" then
+			if _ == "AbsoluteZero" then
+				i.p.endPos = Vector(i.caster.pos)
+			else
+				i.p.endPos = Vector(i.p.endPos)
+			end
+			DrawCircle(i.p.endPos,i.spell.radius,1,75,ARGB(255,255,255,255))
+		end
+		if i.spell.type == "rectangular" then
+			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,1,ARGB(255,255,255,255))
+		end
+		if i.spell.type == "conic" then
+			DrawCone(i.p.startPos,Vector(self.EndPosition),i.spell.angle or 40,1,ARGB(255,255,255,255))
+		end
+		if i.spell.type == "annular" then
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,1,75,ARGB(255,255,255,255))
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius/1.5,1,75,ARGB(255,255,255,255))
+		end
+		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "linear" then
+			i.safe = nil
+		elseif i.p and (GetDistance(myHero,i.p.endPos) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "circular" then
+			i.safe = nil
+		elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "rectangular" then
+			i.safe = nil
+		elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "conic" then
+			i.safe = nil
+		end
 	end
 end
 
 function SimpleEvade:Dodge(_,i)
-	if myHero.isSpellShielded then return end
-	if i.safe then
-		if self.ASD == true then 
-			DisableHoldPosition(true)
-			DisableAll(true) 
-		else 
+	if i.debug or SEMenu.Spells[_]["Dodge".._]:Value() then
+		if myHero.isSpellShielded then return end
+		if i.safe then
+			if self.ASD == true then 
+				DisableHoldPosition(true)
+				DisableAll(true) 
+			else 
+				DisableHoldPosition(false)
+				DisableAll(false) 
+			end
+			MoveToXYZ(i.safe)
+		else
 			DisableHoldPosition(false)
-			DisableAll(false) 
+			DisableAll(false)
 		end
-		MoveToXYZ(i.safe)
-	else
-		DisableHoldPosition(false)
-		DisableAll(false)
 	end
 end
 
