@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.3
+-- Current version: 1.1.5.4
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.5.4
+-- + Corrected Kaisa & Varus damage calc
 -- 1.1.5.3
 -- + Corrected data for Kaisa & Lucian
 -- 1.1.5.2
@@ -86,7 +88,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.153
+local GSVer = 1.154
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -3206,7 +3208,7 @@ end
 
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		local QDmg = (39.625*GetCastLevel(myHero,_Q)+72.875)+GetBonusDmg(myHero)+GetBonusAP(myHero)
+		local QDmg = (39.625*GetCastLevel(myHero,_Q)+72.875)+(0.875*GetBonusDmg(myHero))+GetBonusAP(myHero)
 		local WDmg = (25*GetCastLevel(myHero,_W)-5)+(1.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))+(0.45*GetBonusAP(myHero))
 		local ComboDmg = QDmg + WDmg
 		if ValidTarget(enemy) then
@@ -5975,7 +5977,7 @@ end
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 		local QDmg = (55*GetCastLevel(myHero,_Q)-40)+(1.5*(GetBonusDmg(myHero)+GetBaseDamage(myHero)))
-		local WDmg = (4*GetCastLevel(myHero,_W)+6)+(0.25*GetBonusAP(myHero))+((0.0225*GetCastLevel(myHero,_W)+0.0375)+((0.06*GetBonusAP(myHero)/100)*GetMaxHP(enemy)))
+		local WDmg = (4*GetCastLevel(myHero,_W)+1)+(0.25*GetBonusAP(myHero))+((0.0225*GetCastLevel(myHero,_W)+0.0375)+((0.06*GetBonusAP(myHero)/100)*GetMaxHP(enemy)))
 		local EDmg = (35*GetCastLevel(myHero,_E)+35)+(0.6*GetBonusDmg(myHero))
 		local RDmg = (75*GetCastLevel(myHero,_R)+25)+GetBonusAP(myHero)
 		local ComboDmg = QDmg + WDmg + EDmg + RDmg
