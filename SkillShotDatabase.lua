@@ -16,6 +16,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [18-04] Updated for patch 8.8
+-- (LeBlanc W)
 -- [17-04] Corrected linear spells data
 -- [05-04] Updated for patch 8.7
 -- (Irelia, Ivern W)
@@ -169,9 +171,9 @@ Spells = {
 	["KogMawQ"]={charName="KogMaw",slot=_Q,type="linear",speed=1650,range=1175,delay=0.25,radius=70,hitbox=true,aoe=false,cc=false,collision=true},
 	["KogMawVoidOoze"]={charName="KogMaw",slot=_E,type="linear",speed=1400,range=1280,delay=0.25,radius=120,hitbox=true,aoe=true,cc=true,collision=false},
 	["KogMawLivingArtillery"]={charName="KogMaw",slot=_R,type="circular",speed=math.huge,range=1800,delay=0.85,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
-	["LeBlancW"]={charName="LeBlanc",slot=_W,type="circular",speed=1600,range=600,delay=0.25,radius=260,hitbox=true,aoe=true,cc=false,collision=false},
+	["LeBlancW"]={charName="LeBlanc",slot=_W,type="circular",speed=1450,range=600,delay=0.25,radius=260,hitbox=true,aoe=true,cc=false,collision=false},
 	["LeBlancE"]={charName="LeBlanc",slot=_E,type="linear",speed=1750,range=925,delay=0.25,radius=55,hitbox=true,aoe=false,cc=true,collision=true},
-	["LeBlancRW"]={charName="LeBlanc",slot=_W,type="circular",speed=1600,range=600,delay=0.25,radius=260,hitbox=true,aoe=true,cc=false,collision=false},
+	["LeBlancRW"]={charName="LeBlanc",slot=_W,type="circular",speed=1450,range=600,delay=0.25,radius=260,hitbox=true,aoe=true,cc=false,collision=false},
 	["LeBlancRE"]={charName="LeBlanc",slot=_E,type="linear",speed=1750,range=925,delay=0.25,radius=55,hitbox=true,aoe=false,cc=true,collision=true},
 	["BlinkMonkQOne"]={charName="LeeSin",slot=_Q,type="linear",speed=1800,range=1200,delay=0.25,radius=60,hitbox=true,aoe=false,cc=false,collision=true},
 	["BlinkMonkEOne"]={charName="LeeSin",slot=_E,type="circular",speed=math.huge,range=0,delay=0.25,radius=350,hitbox=false,aoe=true,cc=false,collision=false},
