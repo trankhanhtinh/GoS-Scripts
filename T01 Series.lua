@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.2
+-- Current version: 1.2.2.1
 -- Intermediate GoS script which supports currently 20 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.2.1
+-- + Corrected Ahri's damage calc
 -- 1.2.2
 -- + Optimized code & data
 -- + Removed Vayne
@@ -150,7 +152,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.22
+local TSVer = 1.221
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -347,8 +349,8 @@ OnDraw(function(myHero)
 	if AhriMenu.Drawings.DrawR:Value() then DrawCircle(pos,AhriR.range,1,25,0xff0000ff) end
 	local QDmg = (50*GetCastLevel(myHero,_Q)+30)+(0.7*GetBonusAP(myHero))
 	local WDmg = (40*GetCastLevel(myHero,_W)+24)+(0.48*GetBonusAP(myHero))
-	local EDmg = (45*GetCastLevel(myHero,_E)+15)+(0.6*GetBonusAP(myHero))
-	local RDmg = (360*GetCastLevel(myHero,_R)+270)+(2.25*GetBonusAP(myHero))
+	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.4*GetBonusAP(myHero))
+	local RDmg = (90*GetCastLevel(myHero,_R)+90)+(1.05*GetBonusAP(myHero))
 	local ComboDmg = QDmg + WDmg + EDmg + RDmg
 	local WERDmg = WDmg + EDmg + RDmg
 	local QERDmg = QDmg + EDmg + RDmg
