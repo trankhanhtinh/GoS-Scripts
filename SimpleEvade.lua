@@ -962,7 +962,7 @@ end
 
 function SimpleEvade:Drawings2(_,i)
 	if i.safe and (i.debug or SEMenu.Spells[_]["Draw".._]:Value()) then
-		DrawArrow(myHero.pos,i.safe,1,ARGB(255,255,255,0))
+		DrawArrow(myHero.pos,i.safe,1,ARGB(255,128,223,223))
 	end
 end
 
