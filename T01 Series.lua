@@ -8,11 +8,11 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.2.1
--- Intermediate GoS script which supports currently 20 champions.
+-- Current version: 1.2.3
+-- Intermediate GoS script which supports currently 21 champions.
 -- Features:
--- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, MasterYi, Orianna,
---   Riven, Ryze, Syndra, TwistedFate, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
+-- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, Leblanc, MasterYi,
+--   Orianna, Riven, Ryze, Syndra, TwistedFate, Veigar, Viktor, Vladimir, Xerath, Yasuo, Zed
 -- + 4 choosable predictions (GoS, IPrediction, GPrediction, OpenPredict) + CurrentPos casting,
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.3
+-- + Added Leblanc
 -- 1.2.2.1
 -- + Corrected Ahri's damage calc
 -- 1.2.2
@@ -152,7 +154,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.221
+local TSVer = 1.23
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -240,7 +242,7 @@ GAPCLOSER_SPELLS = {
     ["Kennen"]                      = {_E},
     ["KhaZix"]                      = {_E},
     ["Lissandra"]                   = {_E},
-    ["LeBlanc"]                     = {_W, _R},
+    ["Leblanc"]                     = {_W, _R},
     ["LeeSin"]                      = {_Q, _W},
     ["Leona"]                       = {_E},
     ["Lucian"]                      = {_E},
@@ -4498,6 +4500,517 @@ function VectorWay(A,B)
 	WayY = B.y - A.y
 	WayZ = B.z - A.z
 	return Vector(WayX, WayY, WayZ)
+end
+
+-- Leblanc
+
+elseif "Leblanc" == GetObjectName(myHero) then
+
+PrintChat("<font color='#1E90FF'>[<font color='#00BFFF'>T01<font color='#1E90FF'>] <font color='#00BFFF'>Leblanc loaded successfully!")
+local LeblancMenu = Menu("[T01] Leblanc", "[T01] Leblanc")
+LeblancMenu:Menu("Auto", "Auto")
+LeblancMenu.Auto:Boolean('UseQ', 'Use Q [Sigil of Malice]', true)
+LeblancMenu.Auto:Boolean('UseE', 'Use E [Ethereal Chains]', false)
+LeblancMenu.Auto:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+LeblancMenu:Menu("Combo", "Combo")
+LeblancMenu.Combo:Boolean('UseQ', 'Use Q [Sigil of Malice]', true)
+LeblancMenu.Combo:Boolean('UseW', 'Use W [Distortion]', true)
+LeblancMenu.Combo:Boolean('UseE', 'Use E [Ethereal Chains]', true)
+LeblancMenu.Combo:Boolean('UseR', 'Use R [Mimic]', true)
+LeblancMenu.Combo:DropDown("ModeW", "Cast Mode: W", 2, {"Mouse Position", "Predicted Position"})
+LeblancMenu:Menu("Harass", "Harass")
+LeblancMenu.Harass:Boolean('UseQ', 'Use Q [Sigil of Malice]', true)
+LeblancMenu.Harass:Boolean('UseW', 'Use W [Distortion]', true)
+LeblancMenu.Harass:Boolean('UseE', 'Use E [Ethereal Chains]', true)
+LeblancMenu.Harass:DropDown("ModeW", "Cast Mode: W", 2, {"Mouse Position", "Predicted Position"})
+LeblancMenu.Harass:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+LeblancMenu:Menu("LastHit", "LastHit")
+LeblancMenu.LastHit:Boolean('UseQ', 'Use Q [Sigil of Malice]', true)
+LeblancMenu.LastHit:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+LeblancMenu:Menu("LaneClear", "LaneClear")
+LeblancMenu.LaneClear:Boolean('UseQ', 'Use Q [Sigil of Malice]', false)
+LeblancMenu.LaneClear:Boolean('UseW', 'Use W [Distortion]', true)
+LeblancMenu.LaneClear:Boolean('UseE', 'Use E [Ethereal Chains]', true)
+LeblancMenu.LaneClear:Slider("MP","Mana-Manager", 40, 0, 100, 5)
+LeblancMenu:Menu("JungleClear", "JungleClear")
+LeblancMenu.JungleClear:Boolean('UseQ', 'Use Q [Sigil of Malice]', true)
+LeblancMenu.JungleClear:Boolean('UseW', 'Use W [Distortion]', true)
+LeblancMenu.JungleClear:Boolean('UseE', 'Use E [Ethereal Chains]', true)
+LeblancMenu:Menu("AntiGapcloser", "Anti-Gapcloser")
+LeblancMenu.AntiGapcloser:Boolean('UseE', 'Use E [Ethereal Chains]', true)
+LeblancMenu:Menu("Interrupter", "Interrupter")
+LeblancMenu.Interrupter:Boolean('UseE', 'Use E [Ethereal Chains]', true)
+LeblancMenu:Menu("Prediction", "Prediction")
+LeblancMenu.Prediction:DropDown("PredictionW", "Prediction: W", 5, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+LeblancMenu.Prediction:DropDown("PredictionE", "Prediction: E", 2, {"CurrentPos", "GoSPred", "GPrediction", "IPrediction", "OpenPredict"})
+LeblancMenu:Menu("Drawings", "Drawings")
+LeblancMenu.Drawings:Boolean('DrawQ', 'Draw Q Range', true)
+LeblancMenu.Drawings:Boolean('DrawW', 'Draw W Range', true)
+LeblancMenu.Drawings:Boolean('DrawE', 'Draw E Range', true)
+LeblancMenu.Drawings:Boolean('DrawDMG', 'Draw Max QWE Damage', true)
+LeblancMenu:Menu("Misc", "Misc")
+LeblancMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
+LeblancMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
+LeblancMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
+LeblancMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
+
+local LeblancQ = { range = 700 }
+local LeblancW = { range = 600, radius = 260, width = 520, speed = 1450, delay = 0, type = "circular", collision = false, source = myHero }
+local LeblancE = { range = 925, radius = 55, width = 110, speed = 1750, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+
+OnTick(function(myHero)
+	target = GetCurrentTarget()
+	Auto()
+	Combo()
+	Harass()
+	LastHit()
+	LaneClear()
+	JungleClear()
+	AntiGapcloser()
+	LevelUp()
+end)
+
+OnDraw(function(myHero)
+	local pos = GetOrigin(myHero)
+	if LeblancMenu.Drawings.DrawQ:Value() then DrawCircle(pos,LeblancQ.range,1,25,0xff00bfff) end
+	if LeblancMenu.Drawings.DrawW:Value() then DrawCircle(pos,LeblancW.range,1,25,0xff4169e1) end
+	if LeblancMenu.Drawings.DrawE:Value() then DrawCircle(pos,LeblancE.range,1,25,0xff1e90ff) end
+	local QDmg = (25*GetCastLevel(myHero,_Q)+30)+(0.4*GetBonusAP(myHero))
+	local WDmg = (40*GetCastLevel(myHero,_W)+45)+(0.6*GetBonusAP(myHero))
+	local EDmg = (50*GetCastLevel(myHero,_E)+50)+GetBonusAP(myHero)
+	local ComboDmg = QDmg + WDmg + EDmg
+	local WEDmg = WDmg + EDmg
+	local QEDmg = QDmg + EDmg
+	local QWDmg = QDmg + WDmg
+	for _, enemy in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemy) then
+			if LeblancMenu.Drawings.DrawDMG:Value() then
+				if Ready(_Q) and Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, ComboDmg), 0xff008080)
+				elseif Ready(_W) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QEDmg), 0xff008080)
+				elseif Ready(_Q) and Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QWDmg), 0xff008080)
+				elseif Ready(_Q) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, QDmg), 0xff008080)
+				elseif Ready(_W) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, WDmg), 0xff008080)
+				elseif Ready(_E) then
+					DrawDmgOverHpBar(enemy, GetCurrentHP(enemy), 0, CalcDamage(myHero, enemy, 0, EDmg), 0xff008080)
+				end
+			end
+		end
+	end
+end)
+
+function useQ(target)
+	CastTargetSpell(target, _Q)
+end
+function useW(target)
+	if GetDistance(target) < LeblancW.range then
+		if LeblancMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_W,GetOrigin(target))
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 2 then
+			local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),LeblancW.speed,LeblancW.delay*1000,LeblancW.range,LeblancW.width,false,true)
+			if WPred.HitChance == 1 then
+				CastSkillShot(_W, WPred.PredPos)
+			end
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 3 then
+			local WPred = _G.gPred:GetPrediction(target,myHero,LeblancW,true,false)
+			if WPred and WPred.HitChance >= 3 then
+				CastSkillShot(_W, WPred.CastPosition)
+			end
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 4 then
+			local WSpell = IPrediction.Prediction({name="LeblancW", range=LeblancW.range, speed=LeblancW.speed, delay=LeblancW.delay, width=LeblancW.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(LeblancW.range)
+			local x, y = WSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_W, y.x, y.y, y.z)
+			end
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 5 then
+			local WPrediction = GetCircularAOEPrediction(target,LeblancW)
+			if WPrediction.hitChance > 0.9 then
+				CastSkillShot(_W, WPrediction.castPos)
+			end
+		end
+	end
+end
+function useRW(target)
+	if GetDistance(target) < LeblancW.range then
+		if LeblancMenu.Prediction.PredictionW:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),LeblancW.speed,LeblancW.delay*1000,LeblancW.range,LeblancW.width,false,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, WPred.PredPos)
+			end
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,LeblancW,true,false)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="LeblancRW", range=LeblancW.range, speed=LeblancW.speed, delay=LeblancW.delay, width=LeblancW.width, type="circular", collision=false})
+			ts = TargetSelector()
+			target = ts:GetTarget(LeblancW.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif LeblancMenu.Prediction.PredictionW:Value() == 5 then
+			local RPrediction = GetCircularAOEPrediction(target,LeblancW)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, RPrediction.castPos)
+			end
+		end
+	end
+end
+function useE(target)
+	if GetDistance(target) < LeblancE.range then
+		if LeblancMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_E,GetOrigin(target))
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 2 then
+			local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),LeblancE.speed,LeblancE.delay*1000,LeblancE.range,LeblancE.width,true,true)
+			if EPred.HitChance == 1 then
+				CastSkillShot(_E, EPred.PredPos)
+			end
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 3 then
+			local EPred = _G.gPred:GetPrediction(target,myHero,LeblancE,false,true)
+			if EPred and EPred.HitChance >= 3 then
+				CastSkillShot(_E, EPred.CastPosition)
+			end
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 4 then
+			local ESpell = IPrediction.Prediction({name="LeblancE", range=LeblancE.range, speed=LeblancE.speed, delay=LeblancE.delay, width=LeblancE.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(LeblancE.range)
+			local x, y = ESpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_E, y.x, y.y, y.z)
+			end
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 5 then
+			local EPrediction = GetLinearAOEPrediction(target,LeblancE)
+			if EPrediction.hitChance > 0.9 then
+				CastSkillShot(_E, EPrediction.castPos)
+			end
+		end
+	end
+end
+function useRE(target)
+	if GetDistance(target) < LeblancE.range then
+		if LeblancMenu.Prediction.PredictionE:Value() == 1 then
+			CastSkillShot(_R,GetOrigin(target))
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 2 then
+			local RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),LeblancE.speed,LeblancE.delay*1000,LeblancE.range,LeblancE.width,true,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+			end
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 3 then
+			local RPred = _G.gPred:GetPrediction(target,myHero,LeblancE,false,true)
+			if RPred and RPred.HitChance >= 3 then
+				CastSkillShot(_R, RPred.CastPosition)
+			end
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 4 then
+			local RSpell = IPrediction.Prediction({name="LeblancRE", range=LeblancE.range, speed=LeblancE.speed, delay=LeblancE.delay, width=LeblancE.width, type="linear", collision=true})
+			ts = TargetSelector()
+			target = ts:GetTarget(LeblancE.range)
+			local x, y = RSpell:Predict(target)
+			if x > 2 then
+				CastSkillShot(_R, y.x, y.y, y.z)
+			end
+		elseif LeblancMenu.Prediction.PredictionE:Value() == 5 then
+			local RPrediction = GetLinearAOEPrediction(target,LeblancE)
+			if RPrediction.hitChance > 0.9 then
+				CastSkillShot(_R, EPrediction.castPos)
+			end
+		end
+	end
+end
+
+-- Auto
+
+function Auto()
+	if LeblancMenu.Auto.UseQ:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, LeblancQ.range) then
+					useQ(target)
+				end
+			end
+		end
+	end
+	if LeblancMenu.Auto.UseE:Value() then
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.Auto.MP:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, LeblancE.range) then
+					useE(target)
+				end
+			end
+		end
+	end
+end
+
+-- Combo
+
+function Combo()
+	if Mode() == "Combo" then
+		if LeblancMenu.Combo.UseQ:Value() then
+			if CanUseSpell(myHero,_Q) == READY then
+				if ValidTarget(target, LeblancQ.range) then
+					useQ(target)
+				end
+			end
+		end
+		if LeblancMenu.Combo.UseW:Value() then
+			if CanUseSpell(myHero,_W) == READY then
+				if ValidTarget(target, LeblancW.range) then
+					if GotBuff(myHero, "LeblancW") == 0 then
+						if LeblancMenu.Combo.ModeW:Value() == 1 then
+							CastSkillShot(_W, GetMousePos())
+						elseif LeblancMenu.Combo.ModeW:Value() == 2 then
+							useW(target)
+						end
+					end
+				end
+			end
+		end
+		if LeblancMenu.Combo.UseE:Value() then
+			if CanUseSpell(myHero,_E) == READY then
+				if ValidTarget(target, LeblancE.range) then
+					useE(target)
+				end
+			end
+		end
+		if LeblancMenu.Combo.UseR:Value() then
+			if CanUseSpell(myHero,_R) == READY then
+				if ValidTarget(target, LeblancE.range) then
+					if 100*GetCurrentHP(target)/GetMaxHP(target) < LeblancMenu.Misc.HP:Value() then
+						if EnemiesAround(myHero, LeblancE.range) >= LeblancMenu.Misc.X:Value() then
+							if GetCastRange(myHero, _R) ~= LeblancQ.range then
+								CastTargetSpell(target, _R)
+							elseif GetCastRange(myHero, _R) < 650 then
+								if GotBuff(myHero, "LeblancRW") == 0 then
+									if LeblancMenu.Harass.ModeW:Value() == 1 then
+										CastSkillShot(_R, GetMousePos())
+									elseif LeblancMenu.Harass.ModeW:Value() == 2 then
+										useRW(target)
+									end
+								end
+							elseif GetCastRange(myHero, _R) > 800 then
+								useRE(target)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Harass
+
+function Harass()
+	if Mode() == "Harass" then
+		if LeblancMenu.Harass.UseQ:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(target, LeblancQ.range) then
+						useQ(target)
+					end
+				end
+			end
+		end
+		if LeblancMenu.Harass.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(target, LeblancW.range) then
+						if GotBuff(myHero, "LeblancW") == 0 then
+							if LeblancMenu.Harass.ModeW:Value() == 1 then
+								CastSkillShot(_W, GetMousePos())
+							elseif LeblancMenu.Harass.ModeW:Value() == 2 then
+								useW(target)
+							end
+						end
+					end
+				end
+			end
+		end
+		if LeblancMenu.Harass.UseE:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.Harass.MP:Value() then
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(target, LeblancE.range) then
+						useE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LastHit
+
+function LastHit()
+	if Mode() == "LaneClear" then
+		for _, minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if ValidTarget(minion, LeblancQ.range) then
+					if LeblancMenu.LastHit.UseQ:Value() then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.LastHit.MP:Value() then
+							if CanUseSpell(myHero,_Q) == READY then
+								local LeblancQDmg = (25*GetCastLevel(myHero,_Q)+30)+(0.4*GetBonusAP(myHero))
+								if GetCurrentHP(minion) < LeblancQDmg then
+									useQ(minion)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- LaneClear
+
+function LaneClear()
+	if Mode() == "LaneClear" then
+		if LeblancMenu.LaneClear.UseW:Value() then
+			if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.LaneClear.MP:Value() then
+				if CanUseSpell(myHero,_W) == READY then
+					local BestPos, BestHit = GetLineFarmPosition(LeblancW.range, LeblancW.radius, MINION_ENEMY)
+					if BestPos and BestHit > 3 then  
+						CastSkillShot(_W, BestPos)
+					end
+				end
+			end
+		end
+		if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > LeblancMenu.LaneClear.MP:Value() then
+			for _, minion in pairs(minionManager.objects) do
+				if GetTeam(minion) == MINION_ENEMY then
+					if CanUseSpell(myHero,_Q) == READY then
+						if ValidTarget(minion, LeblancQ.range) then
+							if LeblancMenu.LaneClear.UseQ:Value() then
+								useQ(minion)
+							end
+						end
+					elseif CanUseSpell(myHero,_E) == READY then
+						if ValidTarget(minion, LeblancE.range) then
+							if LeblancMenu.LaneClear.UseE:Value() then
+								CastSkillShot(_E, minion)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- JungleClear
+
+function JungleClear()
+	if Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == 300 then
+				if CanUseSpell(myHero,_Q) == READY then
+					if ValidTarget(mob, LeblancQ.range) then
+						if LeblancMenu.JungleClear.UseQ:Value() then
+							useQ(mob)
+						end
+					end
+				end
+				if CanUseSpell(myHero,_W) == READY then
+					if ValidTarget(mob, LeblancW.range) then
+						if LeblancMenu.JungleClear.UseW:Value() then	   
+							CastSkillShot(_W,GetOrigin(mob))
+						end
+					end
+				end
+				if CanUseSpell(myHero,_E) == READY then
+					if ValidTarget(mob, LeblancE.range) then
+						if LeblancMenu.JungleClear.UseE:Value() then	   
+							CastSkillShot(_E,GetOrigin(mob))
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Gapcloser
+
+function AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if LeblancMenu.AntiGapcloser.UseE:Value() then
+			if ValidTarget(antigap, 400) then
+				if CanUseSpell(myHero,_E) == READY then
+					CastSkillShot(_E, myHero)
+				end
+			end
+		end
+	end
+end
+
+-- Interrupter
+
+OnProcessSpell(function(unit, spell)
+	if LeblancMenu.Interrupter.UseE:Value() then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemy, LeblancE.range) then
+				if CanUseSpell(myHero,_E) == READY then
+					local UnitName = GetObjectName(enemy)
+					local UnitChanellingSpells = CHANELLING_SPELLS[UnitName]
+					local UnitGapcloserSpells = GAPCLOSER_SPELLS[UnitName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							if spell.name == GetCastName(enemy, slot) then useE(enemy) end
+						end
+					end
+				end
+			end
+		end
+    end
+end)
+
+-- Misc
+
+function LevelUp()
+	if LeblancMenu.Misc.LvlUp:Value() then
+		if LeblancMenu.Misc.AutoLvlUp:Value() == 1 then
+			leveltable = {_Q, _W, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif LeblancMenu.Misc.AutoLvlUp:Value() == 2 then
+			leveltable = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif LeblancMenu.Misc.AutoLvlUp:Value() == 3 then
+			leveltable = {_W, _Q, _E, _W, _W, _R, _W, _Q, _W, _Q, _R, _Q, _Q, _E, _E, _R, _E, _E}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif LeblancMenu.Misc.AutoLvlUp:Value() == 4 then
+			leveltable = {_W, _E, _Q, _W, _W, _R, _W, _E, _W, _E, _R, _E, _E, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif LeblancMenu.Misc.AutoLvlUp:Value() == 5 then
+			leveltable = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		elseif LeblancMenu.Misc.AutoLvlUp:Value() == 6 then
+			leveltable = {_E, _W, _Q, _E, _E, _R, _E, _W, _E, _W, _R, _W, _W, _Q, _Q, _R, _Q, _Q}
+			if GetLevelPoints(myHero) > 0 then
+				DelayAction(function() LevelSpell(leveltable[GetLevel(myHero) + 1 - GetLevelPoints(myHero)]) end, 0.5)
+			end
+		end
+	end
 end
 
 -- MasterYi
