@@ -4788,7 +4788,7 @@ function Combo()
 				if ValidTarget(target, LeblancE.range) then
 					if 100*GetCurrentHP(target)/GetMaxHP(target) < LeblancMenu.Misc.HP:Value() then
 						if EnemiesAround(myHero, LeblancE.range) >= LeblancMenu.Misc.X:Value() then
-							if GetCastRange(myHero, _R) ~= LeblancQ.range then
+							if GetCastRange(myHero, _R) > 651 and GetCastRange(myHero, _R) < 799 then
 								CastTargetSpell(target, _R)
 							elseif GetCastRange(myHero, _R) < 650 then
 								if GotBuff(myHero, "LeblancRW") == 0 then
