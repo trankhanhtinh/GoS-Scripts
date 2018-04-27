@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.3
+-- Current version: 1.2.3.1
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, Leblanc, MasterYi,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.3.1
+-- + Fixed TwistedFate's card picking
 -- 1.2.3
 -- + Added Leblanc
 -- 1.2.2.1
@@ -154,7 +156,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.23
+local TSVer = 1.231
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -7218,11 +7220,11 @@ function useQ(target)
 	end
 end
 OnCreateObj(function(Object)
-	if GetObjectBaseName(Object) == "TwistedFate_Base_W_BlueCard.troy" then
+	if GetObjectBaseName(Object) == "TwistedFate_Base_W_BlueCard" then
 		CurrentCard = "Blue"
-	elseif GetObjectBaseName(Object) == "TwistedFate_Base_W_RedCard.troy" then
+	elseif GetObjectBaseName(Object) == "TwistedFate_Base_W_RedCard" then
 		CurrentCard = "Red"
-	elseif GetObjectBaseName(Object) == "TwistedFate_Base_W_GoldCard.troy" then
+	elseif GetObjectBaseName(Object) == "TwistedFate_Base_W_GoldCard" then
 		CurrentCard = "Gold"
 	end
 end)
