@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.5.4
+-- Current version: 1.1.6
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista,
@@ -31,10 +31,12 @@
 -- ==================
 -- == Requirements ==
 -- ==================
--- + Orbwalker: IOW/GosWalk
+-- + Orbwalker: IOW/GosWalk/DAC/DAC:R
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6
+-- + Added DAC & DAC:R support
 -- 1.1.5.4
 -- + Corrected Kaisa & Varus damage calc
 -- 1.1.5.3
@@ -88,7 +90,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.154
+local GSVer = 1.16
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -106,10 +108,14 @@ require('IPrediction')
 require('OpenPredict')
 
 function Mode()
-	if _G.IOW_Loaded and IOW:Mode() then
+	if _G.IOW and IOW:Mode() then
 		return IOW:Mode()
-	elseif GoSWalkLoaded and GoSWalk.CurrentMode then
+	elseif _G.GoSWalkLoaded and GoSWalk.CurrentMode then
 		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
+	elseif _G.DAC_Loaded and DAC:Mode() then
+		return DAC:Mode()
+	elseif _G.AutoCarry_Loaded and DACR:Mode() then
+		return DACR:Mode()
 	end
 end
 
@@ -3261,12 +3267,20 @@ function ECheck()
 			IOW.attacksEnabled = false
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:EnableAttack(false)
+		elseif _G.DAC_Loaded then
+			DAC:AttacksEnabled(false)
+		elseif _G.AutoCarry_Loaded then
+			DACR.attacksEnabled = false
 		end
 	else
 		if _G.IOW then
 			IOW.attacksEnabled = true
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:EnableAttack(true)
+		elseif _G.DAC_Loaded then
+			DAC:AttacksEnabled(true)
+		elseif _G.AutoCarry_Loaded then
+			DACR.attacksEnabled = true
 		end
 	end
 end
@@ -4300,6 +4314,10 @@ OnProcessSpell(function(unit,spell)
 				IOW:ResetAA()
 			elseif _G.GoSWalkLoaded then
 				_G.GoSWalk:ResetAttack()
+			elseif _G.DAC_Loaded then
+				DAC:ResetAA()
+			elseif _G.AutoCarry_Loaded then
+				DACR:ResetAA()
 			end
 			DelayAction(function() ECast = false end, spell.windUpTime+(LucianMenu.Misc.EW:Value()/100))
 		end
@@ -4308,6 +4326,10 @@ OnProcessSpell(function(unit,spell)
 				IOW.attacksEnabled = false
 			elseif _G.GoSWalkLoaded then
 				_G.GoSWalk:EnableAttack(false)
+			elseif _G.DAC_Loaded then
+				DAC:AttacksEnabled(false)
+			elseif _G.AutoCarry_Loaded then
+				DACR.attacksEnabled = false
 			end
 			RCast = true
 			DelayAction(function()
@@ -4316,6 +4338,10 @@ OnProcessSpell(function(unit,spell)
 					IOW.attacksEnabled = true
 				elseif _G.GoSWalkLoaded then
 					_G.GoSWalk:EnableAttack(true)
+				elseif _G.DAC_Loaded then
+					DAC:AttacksEnabled(true)
+				elseif _G.AutoCarry_Loaded then
+					DACR.attacksEnabled = true
 				end
 			end, 3+(LucianMenu.Misc.EW:Value()/100))
 		end
@@ -4748,6 +4774,12 @@ function Combo()
 								elseif _G.GoSWalkLoaded then
 									_G.GoSWalk:EnableMovement(false)
 									_G.GoSWalk:EnableAttack(false)
+								elseif _G.DAC_Loaded then
+									DAC:MovementEnabled(false)
+									DAC:AttacksEnabled(false)
+								elseif _G.AutoCarry_Loaded then
+									DACR.movementEnabled = false
+									DACR.attacksEnabled = false
 								end
 								CastSkillShot(_R, RPred.PredPos)
 								DelayAction(function()
@@ -4760,6 +4792,12 @@ function Combo()
 									elseif _G.GoSWalkLoaded then
 										_G.GoSWalk:EnableMovement(true)
 										_G.GoSWalk:EnableAttack(true)
+									elseif _G.DAC_Loaded then
+										DAC:MovementEnabled(true)
+										DAC:AttacksEnabled(true)
+									elseif _G.AutoCarry_Loaded then
+										DACR.movementEnabled = true
+										DACR.attacksEnabled = true
 									end
 								end, 3)
 							end
@@ -5495,6 +5533,10 @@ function Combo()
 						IOW:ResetAA()
 					elseif _G.GoSWalkLoaded then
 						_G.GoSWalk:ResetAttack()
+					elseif _G.DAC_Loaded then
+						DAC:ResetAA()
+					elseif _G.AutoCarry_Loaded then
+						DACR:ResetAA()
 					end
 				end
 			end
@@ -5535,6 +5577,10 @@ function Harass()
 							IOW:ResetAA()
 						elseif _G.GoSWalkLoaded then
 							_G.GoSWalk:ResetAttack()
+						elseif _G.DAC_Loaded then
+							DAC:ResetAA()
+						elseif _G.AutoCarry_Loaded then
+							DACR:ResetAA()
 						end
 					end
 				end
@@ -6132,12 +6178,20 @@ function QCheck()
 			IOW.attacksEnabled = false
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:EnableAttack(false)
+		elseif _G.DAC_Loaded then
+			DAC:AttacksEnabled(false)
+		elseif _G.AutoCarry_Loaded then
+			DACR.attacksEnabled = false
 		end
 	else
 		if _G.IOW then
 			IOW.attacksEnabled = true
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:EnableAttack(true)
+		elseif _G.DAC_Loaded then
+			DAC:AttacksEnabled(true)
+		elseif _G.AutoCarry_Loaded then
+			DACR.attacksEnabled = true
 		end
 	end
 end
@@ -6459,12 +6513,20 @@ function Combo()
 					IOW.attacksEnabled = false
 				elseif _G.GoSWalkLoaded then
 					_G.GoSWalk:EnableAttack(false)
+				elseif _G.DAC_Loaded then
+					DAC:AttacksEnabled(false)
+				elseif _G.AutoCarry_Loaded then
+					DACR.attacksEnabled = false
 				end
 			else
 				if _G.IOW then
 					IOW.attacksEnabled = true
 				elseif _G.GoSWalkLoaded then
 					_G.GoSWalk:EnableAttack(true)
+				elseif _G.DAC_Loaded then
+					DAC:AttacksEnabled(true)
+				elseif _G.AutoCarry_Loaded then
+					DACR.attacksEnabled = true
 				end
 			end
 		end
@@ -6505,12 +6567,20 @@ function Harass()
 					IOW.attacksEnabled = false
 				elseif _G.GoSWalkLoaded then
 					_G.GoSWalk:EnableAttack(false)
+				elseif _G.DAC_Loaded then
+					DAC:AttacksEnabled(false)
+				elseif _G.AutoCarry_Loaded then
+					DACR.attacksEnabled = false
 				end
 			else
 				if _G.IOW then
 					IOW.attacksEnabled = true
 				elseif _G.GoSWalkLoaded then
 					_G.GoSWalk:EnableAttack(true)
+				elseif _G.DAC_Loaded then
+					DAC:AttacksEnabled(true)
+				elseif _G.AutoCarry_Loaded then
+					DACR.attacksEnabled = true
 				end
 			end
 		end
@@ -6551,6 +6621,10 @@ function LastHit()
 										IOW.attacksEnabled = false
 									elseif _G.GoSWalkLoaded then
 										_G.GoSWalk:EnableAttack(false)
+									elseif _G.DAC_Loaded then
+										DAC:AttacksEnabled(false)
+									elseif _G.AutoCarry_Loaded then
+										DACR.attacksEnabled = false
 									end
 									CastSkillShot(_Q,GetMousePos())
 									AttackUnit(MinionToLastHit)
@@ -6558,6 +6632,10 @@ function LastHit()
 										IOW.attacksEnabled = true
 									elseif _G.GoSWalkLoaded then
 										_G.GoSWalk:EnableAttack(true)
+									elseif _G.DAC_Loaded then
+										DAC:AttacksEnabled(true)
+									elseif _G.AutoCarry_Loaded then
+										DACR.attacksEnabled = true
 									end
 								end
 							end
