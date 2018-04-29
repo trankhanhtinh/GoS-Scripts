@@ -189,7 +189,7 @@ local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/c/c6/L
 local ETravel = true
 
 function Yasuo:Menu()
-	self.YasuoMenu = MenuElement({type = MENU, id = "Yasuo", name = "[GoS-U] Yasuo", leftIcon = HeroIcon})
+	self.YasuoMenu = MenuElement({type = MENU, id = "Yasuo", name = "[T01] Yasuo", leftIcon = HeroIcon})
 	self.YasuoMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
 	self.YasuoMenu.Auto:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
 	self.YasuoMenu.Auto:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
