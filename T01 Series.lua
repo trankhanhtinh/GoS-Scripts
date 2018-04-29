@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.3.1
+-- Current version: 1.2.3.2
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, Leblanc, MasterYi,
@@ -31,6 +31,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.3.2
+-- + Added DAC & DAC:R support
+-- + Corrected spell data
 -- 1.2.3.1
 -- + Fixed TwistedFate's card picking
 -- 1.2.3
@@ -156,7 +159,7 @@ require('Inspired')
 require('IPrediction')
 require('OpenPredict')
 
-local TSVer = 1.231
+local TSVer = 1.232
 
 function AutoUpdate(data)
 	local num = tonumber(data)
@@ -174,6 +177,10 @@ function Mode()
 		return IOW:Mode()
 	elseif GoSWalkLoaded and GoSWalk.CurrentMode then
 		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
+	elseif _G.DAC_Loaded and DAC:Mode() then
+		return DAC:Mode()
+	elseif _G.AutoCarry_Loaded and DACR:Mode() then
+		return DACR:Mode()
 	end
 end
 
@@ -329,9 +336,9 @@ AhriMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E"
 AhriMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 AhriMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local AhriQ = { range = 880, radius = 80, width = 160, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"yasuowall"}}
+local AhriQ = { range = 880, radius = 100, width = 200, speed = 2500, delay = 0.25, type = "line", collision = true, source = myHero, col = {"yasuowall"}}
 local AhriW = { range = 700 }
-local AhriE = { range = 975, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local AhriE = { range = 975, radius = 60, width = 120, speed = 1550, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local AhriR = { range = 450 }
 
 OnTick(function(myHero)
@@ -1178,7 +1185,7 @@ BrandMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 3, {"Q-W-E", "Q-E-W", "W-Q-E
 BrandMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 BrandMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local BrandQ = { range = 1050, radius = 65, width = 130, speed = 1550, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local BrandQ = { range = 1050, radius = 60, width = 120, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local BrandW = { range = 900, radius = 250, width = 500, speed = math.huge, delay = 0.625, type = "circular", collision = false, source = myHero }
 local BrandE = { range = 625 }
 local BrandR = { range = 750 }
@@ -1987,6 +1994,10 @@ function LastHit()
 										IOW.attacksEnabled = false
 									elseif _G.GoSWalkLoaded then
 										_G.GoSWalk:EnableAttack(false)
+									elseif _G.DAC_Loaded then
+										DAC:AttacksEnabled(false)
+									elseif _G.AutoCarry_Loaded then
+										DACR.attacksEnabled = false
 									end
 									CastTargetSpell(minion, _E)
 									BlockInput(false)
@@ -1994,6 +2005,10 @@ function LastHit()
 										IOW.attacksEnabled = true
 									elseif _G.GoSWalkLoaded then
 										_G.GoSWalk:EnableAttack(true)
+									elseif _G.DAC_Loaded then
+										DAC:AttacksEnabled(true)
+									elseif _G.AutoCarry_Loaded then
+										DACR.attacksEnabled = true
 									end
 								end
 							else
@@ -2004,6 +2019,10 @@ function LastHit()
 										IOW.attacksEnabled = false
 									elseif _G.GoSWalkLoaded then
 										_G.GoSWalk:EnableAttack(false)
+									elseif _G.DAC_Loaded then
+										DAC:AttacksEnabled(false)
+									elseif _G.AutoCarry_Loaded then
+										DACR.attacksEnabled = false
 									end
 									CastTargetSpell(minion, _E)
 									BlockInput(false)
@@ -2011,6 +2030,10 @@ function LastHit()
 										IOW.attacksEnabled = true
 									elseif _G.GoSWalkLoaded then
 										_G.GoSWalk:EnableAttack(true)
+									elseif _G.DAC_Loaded then
+										DAC:AttacksEnabled(true)
+									elseif _G.AutoCarry_Loaded then
+										DACR.attacksEnabled = true
 									end
 								end
 							end
@@ -2246,7 +2269,7 @@ FizzMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local FizzQ = { range = 550 }
 local FizzE = { range = 400 }
-local FizzR = { range = 1300, radius = 120, width = 240, speed = 1300, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local FizzR = { range = 1300, radius = 80, width = 160, speed = 1300, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -2328,6 +2351,10 @@ function useW(target)
 			IOW:ResetAA()
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:ResetAttack()
+		elseif _G.DAC_Loaded then
+			DAC:ResetAA()
+		elseif _G.AutoCarry_Loaded then
+			DACR:ResetAA()
 		end
 	end
 end
@@ -3576,6 +3603,10 @@ function useWCannon(target)
 		IOW:ResetAA()
 	elseif _G.GoSWalkLoaded then
 		GoSWalk:ResetAttack()
+	elseif _G.DAC_Loaded then
+		DAC:ResetAA()
+	elseif _G.AutoCarry_Loaded then
+		DACR:ResetAA()
 	end
 end
 function useQHammer(target)
@@ -4134,6 +4165,12 @@ OnTick(function(myHero)
 			elseif _G.GoSWalkLoaded then
 				_G.GoSWalk:EnableMovement(false)
 				_G.GoSWalk:EnableAttack(false)
+			elseif _G.DAC_Loaded then
+				DAC:MovementEnabled(false)
+				DAC:AttacksEnabled(false)
+			elseif _G.AutoCarry_Loaded then
+				DACR.movementEnabled = false
+				DACR.attacksEnabled = false
 			end
 		else
 			BlockF7OrbWalk(false)
@@ -4145,6 +4182,12 @@ OnTick(function(myHero)
 			elseif _G.GoSWalkLoaded then
 				_G.GoSWalk:EnableMovement(true)
 				_G.GoSWalk:EnableAttack(true)
+			elseif _G.DAC_Loaded then
+				DAC:MovementEnabled(true)
+				DAC:AttacksEnabled(true)
+			elseif _G.AutoCarry_Loaded then
+				DACR.movementEnabled = true
+				DACR.attacksEnabled = true
 			end
 		end
 	else
@@ -4157,6 +4200,12 @@ OnTick(function(myHero)
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:EnableMovement(true)
 			_G.GoSWalk:EnableAttack(true)
+		elseif _G.DAC_Loaded then
+			DAC:MovementEnabled(true)
+			DAC:AttacksEnabled(true)
+		elseif _G.AutoCarry_Loaded then
+			DACR.movementEnabled = true
+			DACR.attacksEnabled = true
 		end
 	end
 end)
@@ -4265,6 +4314,12 @@ function Combo()
 							elseif _G.GoSWalkLoaded then
 								_G.GoSWalk:EnableMovement(false)
 								_G.GoSWalk:EnableAttack(false)
+							elseif _G.DAC_Loaded then
+								DAC:MovementEnabled(false)
+								DAC:AttacksEnabled(false)
+							elseif _G.AutoCarry_Loaded then
+								DACR.movementEnabled = false
+								DACR.attacksEnabled = false
 							end
 						end
 					end
@@ -5356,25 +5411,9 @@ OriannaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q
 OriannaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 OriannaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-function Mode()
-	if _G.IOW_Loaded and IOW:Mode() then
-		return IOW:Mode()
-	elseif _G.PW_Loaded and PW:Mode() then
-		return PW:Mode()
-	elseif _G.DAC_Loaded and DAC:Mode() then
-		return DAC:Mode()
-	elseif _G.AutoCarry_Loaded and DACR:Mode() then
-		return DACR:Mode()
-	elseif _G.SLW_Loaded and SLW:Mode() then
-		return SLW:Mode()
-	elseif GoSWalkLoaded and GoSWalk.CurrentMode then
-		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
-	end
-end
-
-local OriannaQ = { range = 825, radius = 175, width = 350, speed = 1400, delay = 0.25, type = "linear", collision = false, source = myHero }
+local OriannaQ = { range = 825, radius = 80, width = 160, speed = 1400, delay = 0.25, type = "linear", collision = false, source = myHero }
 local OriannaW = { range = 250 }
-local OriannaE = { range = 1125, radius = 60 }
+local OriannaE = { range = 1125, radius = 80 }
 local OriannaR = { range = 325 }
 
 OnTick(function(myHero)
@@ -6222,7 +6261,7 @@ RyzeMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 RyzeMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 RyzeMenu.Misc:Slider("MPT","Mana-Manager: Tear", 80, 0, 100, 5)
 
-local RyzeQ = { range = 1000, radius = 50, width = 100, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local RyzeQ = { range = 1000, radius = 55, width = 110, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local RyzeW = { range = 615 }
 local RyzeE = { range = 615 }
 local RyzeR = { range = GetCastRange(myHero,_R) }
@@ -6670,22 +6709,6 @@ SyndraMenu:Menu("Misc", "Misc")
 SyndraMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 SyndraMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 
-function Mode()
-	if _G.IOW_Loaded and IOW:Mode() then
-		return IOW:Mode()
-	elseif _G.PW_Loaded and PW:Mode() then
-		return PW:Mode()
-	elseif _G.DAC_Loaded and DAC:Mode() then
-		return DAC:Mode()
-	elseif _G.AutoCarry_Loaded and DACR:Mode() then
-		return DACR:Mode()
-	elseif _G.SLW_Loaded and SLW:Mode() then
-		return SLW:Mode()
-	elseif GoSWalkLoaded and GoSWalk.CurrentMode then
-		return ({"Combo", "Harass", "LaneClear", "LastHit"})[GoSWalk.CurrentMode+1]
-	end
-end
-
 local SyndraQ = { range = 800, radius = 200, width = 400, speed = math.huge, delay = 0.625, type = "circular", collision = false, source = myHero }
 local SyndraW = { range = 950, radius = 225, width = 450, speed = 1450, delay = 0.25, type = "circular", collision = false, source = myHero }
 local SyndraE = { range = 700, angle = 40, radius = 40, width = 80, speed = 2500, delay = 0.25, type = "cone", collision = false, source = myHero }
@@ -6910,7 +6933,7 @@ function Combo()
 		if SyndraMenu.Combo.UseQE:Value() then
 			if CanUseSpell(myHero,_Q) == READY and CanUseSpell(myHero,_E) == READY then
 				if ValidTarget(target, 1250) then
-					local QEPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1600,250,1250,50,false,true)
+					local QEPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1600,250,1250,60,false,true)
 					if QEPred.HitChance == 1 then
 						local QPos = Vector(myHero)-500*(Vector(myHero)-Vector(QEPred.PredPos)):normalized()
 						CastSkillShot(_Q, QPos)
@@ -7135,7 +7158,7 @@ TwistedFateMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 TwistedFateMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 TwistedFateMenu.Misc:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 
-local TwistedFateQ = { range = 1450, radius = 35, width = 70, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local TwistedFateQ = { range = 1450, radius = 40, width = 80, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local TwistedFateR = { range = GetCastRange(myHero,_R) }
 local GlobalTimer = 0
 
@@ -7591,7 +7614,7 @@ VeigarMenu:Menu("Misc", "Misc")
 VeigarMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VeigarMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 
-local VeigarQ = { range = 950, radius = 60, width = 120, speed = 2000, delay = 0.25, type = "line", collision = true, source = myHero }
+local VeigarQ = { range = 950, radius = 70, width = 140, speed = 2200, delay = 0.25, type = "line", collision = true, source = myHero }
 local VeigarW = { range = 900, radius = 225, width = 450, speed = math.huge, delay = 1.25, type = "circular", collision = false, source = myHero }
 local VeigarE = { range = 700, radius = 375, width = 750, speed = math.huge, delay = 0.75, type = "circular", collision = false, source = myHero }
 local VeigarR = { range = 650 }
@@ -8053,7 +8076,7 @@ ViktorMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local ViktorQ = { range = 600 }
 local ViktorW = { range = 700, radius = 290, width = 580, speed = math.huge, delay = 1.3, type = "circular", collision = false, source = myHero }
-local ViktorE = { range = 1025, radius = 80, width = 160, speed = 1350, delay = 0, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local ViktorE = { range = 1025, radius = 80, width = 160, speed = 1050, delay = 0, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local ViktorR = { range = 700, radius = 290, width = 580, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
 
 OnTick(function(myHero)
@@ -8108,6 +8131,10 @@ function useQ(target)
 		IOW.attacksEnabled = false
 	elseif _G.GoSWalkLoaded then
 		_G.GoSWalk:EnableAttack(false)
+	elseif _G.DAC_Loaded then
+		DAC:AttacksEnabled(false)
+	elseif _G.AutoCarry_Loaded then
+		DACR.attacksEnabled = false
 	end
 	CastTargetSpell(target, _Q)
 	AttackUnit(target)
@@ -8116,6 +8143,10 @@ function useQ(target)
 		IOW.attacksEnabled = true
 	elseif _G.GoSWalkLoaded then
 		_G.GoSWalk:EnableAttack(true)
+	elseif _G.DAC_Loaded then
+		DAC:AttacksEnabled(true)
+	elseif _G.AutoCarry_Loaded then
+		DACR.attacksEnabled = true
 	end
 end
 function useW(target)
@@ -8597,6 +8628,10 @@ function useW(target)
 		IOW.attacksEnabled = false
 	elseif _G.GoSWalkLoaded then
 		_G.GoSWalk:EnableAttack(false)
+	elseif _G.DAC_Loaded then
+		DAC:AttacksEnabled(false)
+	elseif _G.AutoCarry_Loaded then
+		DACR.attacksEnabled = false
 	end
 	CastSpell(_W)
 end
@@ -8606,6 +8641,10 @@ function useE(target)
 		IOW.attacksEnabled = false
 	elseif _G.GoSWalkLoaded then
 		_G.GoSWalk:EnableAttack(false)
+	elseif _G.DAC_Loaded then
+		DAC:AttacksEnabled(false)
+	elseif _G.AutoCarry_Loaded then
+		DACR.attacksEnabled = false
 	end
 	CastSkillShot(_E,GetMousePos())
 end
@@ -8616,6 +8655,10 @@ OnTick(function(myHero)
 			IOW.attacksEnabled = false
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:EnableAttack(false)
+		elseif _G.DAC_Loaded then
+			DAC:AttacksEnabled(false)
+		elseif _G.AutoCarry_Loaded then
+			DACR.attacksEnabled = false
 		end
 	else
 		BlockInput(false)
@@ -8623,6 +8666,10 @@ OnTick(function(myHero)
 			IOW.attacksEnabled = true
 		elseif _G.GoSWalkLoaded then
 			_G.GoSWalk:EnableAttack(true)
+		elseif _G.DAC_Loaded then
+			DAC:AttacksEnabled(true)
+		elseif _G.AutoCarry_Loaded then
+			DACR.attacksEnabled = true
 		end
 	end
 end)
@@ -9861,8 +9908,8 @@ OnProcessSpell(function(unit, spell)
 end)
 -- < #Deftsu
 
-local YasuoQ = { range = 475, radius = 45, width = 90, speed = math.huge, delay = GetWindUp(myHero), type = "line", collision = false, source = myHero }
-local YasuoQ3 = { range = 1000, radius = 75, width = 150, speed = 1500, delay = GetWindUp(myHero), type = "line", col = {"yasuowall"}, collision = false, source = myHero }
+local YasuoQ = { range = 475, radius = 40, width = 80, speed = math.huge, delay = GetWindUp(myHero), type = "line", collision = false, source = myHero }
+local YasuoQ3 = { range = 1000, radius = 90, width = 180, speed = 1200, delay = GetWindUp(myHero), type = "line", col = {"yasuowall"}, collision = false, source = myHero }
 local YasuoW = { range = 400 }
 local YasuoE = { range = 475 }
 local YasuoR = { range = 1400 }
@@ -10351,7 +10398,7 @@ ZedMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ZedMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local ZedQ = { range = 900, radius = 50, width = 100, speed = 1700, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
-local ZedW = { range = 650, radius = 40, width = 80, speed = 1750, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local ZedW = { range = 650, radius = 60, width = 120, speed = 1750, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local ZedE = { range = 290 }
 local ZedR = { range = 625 }
 local GlobalTimer = 0
