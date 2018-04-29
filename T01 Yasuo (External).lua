@@ -1,4 +1,3 @@
-
 --  _______  _______  ____     __   __  _______  _______  __   __  _______ 
 -- |       ||  _    ||    |   |  | |  ||   _   ||       ||  | |  ||       |
 -- |_     _|| | |   | |   |   |  |_|  ||  |_|  ||  _____||  | |  ||   _   |
@@ -7,18 +6,27 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.1
+-- Current version: 1.0.2
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2
+-- + Added library checker
 -- 1.0.1
 -- + Added offensive items usage
 -- 1.0
 -- + Initial release
 
-require "Eternal Prediction"
-require "HPred"
-require "TPred"
+if FileExist(COMMON_PATH .. "HPred.lua") then
+	require 'HPred'
+else
+	PrintChat("HPred.lua missing!")
+end
+if FileExist(COMMON_PATH .. "TPred.lua") then
+	require 'TPred'
+else
+	PrintChat("TPred.lua missing!")
+end
 
 function EnemiesAround(pos, range)
 	local N = 0
@@ -249,9 +257,7 @@ end
 
 function Yasuo:Spells()
 	YasuoQ = {speed = math.huge, range = 475, delay = 0.25, width = 40, collision = false, aoe = true, type = "line"}
-	YasuoQPred = Prediction:SetSpell(YasuoQ, TYPE_LINE, true)
 	YasuoQ3 = {speed = 1200, range = 1000, delay = 0.25, width = 90, collision = false, aoe = true, type = "line"}
-	YasuoQ3Pred = Prediction:SetSpell(YasuoQ3, TYPE_LINE, true)
 	YasuoW = {range = 400}
 	YasuoE = {range = 475}
 	YasuoR = {range = 1400}
