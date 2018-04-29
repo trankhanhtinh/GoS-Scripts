@@ -14,9 +14,7 @@
 -- 1.0
 -- + Initial release
 
-require "Eternal Prediction"
 require "HPred"
-require "MapPosition"
 require "TPred"
 
 function EnemiesAround(pos, range)
