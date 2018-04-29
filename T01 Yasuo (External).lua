@@ -16,6 +16,7 @@
 -- 1.0
 -- + Initial release
 
+require "Eternal Prediction"
 require "HPred"
 require "TPred"
 
@@ -259,6 +260,7 @@ function Yasuo:Spells()
 end
 
 function Yasuo:__init()
+	Item_HK = {}
 	self:Menu()
 	self:Spells()
 	Callback.Add("Tick", function() self:Tick() end)
