@@ -224,6 +224,8 @@ function Yasuo:Menu()
 	self.YasuoMenu.Drawings:MenuElement({id = "DrawQ3", name = "Draw Q3 Range", value = true})
 	self.YasuoMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
 	self.YasuoMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.YasuoMenu.Drawings:MenuElement({id = "DrawAA", name = "Draw Killable AAs", value = true})
+	self.YasuoMenu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
 end
 
 function Yasuo:Spells()
@@ -261,6 +263,36 @@ function Yasuo:Draw()
 	if self.YasuoMenu.Drawings.DrawQ3:Value() then Draw.Circle(myHero.pos, YasuoQ3.range, 1, Draw.Color(255, 65, 105, 225)) end
 	if self.YasuoMenu.Drawings.DrawW:Value() then Draw.Circle(myHero.pos, YasuoW.range, 1, Draw.Color(255, 30, 144, 255)) end
 	if self.YasuoMenu.Drawings.DrawR:Value() then Draw.Circle(myHero.pos, YasuoR.range, 1, Draw.Color(255, 0, 0, 255)) end
+	for i, enemy in pairs(GetEnemyHeroes()) do
+		if self.YasuoMenu.Drawings.DrawJng:Value() then
+			if enemy:GetSpellData(SUMMONER_1).name == "SummonerSmite" or enemy:GetSpellData(SUMMONER_2).name == "SummonerSmite" then
+				Smite = true
+			else
+				Smite = false
+			end
+			if Smite then
+				if enemy.alive then
+					if ValidTarget(enemy) then
+						if GetDistance(myHero.pos, enemy.pos) > 3000 then
+							Draw.Text("Jungler: Visible", 17, myHero.pos2D.x-45, myHero.pos2D.y+10, Draw.Color(0xFF32CD32))
+						else
+							Draw.Text("Jungler: Near", 17, myHero.pos2D.x-43, myHero.pos2D.y+10, Draw.Color(0xFFFF0000))
+						end
+					else
+						Draw.Text("Jungler: Invisible", 17, myHero.pos2D.x-55, myHero.pos2D.y+10, Draw.Color(0xFFFFD700))
+					end
+				else
+					Draw.Text("Jungler: Dead", 17, myHero.pos2D.x-45, myHero.pos2D.y+10, Draw.Color(0xFF32CD32))
+				end
+			end
+		end
+		if self.YasuoMenu.Drawings.DrawAA:Value() then
+			if ValidTarget(enemy) then
+				AALeft = enemy.health / myHero.totalDamage
+				Draw.Text("AA Left: "..tostring(math.ceil(AALeft)), 17, enemy.pos2D.x-38, enemy.pos2D.y+10, Draw.Color(0xFF00BFFF))
+			end
+		end
+	end
 end
 
 function Yasuo:UseQ(target)
