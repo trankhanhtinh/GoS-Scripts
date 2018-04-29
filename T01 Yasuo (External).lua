@@ -215,10 +215,10 @@ function Yasuo:Menu()
 	self.YasuoMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.YasuoMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
 	self.YasuoMenu.LaneClear:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
-	self.YasuoMenu.LaneClear:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = false, leftIcon = EIcon})
+	self.YasuoMenu.LaneClear:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
 	
 	self.YasuoMenu:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
-	self.YasuoMenu.LastHit:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
+	self.YasuoMenu.LastHit:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = false, leftIcon = EIcon})
 	
 	self.YasuoMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
 	self.YasuoMenu.AntiGapcloser:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
