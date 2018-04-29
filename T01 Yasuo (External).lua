@@ -586,7 +586,7 @@ function Yasuo:LaneClear()
 					end
 				end
 				if self.YasuoMenu.LaneClear.UseE:Value() then
-					if IsReady(_E) then
+					if IsReady(_E) and GotBuff(minion, "YasuoDashWrapper") == 0 then
 						if ValidTarget(minion, YasuoE.range) then
 							Control.SetCursorPos(minion)
 							Control.CastSpell(HK_E, minion)
