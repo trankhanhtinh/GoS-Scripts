@@ -107,6 +107,16 @@ function GotBuff(unit, buffname)
 	return 0
 end
 
+function IsImmobile(unit)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff and (buff.type == 5 or buff.type == 11 or buff.type == 18 or buff.type == 22 or buff.type == 24 or buff.type == 28 or buff.type == 29 or buff.name == "recall") and buff.count > 0 then
+			return true
+		end
+	end
+	return false
+end
+
 function IsKnocked(unit)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
@@ -226,6 +236,14 @@ function Yasuo:Menu()
 	self.YasuoMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
 	self.YasuoMenu.Drawings:MenuElement({id = "DrawAA", name = "Draw Killable AAs", value = true})
 	self.YasuoMenu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
+	
+	self.YasuoMenu:MenuElement({id = "Items", name = "Items", type = MENU})
+	self.YasuoMenu.Items:MenuElement({id = "UseBC", name = "Use Bilgewater Cutlass", value = true})
+	self.YasuoMenu.Items:MenuElement({id = "UseBOTRK", name = "Use BOTRK", value = true})
+	self.YasuoMenu.Items:MenuElement({id = "UseHG", name = "Use Hextech Gunblade", value = true})
+	self.YasuoMenu.Items:MenuElement({id = "UseMS", name = "Use Mercurial Scimitar", value = true})
+	self.YasuoMenu.Items:MenuElement({id = "UseQS", name = "Use Quicksilver Sash", value = true})
+	self.YasuoMenu.Items:MenuElement({id = "OI", name = "%HP To Use Offensive Items", value = 35, min = 0, max = 100, step = 5})
 end
 
 function Yasuo:Spells()
@@ -248,6 +266,15 @@ end
 function Yasuo:Tick()
 	if myHero.dead or Game.IsChatOpen() == true then return end
 	target = GetTarget(1400)
+	Item_HK[ITEM_1] = HK_ITEM_1
+	Item_HK[ITEM_2] = HK_ITEM_2
+	Item_HK[ITEM_3] = HK_ITEM_3
+	Item_HK[ITEM_4] = HK_ITEM_4
+	Item_HK[ITEM_5] = HK_ITEM_5
+	Item_HK[ITEM_6] = HK_ITEM_6
+	Item_HK[ITEM_7] = HK_ITEM_7
+	self:Items1()
+	self:Items2()
 	self:Auto()
 	self:Combo()
 	self:Harass()
@@ -255,6 +282,55 @@ function Yasuo:Tick()
 	self:LaneClear()
 	self:LastHit()
 	self:AntiGapcloser()
+end
+
+function Yasuo:Items1()
+	if EnemiesAround(myHero, 1000) >= 1 then
+		if (target.health / target.maxHealth)*100 <= self.YasuoMenu.Items.OI:Value() then
+			if self.YasuoMenu.Items.UseBC:Value() then
+				if GetItemSlot(myHero, 3144) > 0 and ValidTarget(target, 550) then
+					if myHero:GetSpellData(GetItemSlot(myHero, 3144)).currentCd == 0 then
+						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3144)], target)
+					end
+				end
+			end
+			if self.YasuoMenu.Items.UseBOTRK:Value() then
+				if GetItemSlot(myHero, 3153) > 0 and ValidTarget(target, 550) then
+					if myHero:GetSpellData(GetItemSlot(myHero, 3153)).currentCd == 0 then
+						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3153)], target)
+					end
+				end
+			end
+			if self.YasuoMenu.Items.UseHG:Value() then
+				if GetItemSlot(myHero, 3146) > 0 and ValidTarget(target, 700) then
+					if myHero:GetSpellData(GetItemSlot(myHero, 3146)).currentCd == 0 then
+						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3146)], target)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Yasuo:Items2()
+	if self.YasuoMenu.Items.UseMS:Value() then
+		if GetItemSlot(myHero, 3139) > 0 then
+			if myHero:GetSpellData(GetItemSlot(myHero, 3139)).currentCd == 0 then
+				if IsImmobile(myHero) then
+					Control.CastSpell(Item_HK[GetItemSlot(myHero, 3139)], myHero)
+				end
+			end
+		end
+	end
+	if self.YasuoMenu.Items.UseQS:Value() then
+		if GetItemSlot(myHero, 3140) > 0 then
+			if myHero:GetSpellData(GetItemSlot(myHero, 3140)).currentCd == 0 then
+				if IsImmobile(myHero) then
+					Control.CastSpell(Item_HK[GetItemSlot(myHero, 3140)], myHero)
+				end
+			end
+		end
+	end
 end
 
 function Yasuo:Draw()
@@ -384,8 +460,8 @@ function Yasuo:Combo()
 			if IsReady(_E) then
 				if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
 					if GotBuff(target, "YasuoDashWrapper") == 0 then
-						Control.SetCursorPos(target.pos)
-						Control.CastSpell(HK_E, target.pos)
+						Control.SetCursorPos(target)
+						Control.CastSpell(HK_E, target)
 					end
 				elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
 					for i = 1, Game.MinionCount() do
@@ -394,8 +470,8 @@ function Yasuo:Combo()
 							if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
 								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
 								if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-									Control.SetCursorPos(minion.pos)
-									Control.CastSpell(HK_E, minion.pos)
+									Control.SetCursorPos(minion)
+									Control.CastSpell(HK_E, minion)
 									ETravel = false
 									DelayAction(function() ETravel = true end, 0.61)
 								end
@@ -410,7 +486,7 @@ function Yasuo:Combo()
 				if ValidTarget(target, YasuoR.range) and IsKnocked(target) then
 					if GetPercentHP(target) < self.YasuoMenu.Combo.HP:Value() then
 						if EnemiesAround(myHero, YasuoR.range) >= self.YasuoMenu.Combo.X:Value() then
-							Control.CastSpell(HK_R, target.pos)
+							Control.CastSpell(HK_R, target)
 						end
 					end
 				end
@@ -444,8 +520,8 @@ function Yasuo:Harass()
 			if IsReady(_E) then
 				if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
 					if GotBuff(target, "YasuoDashWrapper") == 0 then
-						Control.SetCursorPos(target.pos)
-						Control.CastSpell(HK_E, target.pos)
+						Control.SetCursorPos(target)
+						Control.CastSpell(HK_E, target)
 					end
 				elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
 					for i = 1, Game.MinionCount() do
@@ -454,8 +530,8 @@ function Yasuo:Harass()
 							if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
 								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
 								if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-									Control.SetCursorPos(minion.pos)
-									Control.CastSpell(HK_E, minion.pos)
+									Control.SetCursorPos(minion)
+									Control.CastSpell(HK_E, minion)
 									ETravel = false
 									DelayAction(function() ETravel = true end, 0.61)
 								end
@@ -475,7 +551,7 @@ function Yasuo:KillSteal()
 				if ValidTarget(enemy, YasuoR.range) and IsKnocked(enemy) then
 					local YasuoRDmg = (({200, 300, 400})[myHero:GetSpellData(_R).level] + 1.5 * myHero.bonusDamage)
 					if (enemy.health + enemy.hpRegen * 6 + enemy.armor) < YasuoRDmg then
-						Control.CastSpell(HK_R, target.pos)
+						Control.CastSpell(HK_R, target)
 					end
 				end
 			end
@@ -500,16 +576,16 @@ function Yasuo:LaneClear()
 				if self.YasuoMenu.LaneClear.UseQ:Value() then
 					if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") == 0 then
 						if ValidTarget(minion, YasuoQ.range) then
-							Control.SetCursorPos(minion.pos)
-							Control.CastSpell(HK_Q, minion.pos)
+							Control.SetCursorPos(minion)
+							Control.CastSpell(HK_Q, minion)
 						end
 					end
 				end
 				if self.YasuoMenu.LaneClear.UseE:Value() then
 					if IsReady(_E) then
 						if ValidTarget(minion, YasuoE.range) then
-							Control.SetCursorPos(minion.pos)
-							Control.CastSpell(HK_E, minion.pos)
+							Control.SetCursorPos(minion)
+							Control.CastSpell(HK_E, minion)
 						end
 					end
 				end
@@ -528,8 +604,8 @@ function Yasuo:LastHit()
 						if GotBuff(minion, "YasuoDashWrapper") == 0 then
 							local YasuoEDmg = ((({60, 70, 80, 90, 100})[myHero:GetSpellData(_E).level]) + 0.2 * myHero.bonusDamage)
 							if minion.health < YasuoEDmg then
-								Control.SetCursorPos(minion.pos)
-								Control.CastSpell(HK_E, minion.pos)
+								Control.SetCursorPos(minion)
+								Control.CastSpell(HK_E, minion)
 							end
 						end
 					end
