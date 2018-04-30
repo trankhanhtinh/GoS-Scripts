@@ -623,7 +623,7 @@ function Yasuo:LastHit()
 				for i = 1, Game.MinionCount() do
 					local minion = Game.Minion(i)
 					if minion and minion.isEnemy then
-						if GotBuff(minion, "YasuoDashWrapper") == 0 then
+						if ValidTarget(minion, YasuoE.range) then and GotBuff(minion, "YasuoDashWrapper") == 0 then
 							local YasuoEDmg = ((({60, 70, 80, 90, 100})[myHero:GetSpellData(_E).level]) + 0.2 * myHero.bonusDamage)
 							if minion.health < YasuoEDmg then
 								Control.SetCursorPos(minion)
