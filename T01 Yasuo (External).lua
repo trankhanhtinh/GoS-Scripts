@@ -6,10 +6,12 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.2
+-- Current version: 1.0.3
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.3
+-- + Added Auto-Ignite
 -- 1.0.2
 -- + Added library checker
 -- 1.0.1
@@ -189,6 +191,7 @@ end
 class "Yasuo"
 
 local HeroIcon = "https://www.mobafire.com/images/avatars/yasuo-classic.png"
+local IgniteIcon = "http://pm1.narvii.com/5792/0ce6cda7883a814a1a1e93efa05184543982a1e4_hq.jpg"
 local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e5/Steel_Tempest.png"
 local Q3Icon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4b/Steel_Tempest_3.png"
 local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/61/Wind_Wall.png"
@@ -217,6 +220,7 @@ function Yasuo:Menu()
 	
 	self.YasuoMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.YasuoMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Last Breath]", value = true, leftIcon = RIcon})
+	self.YasuoMenu.KillSteal:MenuElement({id = "UseIgnite", name = "Use Ignite", value = true, leftIcon = IgniteIcon})
 
 	self.YasuoMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.YasuoMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
@@ -554,13 +558,23 @@ end
 
 function Yasuo:KillSteal()
 	for i,enemy in pairs(GetEnemyHeroes()) do
-		if IsReady(_R) then
-			if self.YasuoMenu.KillSteal.UseR:Value() then
+		if self.YasuoMenu.KillSteal.UseR:Value() then
+			if IsReady(_R) then
 				if ValidTarget(enemy, YasuoR.range) and IsKnocked(enemy) then
 					local YasuoRDmg = (({200, 300, 400})[myHero:GetSpellData(_R).level] + 1.5 * myHero.bonusDamage)
 					if (enemy.health + enemy.hpRegen * 6 + enemy.armor) < YasuoRDmg then
 						Control.CastSpell(HK_R, target)
 					end
+				end
+			end
+		end
+		if self.YasuoMenu.KillSteal.UseIgnite:Value() then
+			local IgniteDmg = (55 + 25 * myHero.levelData.lvl)
+			if ValidTarget(enemy, 600) and enemy.health + enemy.shieldAD < IgniteDmg then
+				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and IsReady(SUMMONER_1) then
+					Control.CastSpell(HK_SUMMONER_1, enemy)
+				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and IsReady(SUMMONER_2) then
+					Control.CastSpell(HK_SUMMONER_2)
 				end
 			end
 		end
