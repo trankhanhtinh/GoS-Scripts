@@ -574,7 +574,7 @@ function Yasuo:KillSteal()
 				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and IsReady(SUMMONER_1) then
 					Control.CastSpell(HK_SUMMONER_1, enemy)
 				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and IsReady(SUMMONER_2) then
-					Control.CastSpell(HK_SUMMONER_2)
+					Control.CastSpell(HK_SUMMONER_2, enemy)
 				end
 			end
 		end
