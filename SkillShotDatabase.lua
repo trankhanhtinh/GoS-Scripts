@@ -16,6 +16,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [05-02] Updated for patch 8.9
+-- (Ivern Q, Lux E, Poppy R)
 -- [18-04] Updated for patch 8.8
 -- (LeBlanc W)
 -- [17-04] Corrected linear spells data
@@ -125,7 +127,7 @@ Spells = {
 	["IreliaW2"]={charName="Irelia",slot=_W,type="linear",speed=math.huge,range=825,delay=0.25,radius=90,hitbox=false,aoe=true,cc=false,collision=false},
 	["IreliaE"]={charName="Irelia",slot=_E,type="circular",speed=2000,range=900,delay=0,radius=90,hitbox=true,aoe=true,cc=true,collision=false},
 	["IreliaR"]={charName="Irelia",slot=_R,type="linear",speed=2000,range=1000,delay=0.4,radius=160,hitbox=true,aoe=true,cc=true,collision=false},
-	["IvernQ"]={charName="Ivern",slot=_Q,type="linear",speed=1300,range=1075,delay=0.25,radius=65,hitbox=true,aoe=false,cc=true,collision=true},
+	["IvernQ"]={charName="Ivern",slot=_Q,type="linear",speed=1300,range=1075,delay=0.25,radius=80,hitbox=true,aoe=false,cc=true,collision=true},
 	["IvernW"]={charName="Ivern",slot=_W,type="circular",speed=math.huge,range=1000,delay=0.25,radius=150,hitbox=true,aoe=true,cc=false,collision=false},
 	["HowlingGale"]={charName="Janna",slot=_Q,type="linear",speed=667,range=1750,delay=0,radius=120,hitbox=true,aoe=true,cc=true,collision=false},
 	["ReapTheWhirlwind"]={charName="Janna",slot=_R,type="circular",speed=math.huge,range=0,delay=0.001,radius=725,hitbox=false,aoe=true,cc=true,collision=false},
@@ -188,7 +190,7 @@ Spells = {
 	["LuluQ"]={charName="Lulu",slot=_Q,type="linear",speed=1450,range=925,delay=0.25,radius=60,hitbox=true,aoe=true,cc=true,collision=false},
 	["LuxLightBinding"]={charName="Lux",slot=_Q,type="linear",speed=1200,range=1175,delay=0.25,radius=50,hitbox=true,aoe=true,cc=true,collision=true},
 	["LuxPrismaticWave"]={charName="Lux",slot=_W,type="linear",speed=1400,range=1075,delay=0.25,radius=110,hitbox=true,aoe=true,cc=false,collision=false},
-	["LuxLightStrikeKugel"]={charName="Lux",slot=_E,type="circular",speed=1300,range=1000,delay=0.25,radius=350,hitbox=true,aoe=true,cc=true,collision=false},
+	["LuxLightStrikeKugel"]={charName="Lux",slot=_E,type="circular",speed=1200,range=1000,delay=0.25,radius=310,hitbox=true,aoe=true,cc=true,collision=false},
 	["LuxMaliceCannon"]={charName="Lux",slot=_R,type="linear",speed=math.huge,range=3340,delay=1,radius=120,hitbox=true,aoe=true,cc=true,collision=false},
 	["Landslide"]={charName="Malphite",slot=_E,type="circular",speed=math.huge,range=0,delay=0.242,radius=200,hitbox=false,aoe=true,cc=true,collision=false},
 	["UFSlash"]={charName="Malphite",slot=_R,type="circular",speed=2170,range=1000,delay=0,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
@@ -223,7 +225,7 @@ Spells = {
 	["PantheonRFall"]={charName="Pantheon",slot=_R,type="circular",speed=math.huge,range=5500,delay=2.5,radius=700,hitbox=true,aoe=true,cc=true,collision=false},
 	["PoppyQSpell"]={charName="Poppy",slot=_Q,type="linear",speed=math.huge,range=430,delay=1.32,radius=85,hitbox=true,aoe=true,cc=true,collision=false},
 	["PoppyW"]={charName="Poppy",slot=_W,type="circular",speed=math.huge,range=0,delay=0,radius=400,hitbox=false,aoe=true,cc=false,collision=false},
-	["PoppyRSpell"]={charName="Poppy",slot=_R,type="linear",speed=1600,range=1900,delay=0.333,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
+	["PoppyRSpell"]={charName="Poppy",slot=_R,type="linear",speed=2000,range=1900,delay=0.333,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
 	["QuinnQ"]={charName="Quinn",slot=_Q,type="linear",speed=1550,range=1025,delay=0.25,radius=60,hitbox=true,aoe=false,cc=false,collision=true},
 	["RakanQ"]={charName="Rakan",slot=_Q,type="linear",speed=1850,range=900,delay=0.25,radius=65,hitbox=true,aoe=false,cc=false,collision=true},
 	["RakanW"]={charName="Rakan",slot=_W,type="circular",speed=2150,range=600,delay=0,radius=250,hitbox=true,aoe=true,cc=false,collision=false},
