@@ -200,7 +200,7 @@ Spells = {
 	["MissFortuneScattershot"]={charName="MissFortune",slot=_E,type="circular",speed=math.huge,range=1000,delay=0.5,radius=400,hitbox=true,aoe=true,cc=true,collision=false},
 	["MissFortuneBulletTime"]={charName="MissFortune",slot=_R,type="conic",speed=math.huge,range=1400,delay=0.001,angle=40,hitbox=false,aoe=true,cc=false,collision=false},
 	["MordekaiserSiphonOfDestruction"]={charName="Mordekaiser",slot=_E,type="conic",speed=math.huge,range=675,delay=0.25,angle=50,hitbox=false,aoe=true,cc=false,collision=false},
-	["DarkBinding"]={charName="Morgana",slot=_Q,type="linear",speed=1200,range=1175,delay=0.25,radius=70,hitbox=true,aoe=false,cc=true,collision=true},
+	["DarkBindingMissile"]={charName="Morgana",slot=_Q,type="linear",speed=1200,range=1175,delay=0.25,radius=70,hitbox=true,aoe=false,cc=true,collision=true},
 	["TormentedSoil"]={charName="Morgana",slot=_W,type="circular",speed=math.huge,range=900,delay=0.25,radius=325,hitbox=true,aoe=true,cc=false,collision=false},
 	["NamiQ"]={charName="Nami",slot=_Q,type="circular",speed=math.huge,range=875,delay=0.95,radius=200,hitbox=true,aoe=true,cc=true,collision=false},
 	["NamiR"]={charName="Nami",slot=_R,type="linear",speed=850,range=2750,delay=0.5,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
