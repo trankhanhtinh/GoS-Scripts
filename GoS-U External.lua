@@ -19,10 +19,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.1 BETA
+-- Current version: 1.0.2 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Ezreal, Jinx
+-- + Supports Ashe, Ezreal, Jinx, Vayne
 -- + 2 choosable predictions (HPrediction, TPrediction),
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -37,17 +37,24 @@
 -- ==================
 -- == Requirements ==
 -- ==================
--- + Orbwalker: IC's Orbwalker
--- + Predictions: Eternal Pred, HPred, TPred
+-- + Orbwalker: GoS, IC
+-- + Predictions: HPred, TPred
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2 BETA
+-- + Added Vayne
 -- 1.0.1 BETA
 -- + Added Ezreal
 -- + Fixed spell casting
 -- 1.0 BETA
 -- + Initial release
 
+if FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
+	require 'MapPositionGOS'
+else
+	PrintChat("MapPositionGOS.lua missing!")
+end
 if FileExist(COMMON_PATH .. "HPred.lua") then
 	require 'HPred'
 else
@@ -665,8 +672,6 @@ function Ashe:UseR(target)
 	end
 end
 
--- Auto
-
 function Ashe:Auto()
 	if target == nil then return end
 	if self.AsheMenu.Auto.UseW:Value() then
@@ -950,8 +955,6 @@ function Ezreal:UseR(target)
 		end
 	end
 end
-
--- Auto
 
 function Ezreal:Auto()
 	if target == nil then return end
@@ -1242,8 +1245,6 @@ function Jinx:UseR(target)
 	end
 end
 
--- Auto
-
 function Jinx:Auto()
 	if target == nil then return end
 	if self.JinxMenu.Auto.UseW:Value() then
@@ -1415,6 +1416,234 @@ function Jinx:AntiGapcloser()
 		elseif IsReady(_E) then
 			if self.JinxMenu.AntiGapcloser.UseE:Value() then
 				if ValidTarget(antigap, self.JinxMenu.AntiGapcloser.DistanceE:Value()) then
+					self:UseE(antigap)
+				end
+			end
+		end
+	end
+end
+
+class "Vayne"
+
+local HeroIcon = "http://cdn.playzone.cz/large_pictures/picture-large-241972.png"
+local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/8d/Tumble.png"
+local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/66/Condemn.png"
+local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/b/b4/Final_Hour.png"
+
+function Vayne:Menu()
+	self.VayneMenu = MenuElement({type = MENU, id = "Vayne", name = "[GoS-U] Vayne", leftIcon = HeroIcon})
+	self.VayneMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.VayneMenu.Auto:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = EIcon})
+	self.VayneMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.VayneMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.VayneMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Tumble]", value = true, leftIcon = QIcon})
+	self.VayneMenu.Combo:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = EIcon})
+	self.VayneMenu.Combo:MenuElement({id = "UseR", name = "Use R [Final Hour]", value = true, leftIcon = RIcon})
+	self.VayneMenu.Combo:MenuElement({id = "ModeQ", name = "Cast Mode: Q", drop = {"Standard", "On Stacked"}, value = 2})
+	self.VayneMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
+	self.VayneMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
+	
+	self.VayneMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.VayneMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Tumble]", value = true, leftIcon = QIcon})
+	self.VayneMenu.Harass:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = EIcon})
+	self.VayneMenu.Harass:MenuElement({id = "ModeQ", name = "Cast Mode: Q", drop = {"Standard", "On Stacked"}, value = 1})
+	self.VayneMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.VayneMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.VayneMenu.KillSteal:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = EIcon})
+	
+	self.VayneMenu:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
+	self.VayneMenu.LastHit:MenuElement({id = "UseQ", name = "Use Q [Tumble]", value = true, leftIcon = QIcon})
+	self.VayneMenu.LastHit:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.VayneMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.VayneMenu.AntiGapcloser:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = EIcon})
+	self.VayneMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: E", value = 175, min = 25, max = 500, step = 25})
+	
+	self.VayneMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.VayneMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.VayneMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	
+	self.VayneMenu:MenuElement({id = "Misc", name = "Misc", type = MENU})
+	self.VayneMenu.Misc:MenuElement({id = "BlockAA", name = "Block AA While Stealthed", value = true})
+	self.VayneMenu.Misc:MenuElement({id = "Distance", name = "Distance: E", value = 400, min = 100, max = 475, step = 5})
+end
+
+function Vayne:Spells()
+	VayneQ = {range = 300}
+	VayneE = {speed = 2000, range = 550, delay = 0.25}
+end
+
+function Vayne:__init()
+	self:Menu()
+	self:Spells()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+end
+
+function Vayne:Tick()
+	if myHero.dead or Game.IsChatOpen() == true then return end
+	self:Auto()
+	self:Combo()
+	self:Harass()
+	self:KillSteal()
+	self:LastHit()
+	self:AntiGapcloser()
+end
+
+function Vayne:Draw()
+	if myHero.dead then return end
+	if self.VayneMenu.Drawings.DrawQ:Value() then Draw.Circle(myHero.pos, VayneQ.range, 1, Draw.Color(255, 0, 191, 255)) end
+	if self.VayneMenu.Drawings.DrawE:Value() then Draw.Circle(myHero.pos, VayneE.range, 1, Draw.Color(255, 30, 144, 255)) end
+end
+
+function Vayne:UseE(target)
+	local VayneEStun = target:GetPrediction(VayneE.speed,VayneE.delay)
+	for Length = 0, self.VayneMenu.Misc.Distance:Value(), 50 do
+		local TotalPos = VayneEStun + Vector(VayneEStun-Vector(myHero.pos)):Normalized() * Length
+		if MapPosition:inWall(TotalPos) then
+			Control.CastSpell(HK_E, target)
+			break
+		end
+	end
+end
+
+function Vayne:Auto()
+	if target == nil then return end
+	if self.VayneMenu.Auto.UseE:Value() then
+		if GetPercentMana(myHero) > self.VayneMenu.Auto.MP:Value() then
+			if IsReady(_E) then
+				if ValidTarget(target, VayneE.range) then
+					self:UseE(target)
+				end
+			end
+		end
+	end
+	if self.VayneMenu.Misc.BlockAA:Value() then
+		if GotBuff(myHero, "vaynetumblefade") > 0 then
+			if _G.SDK then
+				_G.SDK.Orbwalker:SetAttack(false)
+			else
+				GOS.BlockAttack = true
+			end
+		else
+			if _G.SDK then
+				_G.SDK.Orbwalker:SetAttack(true)
+			else
+				GOS.BlockAttack = false
+			end
+		end
+	end
+end
+
+function Vayne:Combo()
+	if target == nil then return end
+	if Mode() == "Combo" then
+		if self.VayneMenu.Combo.UseQ:Value() then
+			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, VayneQ.range+myHero.range) then
+					if self.VayneMenu.Combo.ModeQ:Value() == 1 then
+						Control.CastSpell(HK_Q, mousePos)
+					elseif self.VayneMenu.Combo.ModeQ:Value() == 2 then
+						if GotBuff(target, "VayneSilveredDebuff") >= 2 then 
+							Control.CastSpell(HK_Q, mousePos)
+						end
+					end
+				end
+			end
+		end
+		if self.VayneMenu.Combo.UseE:Value() then
+			if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, VayneE.range) then
+					self:UseE(target)
+				end
+			end
+		end
+		if self.VayneMenu.Combo.UseR:Value() then
+			if IsReady(_R) then
+				if ValidTarget(target, myHero.range+500) then
+					if GetPercentHP(target) < self.VayneMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, VayneQ.range+myHero.range+100) >= self.VayneMenu.Combo.X:Value() then
+							Control.CastSpell(HK_R)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Vayne:Harass()
+	if target == nil then return end
+	if Mode() == "Harass" then
+		if self.VayneMenu.Harass.UseQ:Value() then
+			if GetPercentMana(myHero) > self.VayneMenu.Harass.MP:Value() then
+				if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+					if ValidTarget(target, VayneQ.range+myHero.range) then
+						if self.VayneMenu.Harass.ModeQ:Value() == 1 then
+							Control.CastSpell(HK_Q, mousePos)
+						elseif self.VayneMenu.Harass.ModeQ:Value() == 2 then
+							if GotBuff(target, "VayneSilveredDebuff") >= 2 then 
+								Control.CastSpell(HK_Q, mousePos)
+							end
+						end
+					end
+				end
+			end
+		end
+		if self.VayneMenu.Combo.UseE:Value() then
+			if GetPercentMana(myHero) > self.VayneMenu.Harass.MP:Value() then
+				if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
+					if ValidTarget(target, VayneE.range) then
+						self:UseE(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Vayne:KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
+			if self.VayneMenu.KillSteal.UseE:Value() then
+				if ValidTarget(enemy, VayneE.range) then
+					local VayneEDmg = (({50, 90, 120, 155, 190})[myHero:GetSpellData(_E).level] + 0.5 * myHero.bonusDamage)
+					if (enemy.health + enemy.hpRegen * 2 + enemy.armor) < VayneEDmg then
+						self:UseE(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Vayne:LastHit()
+	if Mode() == "LaneClear" then
+		if self.VayneMenu.LastHit.UseQ:Value() then
+			if GetPercentMana(myHero) > self.VayneMenu.LastHit.MP:Value() then
+				for i = 1, Game.MinionCount() do
+					local minion = Game.Minion(i)
+					if minion and minion.isEnemy then
+						if ValidTarget(minion, myHero.range) then
+							local VayneQDmg = (((0.05 * myHero:GetSpellData(_Q).level + 0.45) * myHero.totalDamage) + myHero.totalDamage)
+							if minion.health < VayneQDmg then
+								Control.CastSpell(HK_Q, mousePos)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Vayne:AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if IsReady(_E) then
+			if self.VayneMenu.AntiGapcloser.UseE:Value() then
+				if ValidTarget(antigap, self.VayneMenu.AntiGapcloser.Distance:Value()) then
 					self:UseE(antigap)
 				end
 			end
