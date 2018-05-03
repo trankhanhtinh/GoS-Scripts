@@ -1042,7 +1042,7 @@ function Ezreal:KillSteal()
 		if IsReady(_R) then
 			if self.EzrealMenu.KillSteal.UseR:Value() then
 				if ValidTarget(enemy, self.EzrealMenu.KillSteal.Distance:Value()) then
-					local EzrealRDmg = (({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap)
+					local EzrealRDmg = (0.3*(({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap))
 					if (enemy.health + enemy.hpRegen * 6 + enemy.magicResist) < EzrealRDmg then
 						self:UseR(enemy)
 					end
