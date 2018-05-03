@@ -387,8 +387,8 @@ function Yasuo:UseQ(target)
 	if self.YasuoMenu.Prediction.PredictionQ:Value() == 1 then
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, YasuoQ.range, YasuoQ.delay, YasuoQ.speed, YasuoQ.width, self.YasuoMenu.HitChance.HPredHit:Value(), YasuoQ.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, YasuoQ.range) then
-			Control.CastSpell(HK_Q, aimPosition)
 			Control.SetCursorPos(aimPosition)
+			Control.CastSpell(HK_Q, aimPosition)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, YasuoQ.range, YasuoQ.delay, YasuoQ.speed, YasuoQ.width, YasuoQ.collision, self.YasuoMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, YasuoQ.range) then
@@ -409,8 +409,8 @@ function Yasuo:UseQ3(target)
 	if self.YasuoMenu.Prediction.PredictionQ3:Value() == 1 then
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, YasuoQ3.range, YasuoQ3.delay, YasuoQ3.speed, YasuoQ3.width, self.YasuoMenu.HitChance.HPredHit:Value(), YasuoQ3.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, YasuoQ3.range) then
-			Control.CastSpell(HK_Q, aimPosition)
 			Control.SetCursorPos(aimPosition)
+			Control.CastSpell(HK_Q, aimPosition)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, YasuoQ3.range, YasuoQ3.delay, YasuoQ3.speed, YasuoQ3.width, YasuoQ3.collision, self.YasuoMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, YasuoQ3.range) then
