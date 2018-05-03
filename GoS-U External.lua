@@ -19,10 +19,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0 BETA
+-- Current version: 1.0.1 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Jinx
+-- + Supports Ashe, Ezreal, Jinx
 -- + 2 choosable predictions (HPrediction, TPrediction),
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -42,6 +42,9 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.1 BETA
+-- + Added Ezreal
+-- + Fixed spell casting
 -- 1.0 BETA
 -- + Initial release
 
@@ -387,6 +390,22 @@ function GoSuUtility:BaseUlt()
 					DelayAction(EnableAll,0.3)
 					self.HitTime = 0
 				end
+			elseif myHero.charName == "Ezreal" then
+				local EzrealRDmg = (0.3*(({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap))
+				if EzrealRDmg >= (enemy.health + enemy.hpRegen * 20 + enemy.magicResist) then
+					local Distance = enemy.pos:DistanceTo(EnemySpawnPos.pos)
+					local Delay = 1
+					local Speed = 2000
+					local HitTime = Distance / Speed + Delay
+					local RecallTime = GetRecallData(enemy).RecallTime
+					self.HitTime = HitTime
+					if RecallTime - HitTime > 0.1 then return end
+					DisableAll()
+					Control.SetCursorPos(EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
+					Control.CastSpell(HK_R, EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
+					DelayAction(EnableAll,1.05)
+					self.HitTime = 0
+				end
 			elseif myHero.charName == "Jinx" then
 				local JinxRDmg = (({250, 350, 450})[myHero:GetSpellData(_R).level] + ({25, 30, 35})[myHero:GetSpellData(_R).level] / 100 * (enemy.maxHealth - enemy.health) + 1.5 * myHero.totalDamage)
 				if JinxRDmg >= (enemy.health + enemy.hpRegen * 20 + enemy.armor) then
@@ -610,18 +629,15 @@ function Ashe:UseW(target)
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, AsheW.range, AsheW.delay, AsheW.speed, AsheW.width, self.AsheMenu.HitChance.HPredHit:Value(), AsheW.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, AsheW.range) then
 			Control.CastSpell(HK_W, aimPosition)
-			Control.SetCursorPos(aimPosition)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, AsheW.range, AsheW.delay, AsheW.speed, AsheW.width, AsheW.collision, self.AsheMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, AsheW.range) then
-				Control.SetCursorPos(aimPosition)
 				Control.CastSpell(HK_W, aimPosition)
 			end
 		end
 	elseif self.AsheMenu.Prediction.PredictionW:Value() == 2 then
 		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, AsheW.delay, AsheW.width, AsheW.range, AsheW.speed, myHero.pos, AsheW.collision, AsheW.type)
 		if (HitChance >= self.AsheMenu.HitChance.TPredHit:Value() ) then
-			Control.SetCursorPos(castpos)
 			Control.CastSpell(HK_W, castpos)
 		end
 	end
@@ -652,6 +668,7 @@ end
 -- Auto
 
 function Ashe:Auto()
+	if target == nil then return end
 	if self.AsheMenu.Auto.UseW:Value() then
 		if GetPercentMana(myHero) > self.AsheMenu.Auto.MP:Value() then
 			if IsReady(_W) then
@@ -664,6 +681,7 @@ function Ashe:Auto()
 end
 
 function Ashe:Combo()
+	if target == nil then return end
 	if Mode() == "Combo" then
 		if self.AsheMenu.Combo.UseQ:Value() then
 			if IsReady(_Q) then
@@ -696,6 +714,7 @@ function Ashe:Combo()
 end
 
 function Ashe:Harass()
+	if target == nil then return end
 	if Mode() == "Harass" then
 		if self.AsheMenu.Combo.UseQ:Value() then
 			if IsReady(_Q) then
@@ -776,6 +795,297 @@ function Ashe:AntiGapcloser()
 			if self.AsheMenu.AntiGapcloser.UseW:Value() then
 				if ValidTarget(antigap, self.AsheMenu.AntiGapcloser.DistanceW:Value()) then
 					self:UseW(antigap)
+				end
+			end
+		end
+	end
+end
+
+class "Ezreal"
+
+local HeroIcon = "http://i1.17173cdn.com/1tx6lh/YWxqaGBf/images/hero/ezreal_square_0.jpg"
+local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/5/5a/Mystic_Shot.png"
+local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/9e/Essence_Flux.png"
+local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fb/Arcane_Shift.png"
+local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/02/Trueshot_Barrage.png"
+
+function Ezreal:Menu()
+	self.EzrealMenu = MenuElement({type = MENU, id = "Ezreal", name = "[GoS-U] Ezreal", leftIcon = HeroIcon})
+	self.EzrealMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.EzrealMenu.Auto:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = true, leftIcon = QIcon})
+	self.EzrealMenu.Auto:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = true, leftIcon = WIcon})
+	self.EzrealMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.EzrealMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.EzrealMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = true, leftIcon = QIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = true, leftIcon = WIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "UseE", name = "Use E [Arcane Shift]", value = true, leftIcon = EIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = RIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	self.EzrealMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
+	self.EzrealMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
+	
+	self.EzrealMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.EzrealMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = true, leftIcon = QIcon})
+	self.EzrealMenu.Harass:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = true, leftIcon = WIcon})
+	self.EzrealMenu.Harass:MenuElement({id = "UseE", name = "Use E [Arcane Shift]", value = true, leftIcon = WIcon})
+	self.EzrealMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.EzrealMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.EzrealMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = RIcon})
+	self.EzrealMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	
+	self.EzrealMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
+	self.EzrealMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = false, leftIcon = QIcon})
+	self.EzrealMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.EzrealMenu:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
+	self.EzrealMenu.LastHit:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = true, leftIcon = QIcon})
+	self.EzrealMenu.LastHit:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.EzrealMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.EzrealMenu.HitChance:MenuElement({id = "HPredHit", name = "HitChance: HPrediction", value = 1, min = 1, max = 5, step = 1})
+	self.EzrealMenu.HitChance:MenuElement({id = "TPredHit", name = "HitChance: TPrediction", value = 1, min = 0, max = 5, step = 1})
+	
+	self.EzrealMenu:MenuElement({id = "Prediction", name = "Prediction", type = MENU})
+	self.EzrealMenu.Prediction:MenuElement({id = "PredictionQ", name = "Prediction: Q", drop = {"HPrediction", "TPrediction"}, value = 2})
+	self.EzrealMenu.Prediction:MenuElement({id = "PredictionW", name = "Prediction: W", drop = {"HPrediction", "TPrediction"}, value = 2})
+	self.EzrealMenu.Prediction:MenuElement({id = "PredictionR", name = "Prediction: R", drop = {"HPrediction", "TPrediction"}, value = 2})
+	
+	self.EzrealMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.EzrealMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.EzrealMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
+	self.EzrealMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.EzrealMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+end
+
+function Ezreal:Spells()
+	EzrealQ = {speed = 2000, range = 1150, delay = 0.25, width = 60, collision = true, aoe = false, type = "line"}
+	EzrealW = {speed = 1600, range = 1000, delay = 0.25, width = 80, collision = false, aoe = true, type = "line"}
+	EzrealE = {range = 475}
+	EzrealR = {speed = 2000, range = 25000, delay = 1, width = 160, collision = false, aoe = true, type = "line"}
+end
+
+function Ezreal:__init()
+	self:Menu()
+	self:Spells()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+end
+
+function Ezreal:Tick()
+	if myHero.dead or Game.IsChatOpen() == true then return end
+	self:Auto()
+	self:Combo()
+	self:Harass()
+	self:KillSteal()
+	self:LastHit()
+	self:LaneClear()
+end
+
+function Ezreal:Draw()
+	if myHero.dead then return end
+	if self.EzrealMenu.Drawings.DrawQ:Value() then Draw.Circle(myHero.pos, EzrealQ.range, 1, Draw.Color(255, 0, 191, 255)) end
+	if self.EzrealMenu.Drawings.DrawW:Value() then Draw.Circle(myHero.pos, EzrealW.range, 1, Draw.Color(255, 65, 105, 225)) end
+	if self.EzrealMenu.Drawings.DrawE:Value() then Draw.Circle(myHero.pos, EzrealE.range, 1, Draw.Color(255, 30, 144, 255)) end
+	if self.EzrealMenu.Drawings.DrawR:Value() then Draw.Circle(myHero.pos, self.EzrealMenu.Combo.Distance:Value(), 1, Draw.Color(255, 0, 0, 255)) end
+end
+
+function Ezreal:UseQ(target)
+	if self.EzrealMenu.Prediction.PredictionQ:Value() == 1 then
+		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, EzrealQ.range, EzrealQ.delay, EzrealQ.speed, EzrealQ.width, self.EzrealMenu.HitChance.HPredHit:Value(), EzrealQ.collision)
+		if target and HPred:IsInRange(myHero.pos, aimPosition, EzrealQ.range) then
+			Control.CastSpell(HK_Q, aimPosition)
+		else
+			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, EzrealQ.range, EzrealQ.delay, EzrealQ.speed, EzrealQ.width, EzrealQ.collision, self.EzrealMenu.HitChance.HPredHit:Value(), nil)
+			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, EzrealQ.range) then
+				Control.CastSpell(HK_Q, aimPosition)
+			end
+		end
+	elseif self.EzrealMenu.Prediction.PredictionQ:Value() == 2 then
+		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, EzrealQ.delay, EzrealQ.width, EzrealQ.range, EzrealQ.speed, myHero.pos, EzrealQ.collision, EzrealQ.type)
+		if (HitChance >= self.EzrealMenu.HitChance.TPredHit:Value() ) then
+			Control.CastSpell(HK_Q, castpos)
+		end
+	end
+end
+
+function Ezreal:UseW(target)
+	if self.EzrealMenu.Prediction.PredictionW:Value() == 1 then
+		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, EzrealW.range, EzrealW.delay, EzrealW.speed, EzrealW.width, self.EzrealMenu.HitChance.HPredHit:Value(), EzrealW.collision)
+		if target and HPred:IsInRange(myHero.pos, aimPosition, EzrealW.range) then
+			Control.CastSpell(HK_W, aimPosition)
+		else
+			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, EzrealW.range, EzrealW.delay, EzrealW.speed, EzrealW.width, EzrealW.collision, self.EzrealMenu.HitChance.HPredHit:Value(), nil)
+			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, EzrealW.range) then
+				Control.CastSpell(HK_W, aimPosition)
+			end
+		end
+	elseif self.EzrealMenu.Prediction.PredictionW:Value() == 2 then
+		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, EzrealW.delay, EzrealW.width, EzrealW.range, EzrealW.speed, myHero.pos, EzrealW.collision, EzrealW.type)
+		if (HitChance >= self.EzrealMenu.HitChance.TPredHit:Value() ) then
+			Control.CastSpell(HK_W, castpos)
+		end
+	end
+end
+
+function Ezreal:UseR(target)
+	if self.EzrealMenu.Prediction.PredictionR:Value() == 1 then
+		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, EzrealR.range, EzrealR.delay, EzrealR.speed, EzrealR.width, self.EzrealMenu.HitChance.HPredHit:Value(), EzrealR.collision)
+		if target and HPred:IsInRange(myHero.pos, aimPosition, EzrealR.range) then
+			Control.SetCursorPos(aimPosition)
+			Control.CastSpell(HK_R, aimPosition)
+		else
+			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, EzrealR.range, EzrealR.delay, EzrealR.speed, EzrealR.width, EzrealR.collision, self.EzrealMenu.HitChance.HPredHit:Value(), nil)
+			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, EzrealR.range) then
+				Control.SetCursorPos(aimPosition)
+				Control.CastSpell(HK_R, aimPosition)
+			end
+		end
+	elseif self.EzrealMenu.Prediction.PredictionR:Value() == 2 then
+		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, EzrealR.delay, EzrealR.width, EzrealR.range, EzrealR.speed, myHero.pos, EzrealR.collision, EzrealR.type)
+		if (HitChance >= self.EzrealMenu.HitChance.TPredHit:Value() ) then
+			Control.SetCursorPos(castpos)
+			Control.CastSpell(HK_R, castpos)
+		end
+	end
+end
+
+-- Auto
+
+function Ezreal:Auto()
+	if target == nil then return end
+	if self.EzrealMenu.Auto.UseQ:Value() then
+		if GetPercentMana(myHero) > self.EzrealMenu.Auto.MP:Value() then
+			if IsReady(_Q) then
+				if ValidTarget(target, EzrealQ.range) then
+					self:UseQ(target)
+				end
+			end
+		end
+	end
+	if self.EzrealMenu.Auto.UseW:Value() then
+		if GetPercentMana(myHero) > self.EzrealMenu.Auto.MP:Value() then
+			if IsReady(_W) then
+				if ValidTarget(target, EzrealW.range) then
+					self:UseW(target)
+				end
+			end
+		end
+	end
+end
+
+function Ezreal:Combo()
+	if target == nil then return end
+	if Mode() == "Combo" then
+		if self.EzrealMenu.Combo.UseQ:Value() then
+			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, EzrealQ.range) then
+					self:UseQ(target)
+				end
+			end
+		end
+		if self.EzrealMenu.Combo.UseW:Value() then
+			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, EzrealW.range) then
+					self:UseW(target)
+				end
+			end
+		end
+		if self.EzrealMenu.Combo.UseE:Value() then
+			if IsReady(_E) then
+				if ValidTarget(target, EzrealE.range+myHero.range) then
+					Control.CastSpell(HK_E, mousePos)
+				end
+			end
+		end
+		if self.EzrealMenu.Combo.UseR:Value() then
+			if IsReady(_R) then
+				if ValidTarget(target, self.EzrealMenu.Combo.Distance:Value()) then
+					if GetPercentHP(target) < self.EzrealMenu.Combo.HP:Value() then
+						if EnemiesAround(myHero, self.EzrealMenu.Combo.Distance:Value()+myHero.range) >= self.EzrealMenu.Combo.X:Value() then
+							self:UseR(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Ezreal:Harass()
+	if target == nil then return end
+	if Mode() == "Harass" then
+		if self.EzrealMenu.Combo.UseQ:Value() then
+			if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
+				if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+					if ValidTarget(target, EzrealQ.range) then
+						self:UseQ(target)
+					end
+				end
+			end
+		end
+		if self.EzrealMenu.Combo.UseW:Value() then
+			if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
+				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+					if ValidTarget(target, EzrealW.range) then
+						self:UseW(target)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Ezreal:KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if IsReady(_R) then
+			if self.EzrealMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, self.EzrealMenu.KillSteal.Distance:Value()) then
+					local EzrealRDmg = (({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap)
+					if (enemy.health + enemy.hpRegen * 6 + enemy.magicResist) < EzrealRDmg then
+						self:UseR(enemy)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Ezreal:LaneClear()
+	if Mode() == "LaneClear" then
+		if self.EzrealMenu.LaneClear.UseQ:Value() then
+			if GetPercentMana(myHero) > self.EzrealMenu.LaneClear.MP:Value() then
+				for i = 1, Game.MinionCount() do
+					local minion = Game.Minion(i)
+					if minion and minion.isEnemy then
+						if ValidTarget(minion, EzrealQ.range) then
+							Control.CastSpell(HK_Q, minion)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Ezreal:LastHit()
+	if Mode() == "LaneClear" then
+		if self.EzrealMenu.LastHit.UseQ:Value() then
+			if GetPercentMana(myHero) > self.EzrealMenu.LastHit.MP:Value() then
+				for i = 1, Game.MinionCount() do
+					local minion = Game.Minion(i)
+					if minion and minion.isEnemy then
+						if ValidTarget(minion, EzrealQ.range) then
+							local EzrealQDmg = (({15, 40, 65, 90, 115})[myHero:GetSpellData(_Q).level] + 1.1 * myHero.bonusDamage + 0.4 * myHero.ap)
+							if minion.health < EzrealQDmg then
+								local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, EzrealQ.delay, EzrealQ.width, EzrealQ.range, EzrealQ.speed, myHero.pos, EzrealQ.collision, EzrealQ.type)
+								if HitChance >= 1 then
+									Control.CastSpell(HK_Q, castpos)
+								end
+							end
+						end
+					end
 				end
 			end
 		end
@@ -877,18 +1187,15 @@ function Jinx:UseW(target)
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, JinxW.range, JinxW.delay, JinxW.speed, JinxW.width, self.JinxMenu.HitChance.HPredHit:Value(), JinxW.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, JinxW.range) then
 			Control.CastSpell(HK_W, aimPosition)
-			Control.SetCursorPos(aimPosition)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, JinxW.range, JinxW.delay, JinxW.speed, JinxW.width, JinxW.collision, self.JinxMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, JinxW.range) then
-				Control.SetCursorPos(aimPosition)
 				Control.CastSpell(HK_W, aimPosition)
 			end
 		end
 	elseif self.JinxMenu.Prediction.PredictionW:Value() == 2 then
 		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, JinxW.delay, JinxW.width, JinxW.range, JinxW.speed, myHero.pos, JinxW.collision, JinxW.type)
 		if (HitChance >= self.JinxMenu.HitChance.TPredHit:Value() ) then
-			Control.SetCursorPos(castpos)
 			Control.CastSpell(HK_W, castpos)
 		end
 	end
@@ -898,19 +1205,16 @@ function Jinx:UseE(target)
 	if self.JinxMenu.Prediction.PredictionE:Value() == 1 then
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, JinxE.range, JinxE.delay, JinxE.speed, JinxE.width, self.JinxMenu.HitChance.HPredHit:Value(), JinxE.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, JinxE.range) then
-			Control.SetCursorPos(aimPosition)
 			Control.CastSpell(HK_E, aimPosition)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, JinxE.range, JinxE.delay, JinxE.speed, JinxE.width, JinxE.collision, self.JinxMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, JinxE.range) then
-				Control.SetCursorPos(aimPosition)
 				Control.CastSpell(HK_E, aimPosition)
 			end
 		end
 	elseif self.JinxMenu.Prediction.PredictionE:Value() == 2 then
 		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, JinxE.delay, JinxE.width, JinxE.range, JinxE.speed, myHero.pos, JinxE.collision, JinxE.type)
 		if (HitChance >= self.JinxMenu.HitChance.TPredHit:Value() ) then
-			Control.SetCursorPos(castpos)
 			Control.CastSpell(HK_E, castpos)
 		end
 	end
@@ -941,6 +1245,7 @@ end
 -- Auto
 
 function Jinx:Auto()
+	if target == nil then return end
 	if self.JinxMenu.Auto.UseW:Value() then
 		if GetPercentMana(myHero) > self.JinxMenu.Auto.MP:Value() then
 			if IsReady(_W) then
@@ -953,6 +1258,7 @@ function Jinx:Auto()
 end
 
 function Jinx:Combo()
+	if target == nil then return end
 	if Mode() == "Combo" then
 		if self.JinxMenu.Combo.UseQ:Value() then
 			if IsReady(_Q) then
@@ -998,6 +1304,7 @@ function Jinx:Combo()
 end
 
 function Jinx:Harass()
+	if target == nil then return end
 	if Mode() == "Harass" then
 		if self.JinxMenu.Combo.UseQ:Value() then
 			if IsReady(_Q) then
