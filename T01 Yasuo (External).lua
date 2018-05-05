@@ -6,10 +6,13 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.3
+-- Current version: 1.0.4
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.4
+-- + Imported spell database (50% done)
+-- + Added W usage and lasthit with Q
 -- 1.0.3
 -- + Added Auto-Ignite
 -- 1.0.2
@@ -198,12 +201,14 @@ local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/61/W
 local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f8/Sweeping_Blade.png"
 local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/c/c6/Last_Breath.png"
 local ETravel = true
+local IS = {}
 
 function Yasuo:Menu()
 	self.YasuoMenu = MenuElement({type = MENU, id = "Yasuo", name = "[T01] Yasuo", leftIcon = HeroIcon})
 	self.YasuoMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
 	self.YasuoMenu.Auto:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
 	self.YasuoMenu.Auto:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
+	self.YasuoMenu.Auto:MenuElement({id = "UseW", name = "Use W [Wind Wall]", value = true, leftIcon = WIcon})
 	
 	self.YasuoMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
 	self.YasuoMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
@@ -225,10 +230,11 @@ function Yasuo:Menu()
 	self.YasuoMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.YasuoMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
 	self.YasuoMenu.LaneClear:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
-	self.YasuoMenu.LaneClear:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
+	self.YasuoMenu.LaneClear:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = false, leftIcon = EIcon})
 	
 	self.YasuoMenu:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
-	self.YasuoMenu.LastHit:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = false, leftIcon = EIcon})
+	self.YasuoMenu.LastHit:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = false, leftIcon = QIcon})
+	self.YasuoMenu.LastHit:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
 	
 	self.YasuoMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
 	self.YasuoMenu.AntiGapcloser:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
@@ -260,8 +266,8 @@ function Yasuo:Menu()
 end
 
 function Yasuo:Spells()
-	YasuoQ = {speed = math.huge, range = 475, delay = 0.25, width = 40, collision = false, aoe = true, type = "line"}
-	YasuoQ3 = {speed = 1200, range = 1000, delay = 0.25, width = 90, collision = false, aoe = true, type = "line"}
+	YasuoQ = {speed = math.huge, range = 475, delay = myHero.attackData.windUpTime, width = 40, collision = false, aoe = true, type = "line"}
+	YasuoQ3 = {speed = 1200, range = 1000, delay = myHero.attackData.windUpTime, width = 90, collision = false, aoe = true, type = "line"}
 	YasuoW = {range = 400}
 	YasuoE = {range = 475}
 	YasuoR = {range = 1400}
@@ -288,6 +294,8 @@ function Yasuo:Tick()
 	self:Items1()
 	self:Items2()
 	self:Auto()
+	self:Detect()
+	self:WindWall()
 	self:Combo()
 	self:Harass()
 	self:KillSteal()
@@ -447,6 +455,113 @@ function Yasuo:Auto()
 	end
 end
 
+local Spells = {
+	["Aatrox"] = {"AatroxE"},
+	["Ahri"] = {"AhriOrbofDeception", "AhriFoxFire", "AhriSeduce", "AhriTumble"},
+	["Akali"] = {"AkaliMota"},
+	["Amumu"] = {"BandageToss"},
+	["Anivia"] = {"FlashFrost", "Frostbite"},
+	["Annie"] = {"Disintegrate"},
+	["Ashe"] = {"Volley"},
+	["AurelionSol"] = {"AurelionSolQ"},
+	["Bard"] = {"BardQ"},
+	["Blitzcrank"] = {"RocketGrab"},
+	["Brand"] = {"BrandQ", "BrandR"},
+	["Braum"] = {"BraumQ", "BraumR"},
+	["Caitlyn"] = {"CaitlynPiltoverPeacemaker", "CaitlynEntrapmentMissile", "CaitlynAceintheHole"},
+	["Cassiopeia"] = {"CassiopeiaW", "CassiopeiaTwinFang"},
+	["Corki"] = {"PhosphorusBomb", "MissileBarrageMissile", "MissileBarrageMissile2"},
+	["Diana"] = {"DianaArc", "DianaOrbs"},
+	["DrMundo"] = {"InfectedCleaverMissileCast"},
+	["Draven"] = {"DravenDoubleShot", "DravenRCast"},
+	["Ekko"] = {"EkkoQ"},
+	["Elise"] = {"EliseHumanQ", "EliseHumanE"},
+	["Evelynn"] = {"EvelynnQ"},
+	["Ezreal"] = {"EzrealMysticShot", "EzrealEssenceFlux", "EzrealArcaneShift", "EzrealTrueshotBarrage"},
+	["Fiddlesticks"] = {"FiddlesticksDarkWind"},
+	["Fiora"] = {"FioraW"},
+	["Fizz"] = {"FizzR"},
+	["Galio"] = {"GalioQ"},
+	["Gangplank"] = {"GangplankQ"},
+	["Gnar"] = {"GnarQ", "GnarBigQ"},
+	["Gragas"] = {"GragasQ", "GragasR"},
+	["Graves"] = {"GravesQLineSpell", "GravesSmokeGrenade", "GravesChargeShot"},
+	["Hecarim"] = {"HecarimUlt"},
+	["Heimerdinger"] = {"HeimerdingerQ", "HeimerdingerQUlt", "HeimerdingerW", "HeimerdingerWUlt", "HeimerdingerE", "HeimerdingerEUlt"},
+	["Illaoi"] = {"IllaoiE"},
+	["IreliaR"] = {"IreliaR"},
+	["Ivern"] = {"IvernQ"},
+	["Janna"] = {"HowlingGale", "SowTheWind"},
+	["Jayce"] = {"JayceShockBlast", "JayceShockBlastWallMis"},
+	["Jhin"] = {"JhinQ", "JhinW", "JhinR"},
+	["Jinx"] = {"JinxW", "JinxE", "JinxR"},
+	["Kaisa"] = {"KaisaQ", "KaisaW"},
+	["Kalista"] = {"KalistaMysticShot"},
+	["Karma"] = {"KarmaQ", "KarmaQMantra"},
+	["Kassadin"] = {"NullLance"},
+	["Katarina"] = {"KatarinaQ", "KatarinaR"},
+	["Kayle"] = {"JudicatorReckoning"},
+	["Kennen"] = {"KennenShurikenHurlMissile1"},
+	["Khazix"] = {"KhazixW", "KhazixWLong"},
+	["Kindred"] = {"KindredQ", "KindredE"},
+	["Kled"] = {"KledQ", "KledQRider"},
+	["KogMaw"] = {"KogMawQ", "KogMawVoidOoze"},
+	["Leblanc"] = {"LeblancQ", "LeblancE", "LeblancRQ", "LeblancRE"},
+	["Leesin"] = {"BlinkMonkQOne"},
+	["Leona"] = {"LeonaZenithBlade"},
+	["Lissandra"] = {"LissandraQ", "LissandraE"},
+	["Lucian"] = {"LucianW", "LucianRMis"},
+	["Lulu"] = {"LuluQ", "LuluW"},
+	["Lux"] = {"LuxLightBinding", "LuxPrismaticWave", "LuxLightStrikeKugel"},
+	["Malphite"] = {"SeismicShard"},
+	["Maokai"] = {"MaokaiQ", "MaokaiR"},
+}
+
+function Yasuo:Detect()
+	for i = 1, Game.HeroCount() do
+		local h = Game.Hero(i);
+		if h.isEnemy then
+			if h.activeSpell.valid and h.activeSpell.width > 0 and h.activeSpell.range > 0 and h.activeSpell.speed > 0 then
+				local t = Spells[h.charName]
+				if t then
+					for j = 1, #t do
+						if h.activeSpell.name == t[j] then
+							if IS[h.networkID] == nil then
+								IS[h.networkID] = {
+								sPos = h.activeSpell.startPos, 
+								ePos = h.activeSpell.startPos + Vector(h.activeSpell.startPos, h.activeSpell.placementPos):Normalized() * h.activeSpell.range, 
+								radius = h.activeSpell.width, 
+								speed = h.activeSpell.speed, 
+								startTime = h.activeSpell.startTime
+								}
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Yasuo:WindWall()
+	for key, v in pairs(IS) do
+		local SpellHit = v.sPos + Vector(v.sPos,v.ePos):Normalized() * GetDistance(myHero.pos,v.sPos)
+		local SpellPosition = v.sPos + Vector(v.sPos,v.ePos):Normalized() * (v.speed * (Game.Timer() - v.startTime) * 3)
+		local dodge = SpellPosition + Vector(v.sPos,v.ePos):Normalized() * (v.speed * 0.1)
+		if GetDistanceSqr(SpellHit,SpellPosition) <= GetDistanceSqr(dodge,SpellPosition) and GetDistance(SpellHit,v.sPos) - v.radius - myHero.boundingRadius <= GetDistance(v.sPos,v.ePos) then
+			if GetDistanceSqr(myHero.pos,SpellHit) < (v.radius + myHero.boundingRadius) ^ 2 then
+				if IsReady(_W) then
+					local castPos = myHero.pos + Vector(myHero.pos,v.sPos):Normalized() * 100
+					Control.CastSpell(HK_W, castPos)
+				end
+			end
+		end
+		if (GetDistanceSqr(SpellPosition,v.sPos) >= GetDistanceSqr(v.sPos,v.ePos)) then
+			IS[key] = nil
+		end
+	end
+end
+
 function Yasuo:Combo()
 	if target == nil then return end
 	if Mode() == "Combo" then
@@ -472,7 +587,6 @@ function Yasuo:Combo()
 			if IsReady(_E) then
 				if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
 					if GotBuff(target, "YasuoDashWrapper") == 0 then
-						Control.SetCursorPos(target)
 						Control.CastSpell(HK_E, target)
 					end
 				elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
@@ -482,10 +596,9 @@ function Yasuo:Combo()
 							if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
 								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
 								if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-									Control.SetCursorPos(minion)
-									Control.CastSpell(HK_E, minion)
 									ETravel = false
-									DelayAction(function() ETravel = true end, 0.61)
+									Control.CastSpell(HK_E, minion)
+									DelayAction(function() ETravel = true end, 0.8)
 								end
 							end
 						end
@@ -532,7 +645,6 @@ function Yasuo:Harass()
 			if IsReady(_E) then
 				if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
 					if GotBuff(target, "YasuoDashWrapper") == 0 then
-						Control.SetCursorPos(target)
 						Control.CastSpell(HK_E, target)
 					end
 				elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
@@ -542,10 +654,9 @@ function Yasuo:Harass()
 							if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
 								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
 								if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-									Control.SetCursorPos(minion)
-									Control.CastSpell(HK_E, minion)
 									ETravel = false
-									DelayAction(function() ETravel = true end, 0.61)
+									Control.CastSpell(HK_E, minion)
+									DelayAction(function() ETravel = true end, 0.8)
 								end
 							end
 						end
@@ -618,15 +729,24 @@ end
 
 function Yasuo:LastHit()
 	if Mode() == "LaneClear" then
-		if self.YasuoMenu.LastHit.UseE:Value() then
-			if IsReady(_E) then
-				for i = 1, Game.MinionCount() do
-					local minion = Game.Minion(i)
-					if minion and minion.isEnemy then
+		for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+			if minion and minion.isEnemy then
+				if self.YasuoMenu.LastHit.UseQ:Value() then
+					if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") == 0 then
+						if ValidTarget(minion, YasuoQ.range) then
+							local YasuoQDmg = ((({20, 45, 70, 95, 120})[myHero:GetSpellData(_Q).level]) + myHero.totalDamage)
+							if minion.health < YasuoQDmg then
+								Control.CastSpell(HK_Q, minion)
+							end
+						end
+					end
+				end
+				if self.YasuoMenu.LastHit.UseE:Value() then
+					if IsReady(_E) then
 						if ValidTarget(minion, YasuoE.range) and GotBuff(minion, "YasuoDashWrapper") == 0 then
 							local YasuoEDmg = ((({60, 70, 80, 90, 100})[myHero:GetSpellData(_E).level]) + 0.2 * myHero.bonusDamage)
 							if minion.health < YasuoEDmg then
-								Control.SetCursorPos(minion)
 								Control.CastSpell(HK_E, minion)
 							end
 						end
