@@ -127,6 +127,7 @@ Spells = {
 	["IreliaW2"]={charName="Irelia",slot=_W,type="circular",speed=math.huge,range=0,delay=0,radius=275,hitbox=false,aoe=true,cc=false,collision=false},
 	["IreliaW2"]={charName="Irelia",slot=_W,type="linear",speed=math.huge,range=825,delay=0.25,radius=90,hitbox=false,aoe=true,cc=false,collision=false},
 	["IreliaE"]={charName="Irelia",slot=_E,type="circular",speed=2000,range=900,delay=0,radius=90,hitbox=true,aoe=true,cc=true,collision=false},
+	["IreliaE2"]={charName="Irelia",slot=_E,type="circular",speed=2000,range=900,delay=0,radius=90,hitbox=true,aoe=true,cc=true,collision=false},
 	["IreliaR"]={charName="Irelia",slot=_R,type="linear",speed=2000,range=1000,delay=0.4,radius=160,hitbox=true,aoe=true,cc=true,collision=false},
 	["IvernQ"]={charName="Ivern",slot=_Q,type="linear",speed=1300,range=1075,delay=0.25,radius=80,hitbox=true,aoe=false,cc=true,collision=true},
 	["IvernW"]={charName="Ivern",slot=_W,type="circular",speed=math.huge,range=1000,delay=0.25,radius=150,hitbox=true,aoe=true,cc=false,collision=false},
