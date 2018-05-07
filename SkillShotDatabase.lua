@@ -16,7 +16,7 @@
 -- ===============
 -- == Changelog ==
 -- ===============
--- [05-02] Updated for patch 8.9
+-- [02-05] Updated for patch 8.9
 -- (Ivern Q, Lux E, Poppy R)
 -- [18-04] Updated for patch 8.8
 -- (LeBlanc W)
@@ -56,7 +56,7 @@ Spells = {
 	["RocketGrab"]={charName="Blitzcrank",slot=_Q,type="linear",speed=1800,range=925,delay=0.25,radius=70,hitbox=true,aoe=false,cc=true,collision=true},
 	["StaticField"]={charName="Blitzcrank",slot=_R,type="circular",speed=math.huge,range=0,delay=0.25,radius=600,hitbox=false,aoe=true,cc=true,collision=false},
 	["BrandQ"]={charName="Brand",slot=_Q,type="linear",speed=1600,range=1050,delay=0.25,radius=60,hitbox=true,aoe=false,cc=true,collision=true},
-	["BrandW"]={charName="Brand",slot=_W,type="circular",speed=math.huge,range=900,delay=0.625,radius=250,hitbox=true,aoe=true,cc=false,collision=false},
+	["BrandW"]={charName="Brand",slot=_W,type="circular",speed=math.huge,range=900,delay=0.85,radius=250,hitbox=true,aoe=true,cc=false,collision=false},
 	["BraumQ"]={charName="Braum",slot=_Q,type="linear",speed=1700,range=1000,delay=0.25,radius=60,hitbox=true,aoe=true,cc=true,collision=true},
 	["BraumRWrapper"]={charName="Braum",slot=_R,type="linear",speed=1400,range=1250,delay=0.5,radius=115,hitbox=true,aoe=true,cc=true,collision=false},
 	["CaitlynPiltoverPeacemaker"]={charName="Caitlyn",slot=_Q,type="linear",speed=2200,range=1250,delay=0.625,radius=90,hitbox=true,aoe=true,cc=false,collision=false},
@@ -65,9 +65,9 @@ Spells = {
 	["CamilleW"]={charName="Camille",slot=_W,type="conic",speed=math.huge,range=610,delay=0.75,angle=80,hitbox=false,aoe=true,cc=true,collision=false},
 	["CamilleE"]={charName="Camille",slot=_E,type="linear",speed=1400,range=800,delay=0.25,radius=60,hitbox=true,aoe=false,cc=true,collision=false},
 	["CassiopeiaQ"]={charName="Cassiopeia",slot=_Q,type="circular",speed=math.huge,range=850,delay=0.4,radius=150,hitbox=true,aoe=true,cc=false,collision=false},
-	["CassiopeiaW"]={charName="Cassiopeia",slot=_W,type="circular",speed=math.huge,range=800,delay=0.25,radius=160,hitbox=true,aoe=true,cc=false,collision=false},
+	["CassiopeiaW"]={charName="Cassiopeia",slot=_W,type="circular",speed=2500,range=800,delay=0.25,radius=160,hitbox=true,aoe=true,cc=false,collision=false},
 	["CassiopeiaR"]={charName="Cassiopeia",slot=_R,type="conic",speed=math.huge,range=825,delay=0.5,angle=80,hitbox=false,aoe=true,cc=true,collision=false},
-	["Rupture"]={charName="Chogath",slot=_Q,type="circular",speed=math.huge,range=950,delay=0.5,radius=350,hitbox=true,aoe=true,cc=true,collision=false},
+	["Rupture"]={charName="Chogath",slot=_Q,type="circular",speed=math.huge,range=950,delay=0.5,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
 	["FeralScream"]={charName="Chogath",slot=_W,type="conic",speed=math.huge,range=650,delay=0.5,angle=60,hitbox=false,aoe=true,cc=true,collision=false},
 	["PhosphorusBomb"]={charName="Corki",slot=_Q,type="circular",speed=1000,range=825,delay=0.25,radius=250,hitbox=true,aoe=true,cc=false,collision=false},
 	["CarpetBomb"]={charName="Corki",slot=_W,type="linear",speed=650,range=600,delay=0,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
@@ -118,6 +118,7 @@ Spells = {
 	["HecarimUlt"]={charName="Hecarim",slot=_R,type="linear",speed=1100,range=1000,delay=0.01,radius=230,hitbox=true,aoe=true,cc=true,collision=false},
 	["HeimerdingerQ"]={charName="Heimerdinger",slot=_Q,type="circular",speed=math.huge,range=450,delay=0.25,radius=55,hitbox=true,aoe=true,cc=false,collision=false},
 	["HeimerdingerW"]={charName="Heimerdinger",slot=_W,type="linear",speed=2050,range=1325,delay=0.25,radius=60,hitbox=true,aoe=true,cc=false,collision=true},
+	["HeimerdingerWUlt"]={charName="Heimerdinger",slot=_W,type="linear",speed=2050,range=1325,delay=0.25,radius=60,hitbox=true,aoe=true,cc=false,collision=true},
 	["HeimerdingerE"]={charName="Heimerdinger",slot=_E,type="circular",speed=1200,range=970,delay=0.25,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
 	["HeimerdingerEUlt"]={charName="Heimerdinger",slot=_E,type="circular",speed=1200,range=970,delay=0.25,radius=250,hitbox=true,aoe=true,cc=true,collision=false},
 	["IllaoiQ"]={charName="Illaoi",slot=_Q,type="linear",speed=math.huge,range=850,delay=0.75,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
@@ -149,9 +150,9 @@ Spells = {
 	["KalistaW"]={charName="Kalista",slot=_W,type="circular",speed=math.huge,range=5000,delay=0.5,radius=45,hitbox=true,aoe=false,cc=false,collision=false},
 	["KarmaQ"]={charName="Karma",slot=_Q,type="linear",speed=1700,range=950,delay=0.25,radius=60,hitbox=true,aoe=false,cc=true,collision=true},
 	["KarmaQMantra"]={charName="Karma",slot=_Q,type="linear",speed=1700,range=950,delay=0.25,radius=80,hitbox=true,aoe=false,cc=true,collision=true},
-	["KarthusLayWasteA1"]={charName="Karthus",slot=_Q,type="circular",speed=math.huge,range=875,delay=0.75,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
-	["KarthusLayWasteA2"]={charName="Karthus",slot=_Q,type="circular",speed=math.huge,range=875,delay=0.75,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
-	["KarthusLayWasteA3"]={charName="Karthus",slot=_Q,type="circular",speed=math.huge,range=875,delay=0.75,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
+	["KarthusLayWasteA1"]={charName="Karthus",slot=_Q,type="circular",speed=math.huge,range=875,delay=0.625,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
+	["KarthusLayWasteA2"]={charName="Karthus",slot=_Q,type="circular",speed=math.huge,range=875,delay=0.625,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
+	["KarthusLayWasteA3"]={charName="Karthus",slot=_Q,type="circular",speed=math.huge,range=875,delay=0.625,radius=200,hitbox=true,aoe=true,cc=false,collision=false},
 	["KarthusWallOfPain"]={charName="Karthus",slot=_W,type="rectangle",speed=math.huge,range=1000,delay=0.25,radius1=470,radius2=75,hitbox=true,aoe=true,cc=true,collision=false},
 	["ForcePulse"]={charName="Kassadin",slot=_E,type="conic",speed=math.huge,range=600,delay=0.25,angle=80,hitbox=false,aoe=true,cc=true,collision=false},
 	["Riftwalk"]={charName="Kassadin",slot=_R,type="circular",speed=math.huge,range=500,delay=0.25,radius=300,hitbox=true,aoe=true,cc=false,collision=false},
@@ -193,7 +194,7 @@ Spells = {
 	["LuxLightStrikeKugel"]={charName="Lux",slot=_E,type="circular",speed=1200,range=1000,delay=0.25,radius=310,hitbox=true,aoe=true,cc=true,collision=false},
 	["LuxMaliceCannon"]={charName="Lux",slot=_R,type="linear",speed=math.huge,range=3340,delay=1,radius=120,hitbox=true,aoe=true,cc=true,collision=false},
 	["Landslide"]={charName="Malphite",slot=_E,type="circular",speed=math.huge,range=0,delay=0.242,radius=200,hitbox=false,aoe=true,cc=true,collision=false},
-	["UFSlash"]={charName="Malphite",slot=_R,type="circular",speed=2170,range=1000,delay=0,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
+	["UFSlash"]={charName="Malphite",slot=_R,type="circular",speed=1835,range=1000,delay=0,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
 	["MalzaharQ"]={charName="Malzahar",slot=_Q,type="rectangle",speed=math.huge,range=900,delay=0.25,radius1=400,radius2=100,hitbox=true,aoe=true,cc=true,collision=false},
 	["MaokaiQ"]={charName="Maokai",slot=_Q,type="linear",speed=1600,range=600,delay=0.375,radius=110,hitbox=true,aoe=true,cc=true,collision=false},
 	["MaokaiR"]={charName="Maokai",slot=_R,type="linear",speed=150,range=3000,delay=0.25,radius=650,hitbox=true,aoe=true,cc=true,collision=false},
@@ -228,7 +229,7 @@ Spells = {
 	["PoppyRSpell"]={charName="Poppy",slot=_R,type="linear",speed=2000,range=1900,delay=0.333,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
 	["QuinnQ"]={charName="Quinn",slot=_Q,type="linear",speed=1550,range=1025,delay=0.25,radius=60,hitbox=true,aoe=false,cc=false,collision=true},
 	["RakanQ"]={charName="Rakan",slot=_Q,type="linear",speed=1850,range=900,delay=0.25,radius=65,hitbox=true,aoe=false,cc=false,collision=true},
-	["RakanW"]={charName="Rakan",slot=_W,type="circular",speed=2150,range=600,delay=0,radius=250,hitbox=true,aoe=true,cc=false,collision=false},
+	["RakanW"]={charName="Rakan",slot=_W,type="circular",speed=2050,range=600,delay=0,radius=250,hitbox=true,aoe=true,cc=false,collision=false},
 	["RakanWCast"]={charName="Rakan",slot=_W,type="circular",speed=math.huge,range=0,delay=0.5,radius=250,hitbox=false,aoe=true,cc=true,collision=false},
 	["Tremors2"]={charName="Rammus",slot=_R,type="circular",speed=math.huge,range=0,delay=0.25,radius=300,hitbox=false,aoe=true,cc=true,collision=false},
 	["RekSaiQBurrowed"]={charName="Reksai",slot=_Q,type="linear",speed=1950,range=1650,delay=0.125,radius=65,hitbox=true,aoe=false,cc=false,collision=true},
