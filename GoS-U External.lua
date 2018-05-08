@@ -19,7 +19,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2 BETA
+-- Current version: 1.0.2.1 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Ezreal, Jinx, Vayne
@@ -42,6 +42,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2.1 BETA
+-- + Improved Jinx's Q logic
 -- 1.0.2 BETA
 -- + Added Vayne
 -- 1.0.1 BETA
@@ -425,7 +427,7 @@ function GoSuUtility:BaseUlt()
 					if RecallTime - HitTime > 0.1 then return end
 					DisableAll()
 					Control.SetCursorPos(EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
-					Control.CastSpell(HK_R, EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
+					Control.CastSpell(HK_R)
 					DelayAction(EnableAll,0.65)
 					self.HitTime = 0
 				end
@@ -567,7 +569,7 @@ function Ashe:Menu()
 	self.AsheMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Ranger's Focus]", value = true, leftIcon = QIcon})
 	self.AsheMenu.Combo:MenuElement({id = "UseW", name = "Use W [Volley]", value = true, leftIcon = WIcon})
 	self.AsheMenu.Combo:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = RIcon})
-	self.AsheMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	self.AsheMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
 	self.AsheMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.AsheMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	
@@ -579,7 +581,7 @@ function Ashe:Menu()
 	self.AsheMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.AsheMenu.KillSteal:MenuElement({id = "UseW", name = "Use W [Volley]", value = true, leftIcon = WIcon})
 	self.AsheMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = RIcon})
-	self.AsheMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	self.AsheMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
 	
 	self.AsheMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.AsheMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Ranger's Focus]", value = true, leftIcon = QIcon})
@@ -826,7 +828,7 @@ function Ezreal:Menu()
 	self.EzrealMenu.Combo:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = true, leftIcon = WIcon})
 	self.EzrealMenu.Combo:MenuElement({id = "UseE", name = "Use E [Arcane Shift]", value = true, leftIcon = EIcon})
 	self.EzrealMenu.Combo:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = RIcon})
-	self.EzrealMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	self.EzrealMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
 	self.EzrealMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.EzrealMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	
@@ -838,7 +840,7 @@ function Ezreal:Menu()
 	
 	self.EzrealMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.EzrealMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = RIcon})
-	self.EzrealMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	self.EzrealMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
 	
 	self.EzrealMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.EzrealMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = false, leftIcon = QIcon})
@@ -1114,7 +1116,7 @@ function Jinx:Menu()
 	self.JinxMenu.Combo:MenuElement({id = "UseW", name = "Use W [Zap!]", value = true, leftIcon = WIcon})
 	self.JinxMenu.Combo:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = true, leftIcon = EIcon})
 	self.JinxMenu.Combo:MenuElement({id = "UseR", name = "Use R [Mega Death Rocket!]", value = true, leftIcon = RIcon})
-	self.JinxMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	self.JinxMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
 	self.JinxMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.JinxMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	
@@ -1127,11 +1129,11 @@ function Jinx:Menu()
 	self.JinxMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.JinxMenu.KillSteal:MenuElement({id = "UseW", name = "Use W [Zap!]", value = true, leftIcon = WIcon})
 	self.JinxMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Mega Death Rocket!]", value = true, leftIcon = RIcon})
-	self.JinxMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 3000, min = 100, max = 3000, step = 50})
+	self.JinxMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
 	
 	self.JinxMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
-	self.JinxMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Switcheroo!]", value = true, leftIcon = QIcon})
-	self.JinxMenu.LaneClear:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = true, leftIcon = EIcon})
+	self.JinxMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Switcheroo!]", value = false, leftIcon = QIcon})
+	self.JinxMenu.LaneClear:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = false, leftIcon = EIcon})
 	self.JinxMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
 	
 	self.JinxMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
@@ -1263,7 +1265,7 @@ function Jinx:Combo()
 	if Mode() == "Combo" then
 		if self.JinxMenu.Combo.UseQ:Value() then
 			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range+100) then
+				if ValidTarget(target, myHero.range) then
 					if myHero:GetSpellData(_Q).toggleState == 2 then
 						if EnemiesAround(target, 150) <= 1 then
 							Control.CastSpell(HK_Q)
@@ -1276,9 +1278,20 @@ function Jinx:Combo()
 				end
 			end
 		end
+		if self.JinxMenu.Combo.UseQ:Value() then
+			if IsReady(_Q) then
+				if ValidTarget(target, myHero.range+175) then
+					if GetDistance(myHero.pos, target.pos) > 600 and myHero:GetSpellData(_Q).toggleState == 1 then
+						Control.CastSpell(HK_Q)
+					elseif GetDistance(myHero.pos, target.pos) < 600 and myHero:GetSpellData(_Q).toggleState == 2 then
+						Control.CastSpell(HK_Q)
+					end
+				end
+			end
+		end
 		if self.JinxMenu.Combo.UseW:Value() then
 			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-				if ValidTarget(target, JinxW.range) then
+				if ValidTarget(target, JinxW.range) and GetDistance(myHero.pos, target.pos) > 500 then
 					self:UseW(target)
 				end
 			end
@@ -1307,9 +1320,9 @@ end
 function Jinx:Harass()
 	if target == nil then return end
 	if Mode() == "Harass" then
-		if self.JinxMenu.Combo.UseQ:Value() then
+		if self.JinxMenu.Harass.UseQ:Value() then
 			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range+100) then
+				if ValidTarget(target, myHero.range) then
 					if myHero:GetSpellData(_Q).toggleState == 2 then
 						if EnemiesAround(target, 150) <= 1 then
 							Control.CastSpell(HK_Q)
@@ -1324,7 +1337,18 @@ function Jinx:Harass()
 				end
 			end
 		end
-		if self.JinxMenu.Combo.UseW:Value() then
+		if self.JinxMenu.Harass.UseQ:Value() then
+			if IsReady(_Q) then
+				if ValidTarget(target, myHero.range+175) then
+					if GetDistance(myHero.pos, target.pos) > 600 and myHero:GetSpellData(_Q).toggleState == 1 and GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
+						Control.CastSpell(HK_Q)
+					elseif GetDistance(myHero.pos, target.pos) < 600 and myHero:GetSpellData(_Q).toggleState == 2 then
+						Control.CastSpell(HK_Q)
+					end
+				end
+			end
+		end
+		if self.JinxMenu.Harass.UseW:Value() then
 			if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
 				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
 					if ValidTarget(target, JinxW.range) then
@@ -1333,7 +1357,7 @@ function Jinx:Harass()
 				end
 			end
 		end
-		if self.JinxMenu.Combo.UseE:Value() then
+		if self.JinxMenu.Harass.UseE:Value() then
 			if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
 				if IsReady(_E) then
 					if ValidTarget(target, JinxE.range) then
