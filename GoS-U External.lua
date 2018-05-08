@@ -43,7 +43,7 @@
 -- == Changelog ==
 -- ===============
 -- 1.0.2.1 BETA
--- + Improved Jinx's Q logic
+-- + Improved Jinx's spells logic
 -- 1.0.2 BETA
 -- + Added Vayne
 -- 1.0.1 BETA
@@ -1117,6 +1117,7 @@ function Jinx:Menu()
 	self.JinxMenu.Combo:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = true, leftIcon = EIcon})
 	self.JinxMenu.Combo:MenuElement({id = "UseR", name = "Use R [Mega Death Rocket!]", value = true, leftIcon = RIcon})
 	self.JinxMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
+	self.JinxMenu.Combo:MenuElement({id = "ModeE", name = "Cast Mode: E", drop = {"Standard", "On Immobile"}, value = 1})
 	self.JinxMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.JinxMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	
@@ -1124,6 +1125,7 @@ function Jinx:Menu()
 	self.JinxMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Switcheroo!]", value = true, leftIcon = QIcon})
 	self.JinxMenu.Harass:MenuElement({id = "UseW", name = "Use W [Zap!]", value = true, leftIcon = WIcon})
 	self.JinxMenu.Harass:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = true, leftIcon = EIcon})
+	self.JinxMenu.Harass:MenuElement({id = "ModeE", name = "Cast Mode: E", drop = {"Standard", "On Immobile"}, value = 2})
 	self.JinxMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
 	
 	self.JinxMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
@@ -1299,7 +1301,13 @@ function Jinx:Combo()
 		if self.JinxMenu.Combo.UseE:Value() then
 			if IsReady(_E) then
 				if ValidTarget(target, JinxE.range) then
-					self:UseE(target)
+					if self.JinxMenu.Combo.ModeE:Value() == 1 then
+						self:UseE(target)
+					elseif self.JinxMenu.Combo.ModeE:Value() == 2 then
+						if IsImmobile(target) then
+							self:UseE(target)
+						end
+					end
 				end
 			end
 		end
@@ -1351,7 +1359,7 @@ function Jinx:Harass()
 		if self.JinxMenu.Harass.UseW:Value() then
 			if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
 				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-					if ValidTarget(target, JinxW.range) then
+					if ValidTarget(target, JinxW.range) and GetDistance(myHero.pos, target.pos) > 500 then
 						self:UseW(target)
 					end
 				end
@@ -1361,7 +1369,13 @@ function Jinx:Harass()
 			if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
 				if IsReady(_E) then
 					if ValidTarget(target, JinxE.range) then
-						self:UseE(target)
+						if self.JinxMenu.Harass.ModeE:Value() == 1 then
+							self:UseE(target)
+						elseif self.JinxMenu.Harass.ModeE:Value() == 2 then
+							if IsImmobile(target) then
+								self:UseE(target)
+							end
+						end
 					end
 				end
 			end
