@@ -336,9 +336,9 @@ AhriMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E"
 AhriMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 AhriMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local AhriQ = { range = 880, radius = 100, width = 200, speed = 2500, delay = 0.25, type = "line", collision = true, source = myHero, col = {"yasuowall"}}
+local AhriQ = { range = 880, radius = 100, width = 100, speed = 2500, delay = 0.25, type = "line", collision = true, source = myHero, col = {"yasuowall"}}
 local AhriW = { range = 700 }
-local AhriE = { range = 975, radius = 60, width = 120, speed = 1550, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local AhriE = { range = 975, radius = 60, width = 60, speed = 1550, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local AhriR = { range = 450 }
 
 OnTick(function(myHero)
@@ -776,7 +776,7 @@ AnnieMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local AnnieQ = { range = 625 }
 local AnnieW = { range = 600, angle = 50, radius = 50, width = 100, speed = math.huge, delay = 0.25, type = "cone", collision = false, source = myHero }
-local AnnieR = { range = 600, radius = 290, width = 580, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
+local AnnieR = { range = 600, radius = 290, width = 290, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -1185,8 +1185,8 @@ BrandMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 3, {"Q-W-E", "Q-E-W", "W-Q-E
 BrandMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 BrandMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local BrandQ = { range = 1050, radius = 60, width = 120, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
-local BrandW = { range = 900, radius = 250, width = 500, speed = math.huge, delay = 0.625, type = "circular", collision = false, source = myHero }
+local BrandQ = { range = 1050, radius = 60, width = 60, speed = 1600, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local BrandW = { range = 900, radius = 250, width = 250, speed = math.huge, delay = 0.625, type = "circular", collision = false, source = myHero }
 local BrandE = { range = 625 }
 local BrandR = { range = 750 }
 
@@ -1667,8 +1667,8 @@ CassiopeiaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 CassiopeiaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 CassiopeiaMenu.Misc:Slider("MPT","Mana-Manager: Tear", 80, 0, 100, 5)
 
-local CassiopeiaQ = { range = 850, radius = 150, width = 300, speed = math.huge, delay = 0.4, type = "circular", collision = false, source = myHero }
-local CassiopeiaW = { range = 800, radius = 160, width = 320, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
+local CassiopeiaQ = { range = 850, radius = 150, width = 150, speed = math.huge, delay = 0.4, type = "circular", collision = false, source = myHero }
+local CassiopeiaW = { range = 800, radius = 160, width = 160, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
 local CassiopeiaE = { range = 700 }
 local CassiopeiaR = { range = 825, angle = 80, radius = 80, width = 160, speed = math.huge, delay = 0.5, type = "cone", collision = false, source = myHero }
 
@@ -2269,7 +2269,7 @@ FizzMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local FizzQ = { range = 550 }
 local FizzE = { range = 400 }
-local FizzR = { range = 1300, radius = 80, width = 160, speed = 1300, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local FizzR = { range = 1300, radius = 80, width = 80, speed = 1300, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -4051,7 +4051,7 @@ KatarinaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local KatarinaQ = { range = 625 }
 local KatarinaW = { range = 340 }
-local KatarinaE = { range = 725, radius = 150, width = 300, speed = math.huge, delay = 0.15, type = "circular", collision = false, source = myHero }
+local KatarinaE = { range = 725, radius = 150, width = 150, speed = math.huge, delay = 0.15, type = "circular", collision = false, source = myHero }
 local KatarinaR = { range = 550 }
 
 OnTick(function(myHero)
@@ -4612,8 +4612,8 @@ LeblancMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 LeblancMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local LeblancQ = { range = 700 }
-local LeblancW = { range = 600, radius = 260, width = 520, speed = 1450, delay = 0, type = "circular", collision = false, source = myHero }
-local LeblancE = { range = 925, radius = 55, width = 110, speed = 1750, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local LeblancW = { range = 600, radius = 260, width = 260, speed = 1450, delay = 0, type = "circular", collision = false, source = myHero }
+local LeblancE = { range = 925, radius = 55, width = 55, speed = 1750, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -5411,7 +5411,7 @@ OriannaMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q
 OriannaMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 OriannaMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local OriannaQ = { range = 825, radius = 80, width = 160, speed = 1400, delay = 0.25, type = "linear", collision = false, source = myHero }
+local OriannaQ = { range = 825, radius = 80, width = 80, speed = 1400, delay = 0.25, type = "linear", collision = false, source = myHero }
 local OriannaW = { range = 250 }
 local OriannaE = { range = 1125, radius = 80 }
 local OriannaR = { range = 325 }
@@ -5869,9 +5869,9 @@ RivenMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E
 RivenMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 RivenMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local RivenQ = { range = 460, radius = 150, width = 300, speed = math.huge, delay = 0, type = "line", collision = false, source = myHero }
+local RivenQ = { range = 460, radius = 150, width = 150, speed = math.huge, delay = 0, type = "line", collision = false, source = myHero }
 local RivenW = { range = 270 }
-local RivenE = { range = 325, radius = 100, width = 200, speed = 1100, delay = 0, type = "line", collision = false, source = myHero }
+local RivenE = { range = 325, radius = 100, width = 100, speed = 1100, delay = 0, type = "line", collision = false, source = myHero }
 local RivenR = { range = 900, angle = 50, radius = 50, width = 100, speed = 1600, delay = 0.25, type = "cone", collision = false, source = myHero }
 
 OnTick(function(myHero)
@@ -6261,7 +6261,7 @@ RyzeMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 RyzeMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 5, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 RyzeMenu.Misc:Slider("MPT","Mana-Manager: Tear", 80, 0, 100, 5)
 
-local RyzeQ = { range = 1000, radius = 55, width = 110, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local RyzeQ = { range = 1000, radius = 55, width = 55, speed = 1700, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
 local RyzeW = { range = 615 }
 local RyzeE = { range = 615 }
 local RyzeR = { range = GetCastRange(myHero,_R) }
@@ -6709,8 +6709,8 @@ SyndraMenu:Menu("Misc", "Misc")
 SyndraMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 SyndraMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 
-local SyndraQ = { range = 800, radius = 200, width = 400, speed = math.huge, delay = 0.625, type = "circular", collision = false, source = myHero }
-local SyndraW = { range = 950, radius = 225, width = 450, speed = 1450, delay = 0.25, type = "circular", collision = false, source = myHero }
+local SyndraQ = { range = 800, radius = 200, width = 200, speed = math.huge, delay = 0.625, type = "circular", collision = false, source = myHero }
+local SyndraW = { range = 950, radius = 225, width = 225, speed = 1450, delay = 0.25, type = "circular", collision = false, source = myHero }
 local SyndraE = { range = 700, angle = 40, radius = 40, width = 80, speed = 2500, delay = 0.25, type = "cone", collision = false, source = myHero }
 local SyndraR = { range = GetCastRange(myHero,_R) }
 
@@ -7158,7 +7158,7 @@ TwistedFateMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 TwistedFateMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 TwistedFateMenu.Misc:Slider("MP","Mana-Manager", 40, 0, 100, 5)
 
-local TwistedFateQ = { range = 1450, radius = 40, width = 80, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local TwistedFateQ = { range = 1450, radius = 40, width = 40, speed = 1000, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local TwistedFateR = { range = GetCastRange(myHero,_R) }
 local GlobalTimer = 0
 
@@ -7614,9 +7614,9 @@ VeigarMenu:Menu("Misc", "Misc")
 VeigarMenu.Misc:Boolean('LvlUp', 'Level-Up', true)
 VeigarMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"})
 
-local VeigarQ = { range = 950, radius = 70, width = 140, speed = 2200, delay = 0.25, type = "line", collision = true, source = myHero }
-local VeigarW = { range = 900, radius = 225, width = 450, speed = math.huge, delay = 1.25, type = "circular", collision = false, source = myHero }
-local VeigarE = { range = 700, radius = 375, width = 750, speed = math.huge, delay = 0.75, type = "circular", collision = false, source = myHero }
+local VeigarQ = { range = 950, radius = 70, width = 70, speed = 2200, delay = 0.25, type = "line", collision = true, source = myHero }
+local VeigarW = { range = 900, radius = 225, width = 225, speed = math.huge, delay = 1.25, type = "circular", collision = false, source = myHero }
+local VeigarE = { range = 700, radius = 375, width = 375, speed = math.huge, delay = 0.75, type = "circular", collision = false, source = myHero }
 local VeigarR = { range = 650 }
 
 OnTick(function(myHero)
@@ -8075,9 +8075,9 @@ ViktorMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ViktorMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
 local ViktorQ = { range = 600 }
-local ViktorW = { range = 700, radius = 290, width = 580, speed = math.huge, delay = 1.3, type = "circular", collision = false, source = myHero }
-local ViktorE = { range = 1025, radius = 80, width = 160, speed = 1050, delay = 0, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
-local ViktorR = { range = 700, radius = 290, width = 580, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
+local ViktorW = { range = 700, radius = 290, width = 290, speed = math.huge, delay = 1.3, type = "circular", collision = false, source = myHero }
+local ViktorE = { range = 1025, radius = 80, width = 80, speed = 1050, delay = 0, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local ViktorR = { range = 700, radius = 290, width = 290, speed = math.huge, delay = 0.25, type = "circular", collision = false, source = myHero }
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -8545,7 +8545,7 @@ VladimirMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 local VladimirQ = { range = 600 }
 local VladimirW = { range = 300 }
 local VladimirE = { range = 600 }
-local VladimirR = { range = 700, radius = 350, width = 700, speed = math.huge, delay = 0.389, type = "circular", collision = false, source = myHero }
+local VladimirR = { range = 700, radius = 350, width = 350, speed = math.huge, delay = 0.389, type = "circular", collision = false, source = myHero }
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -9005,10 +9005,10 @@ XerathMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 1, {"Q-W-E", "Q-E-W", "W-Q-
 XerathMenu.Misc:Boolean('ExtraDelay', 'Delay Before Casting Q', false)
 XerathMenu.Misc:Slider("ED","Extended Delay: Q", 0.1, 0, 1, 0.05)
 
-local XerathQ = { range = 1400, radius = 75, width = 150, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
-local XerathW = { range = 1100, radius = 235, width = 470, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
-local XerathE = { range = 1050, radius = 60, width = 120, speed = 1350, delay = 0.25, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
-local XerathR = { range = GetCastRange(myHero,_R), radius = 200, width = 400, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
+local XerathQ = { range = 1400, radius = 75, width = 75, speed = math.huge, delay = 0.5, type = "line", collision = false, source = myHero }
+local XerathW = { range = 1100, radius = 235, width = 235, speed = math.huge, delay = 0.5, type = "circular", collision = false, source = myHero }
+local XerathE = { range = 1050, radius = 60, width = 60, speed = 1400, delay = 0.2, type = "line", collision = true, source = myHero, col = {"minion","champion","yasuowall"}}
+local XerathR = { range = GetCastRange(myHero,_R), radius = 200, width = 200, speed = math.huge, delay = 0.6, type = "circular", collision = false, source = myHero }
 
 OnTick(function(myHero)
 	target = GetCurrentTarget()
@@ -9908,8 +9908,8 @@ OnProcessSpell(function(unit, spell)
 end)
 -- < #Deftsu
 
-local YasuoQ = { range = 475, radius = 40, width = 80, speed = math.huge, delay = GetWindUp(myHero), type = "line", collision = false, source = myHero }
-local YasuoQ3 = { range = 1000, radius = 90, width = 180, speed = 1200, delay = GetWindUp(myHero), type = "line", col = {"yasuowall"}, collision = false, source = myHero }
+local YasuoQ = { range = 475, radius = 40, width = 40, speed = math.huge, delay = GetWindUp(myHero), type = "line", collision = false, source = myHero }
+local YasuoQ3 = { range = 1000, radius = 90, width = 90, speed = 1200, delay = GetWindUp(myHero), type = "line", col = {"yasuowall"}, collision = false, source = myHero }
 local YasuoW = { range = 400 }
 local YasuoE = { range = 475 }
 local YasuoR = { range = 1400 }
@@ -10397,8 +10397,8 @@ ZedMenu.Misc:DropDown('AutoLvlUp', 'Level Table', 2, {"Q-W-E", "Q-E-W", "W-Q-E",
 ZedMenu.Misc:Slider('X','Minimum Enemies: R', 1, 0, 5, 1)
 ZedMenu.Misc:Slider('HP','HP-Manager: R', 40, 0, 100, 5)
 
-local ZedQ = { range = 900, radius = 50, width = 100, speed = 1700, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
-local ZedW = { range = 650, radius = 60, width = 120, speed = 1750, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local ZedQ = { range = 900, radius = 50, width = 50, speed = 1700, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
+local ZedW = { range = 650, radius = 60, width = 60, speed = 1750, delay = 0.25, type = "line", collision = false, source = myHero, col = {"yasuowall"}}
 local ZedE = { range = 290 }
 local ZedR = { range = 625 }
 local GlobalTimer = 0
