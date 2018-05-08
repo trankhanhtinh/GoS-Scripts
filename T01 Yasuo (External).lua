@@ -6,10 +6,12 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.4
+-- Current version: 1.0.5
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5
+-- + Finished spell database
 -- 1.0.4
 -- + Imported spell database (50% done)
 -- + Added W usage and lasthit with Q
@@ -487,7 +489,7 @@ local Spells = {
 	["Gragas"] = {"GragasQ", "GragasR"},
 	["Graves"] = {"GravesQLineSpell", "GravesSmokeGrenade", "GravesChargeShot"},
 	["Hecarim"] = {"HecarimUlt"},
-	["Heimerdinger"] = {"HeimerdingerQ", "HeimerdingerQUlt", "HeimerdingerW", "HeimerdingerWUlt", "HeimerdingerE", "HeimerdingerEUlt"},
+	["Heimerdinger"] = {"HeimerdingerQ", "HeimerdingerW", "HeimerdingerE", "HeimerdingerEUlt"},
 	["Illaoi"] = {"IllaoiE"},
 	["IreliaR"] = {"IreliaR"},
 	["Ivern"] = {"IvernQ"},
@@ -515,6 +517,59 @@ local Spells = {
 	["Lux"] = {"LuxLightBinding", "LuxPrismaticWave", "LuxLightStrikeKugel"},
 	["Malphite"] = {"SeismicShard"},
 	["Maokai"] = {"MaokaiQ", "MaokaiR"},
+	["MissFortune"] = {"MissFortuneRicochetShot", "MissFortuneBulletTime"},
+	["Morgana"] = {"DarkBindingMissile"},
+	["Nami"] = {"NamiQ", "NamiW", "NamiR"},
+	["Nautilus"] = {"NautilusAnchorDrag"},
+	["Nidalee"] = {"JavelinToss"},
+	["Nocturne"] = {"NocturneDuskbringer"},
+	["Nunu"] = {"IceBlast"},
+	["Olaf"] = {"OlafAxeThrowCast"},
+	["Orianna"] = {"OrianaIzunaCommand", "OrianaRedactCommand"},
+	["Ornn"] = {"OrnnQ", "OrnnR"},
+	["Pantheon"] = {"PantheonQ"},
+	["Poppy"] = {"PoppyRSpell"},
+	["Quinn"] = {"QuinnQ"},
+	["Rakan"] = {"RakanQ"},
+	["Reksai"] = {"RekSaiQBurrowed"},
+	["Rengar"] = {"RengarE"},
+	["Riven"] = {"RivenIzunaBlade"},
+	["Rumble"] = {"RumbleGrenade"},
+	["Ryze"] = {"RyzeQ", "RyzeE"},
+	["Sejuani"] = {"SejuaniE", "SejuaniR"},
+	["Shaco"] = {"TwoShivPoison"},
+	["Shyvana"] = {"ShyvanaFireball", "ShyvanaFireballDragon2"},
+	["Sion"] = {"SionE"},
+	["Sivir"] = {"SivirQ"},
+	["Skarner"] = {"SkarnerFracture"},
+	["Sona"] = {"SonaQ", "SonaR"},
+	["Swain"] = {"SwainE"},
+	["Syndra"] = {"SyndraR"},
+	["TahmKench"] = {"TahmKenchQ"},
+	["Taliyah"] = {"TaliyahQ"},
+	["Talon"] = {"TalonW", "TalonR"},
+	["Teemo"] = {"BlindingDart", "TeemoRCast"},
+	["Thresh"] = {"ThreshQ"},
+	["Tristana"] = {"TristanaE", "TristanaR"},
+	["TwistedFate"] = {"WildCards"},
+	["Twitch"] = {"TwitchVenomCask"},
+	["Urgot"] = {"UrgotQ", "UrgotR"},
+	["Varus"] = {"VarusQ", "VarusR"},
+	["Vayne"] = {"VayneCondemn", "VayneCondemnMissile"},
+	["Veigar"] = {"VeigarBalefulStrike", "VeigarR"},
+	["VelKoz"] = {"VelKozQ", "VelkozQMissileSplit", "VelKozW", "VelKozE"},
+	["Viktor"] = {"ViktorPowerTransfer", "ViktorDeathRay"},
+	["Vladimir"] = {"VladimirE"},
+	["Xayah"] = {"XayahQ", "XayahE", "XayahR"},
+	["Xerath"] = {"XerathMageSpear"},
+	["Yasuo"] = {"YasuoQ3W"},
+	["Yorick"] = {"YorickE"},
+	["Zac"] = {"ZacQ"},
+	["Zed"] = {"ZedQ"},
+	["Ziggs"] = {"ZiggsQ", "ZiggsW", "ZiggsE"},
+	["Zilean"] = {"ZileanQ", "ZileanQAttachAudio"},
+	["Zoe"] = {"ZoeQ", "ZoeQRecast", "ZoeE"},
+	["Zyra"] = {"ZyraE"},
 }
 
 function Yasuo:Detect()
