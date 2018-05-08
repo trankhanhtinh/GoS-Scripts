@@ -1254,7 +1254,7 @@ function Jinx:Auto()
 	if self.JinxMenu.Auto.UseW:Value() then
 		if GetPercentMana(myHero) > self.JinxMenu.Auto.MP:Value() then
 			if IsReady(_W) then
-				if ValidTarget(target, JinxW.range) then
+				if ValidTarget(target, JinxW.range) and GetDistance(myHero.pos, target.pos) > 500 then
 					self:UseW(target)
 				end
 			end
