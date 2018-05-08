@@ -285,7 +285,7 @@ function BaseUlt()
 						end
 					end
 				elseif GetObjectName(myHero) == "Ezreal" then
-					local EzrealRDmg = (150*GetCastLevel(myHero,_R)+200)+GetBonusDmg(myHero)+(0.9*GetBonusAP(myHero))
+					local EzrealRDmg = (0.3*(150*GetCastLevel(myHero,_R)+200)+GetBonusDmg(myHero)+(0.9*GetBonusAP(myHero)))
 					if EzrealRDmg >= (GetCurrentHP(recall.champ)+GetMagicResist(recall.champ)+GetHPRegen(recall.champ)*20) and SpawnPos ~= nil then
 						local RecallTime = recall.duration-(GetGameTimer()-recall.start)+GetLatency()/2000
 						local HitTime = 1+GetDistance(SpawnPos)/2000+GetLatency()/2000
