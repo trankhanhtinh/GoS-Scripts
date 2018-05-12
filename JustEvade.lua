@@ -309,7 +309,7 @@ end
 function Evade:Dodge()
 	if myHero.dead then return end
 	if EMenu.Evade:Value() and _G.Evade and self.m ~= nil then
-		if GetDistance(self.m,myHero) > myHero.boundingRadius then
+		if GetDistance(self.m,myHero) > myHero.boundingRadius and self.m.time > GetGameTimer() then
 			if _G.IOW then
 				IOW.movementEnabled = false
 				IOW.attacksEnabled = false
