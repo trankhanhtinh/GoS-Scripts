@@ -13,8 +13,9 @@ function JustEvade:__init()
 	self.Flash = (GetCastName(myHero,SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.DetSpells = {}
-	EMenu:Boolean("Evade", "Enable Evade", true)
-	EMenu:Boolean("Status", "Draw Status", true)
+	EMenu:Boolean("Evade", "Enable Dodge", true)
+	EMenu:Boolean("Status", "Draw Evade Status", true)
+	EMenu:Boolean("SafePos", "Draw Safe Position", true)
 	EMenu:SubMenu("Spells", "Spell Settings")
 	EMenu:Slider("ER","Extra Radius", 20, 0, 100, 5)
 	DelayAction(function()
@@ -499,7 +500,7 @@ function JustEvade:Draw()
 		end
 	end
 	if EMenu.Evade:Value() then
-		if _G.JustEvade and self.m then
+		if _G.JustEvade and self.m and EMenu.SafePos:Value() then
 			DrawCircle(self.m.x,self.m.y,self.m.z,myHero.boundingRadius,2,32,ARGB(255,255,255,255))
 		end
 		for _,spell in pairs(self.DetSpells) do
