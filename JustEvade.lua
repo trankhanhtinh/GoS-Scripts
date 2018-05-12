@@ -13,7 +13,7 @@ function JustEvade:__init()
 	self.Flash = (GetCastName(myHero,SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.DetSpells = {}
-	EMenu:Boolean("Evade", "Enable Dodge", true)
+	EMenu:Boolean("Evade", "Enable Evade", true)
 	EMenu:Boolean("Status", "Draw Evade Status", true)
 	EMenu:Boolean("SafePos", "Draw Safe Position", true)
 	EMenu:SubMenu("Spells", "Spell Settings")
