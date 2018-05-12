@@ -1,15 +1,15 @@
 
-class 'Evade'
+class 'JustEvade'
 
 OnLoad(function()
-	EMenu = Menu("Evade", "Evade")
-	Evade()
+	EMenu = Menu("JustEvade", "JustEvade")
+	JustEvade()
 	require 'MapPositionGOS'
 	require 'Collision'
 end)
 
-function Evade:__init()
-	_G.Evade = false
+function JustEvade:__init()
+	_G.JustEvade = false
 	self.Flash = (GetCastName(myHero,SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.DetSpells = {}
@@ -306,9 +306,9 @@ self.Spells = {
 }
 end
 
-function Evade:Dodge()
+function JustEvade:Dodge()
 	if myHero.dead then return end
-	if EMenu.Evade:Value() and _G.Evade and self.m ~= nil then
+	if EMenu.Evade:Value() and _G.JustEvade and self.m ~= nil then
 		if GetDistance(self.m,myHero) > myHero.boundingRadius and self.m.time > GetGameTimer() then
 			if _G.IOW then
 				IOW.movementEnabled = false
@@ -316,6 +316,12 @@ function Evade:Dodge()
 			elseif _G.GoSWalkLoaded then
 				_G.GoSWalk:EnableMovement(false)
 				_G.GoSWalk:EnableAttack(false)
+			elseif _G.DAC_Loaded then
+				DAC:MovementEnabled(false)
+				DAC:AttacksEnabled(false)
+			elseif _G.AutoCarry_Loaded then
+				DACR.movementEnabled = false
+				DACR.attacksEnabled = false
 			end
 			BlockF7OrbWalk(true)
 			BlockF7Dodge(true)
@@ -366,13 +372,19 @@ function Evade:Dodge()
 			return
 		else
 			DelayAction(function()
-				_G.Evade = false
+				_G.JustEvade = false
 				if _G.IOW then
 					IOW.movementEnabled = true
 					IOW.attacksEnabled = true
 				elseif _G.GoSWalkLoaded then
 					_G.GoSWalk:EnableMovement(true)
 					_G.GoSWalk:EnableAttack(true)
+				elseif _G.DAC_Loaded then
+					DAC:MovementEnabled(true)
+					DAC:AttacksEnabled(true)
+				elseif _G.AutoCarry_Loaded then
+					DACR.movementEnabled = true
+					DACR.attacksEnabled = true
 				end
 				BlockF7OrbWalk(false)
 				BlockF7Dodge(false)
@@ -398,7 +410,7 @@ function Evade:Dodge()
 						end
 						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()+delay-spell.startTime)-radius+EMenu.ER:Value())
 						if GetDistance(myHero,p) <= (radius+EMenu.ER:Value()+b) then
-							_G.Evade = true
+							_G.JustEvade = true
 							self.m = self:Pathfinding(spell.startPos,p,radius,myHero.boundingRadius)
 							self.m.speed = speed
 							self.m.startPos = Vector(spell.startPos)
@@ -416,7 +428,7 @@ function Evade:Dodge()
 							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*GetDistance(spell.startPos,myHero)
 						end
 						if GetDistance(myHero,spell.endPos) < (radius+EMenu.ER:Value()+b) then
-							_G.Evade = true
+							_G.JustEvade = true
 							self.m = self:Pathfinding(spell.startPos,spell.endPos,radius,b)
 							self.m.speed = speed
 							self.m.startPos = Vector(spell.startPos)
@@ -434,7 +446,7 @@ function Evade:Dodge()
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						if GetDistance(myHero,spell.endPos) <= (radius/2+EMenu.ER:Value()+b) then
-							_G.Evade = true
+							_G.JustEvade = true
 							self.m = self:Pathfinding(spell.startPos,spell.endPos,radius,b)
 							self.m.speed = speed
 							self.m.startPos = Vector(spell.startPos)
@@ -449,7 +461,7 @@ function Evade:Dodge()
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						if GetDistance(myHero,spell.endPos) <= (radius/2+EMenu.ER:Value()+b) then
-							_G.Evade = true
+							_G.JustEvade = true
 							self.m = self:Pathfinding(spell.startPos,spell.endPos,radius,b)
 							self.m.speed = speed
 							self.m.startPos = Vector(spell.startPos)
@@ -467,7 +479,7 @@ function Evade:Dodge()
 	end
 end
 
-function Evade:Pathfinding(startPos, endPos, radius, boundingRadius)
+function JustEvade:Pathfinding(startPos, endPos, radius, boundingRadius)
 	if myHero.dead then return end
 	local Pos1 = myHero+Vector(Vector(myHero)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.ER:Value())
 	local Pos2 = myHero+Vector(Vector(myHero)-endPos):normalized():perpendicular2()*(radius+boundingRadius+EMenu.ER:Value())
@@ -478,7 +490,7 @@ function Evade:Pathfinding(startPos, endPos, radius, boundingRadius)
 	end
 end
 
-function Evade:Draw()
+function JustEvade:Draw()
 	if EMenu.Status:Value() then
 		if EMenu.Evade:Value() then
 			DrawText("Evade: ON", 15, myHero.pos2D.x-30, myHero.pos2D.y+30, ARGB(255,255,255,255))
@@ -487,7 +499,7 @@ function Evade:Draw()
 		end
 	end
 	if EMenu.Evade:Value() then
-		if _G.Evade and self.m then
+		if _G.JustEvade and self.m then
 			DrawCircle(self.m.x,self.m.y,self.m.z,myHero.boundingRadius,2,32,ARGB(255,255,255,255))
 		end
 		for _,spell in pairs(self.DetSpells) do
@@ -587,7 +599,7 @@ function Evade:Draw()
 	end
 end
 
-function Evade:DrawRectangleOutline(startPos, endPos, pos, radius)
+function JustEvade:DrawRectangleOutline(startPos, endPos, pos, radius)
 	if EMenu.ER:Value() > 0 then
 		local z1 = startPos+Vector(Vector(endPos)-startPos):perpendicular():normalized()*(radius+EMenu.ER:Value())
 		local z2 = startPos+Vector(Vector(endPos)-startPos):perpendicular2():normalized()*(radius+EMenu.ER:Value())
@@ -619,7 +631,7 @@ function Evade:DrawRectangleOutline(startPos, endPos, pos, radius)
 	end
 end
 
-function Evade:DrawCone(v1, v2, angle, radius, color)
+function JustEvade:DrawCone(v1, v2, angle, radius, color)
 	angle = angle*math.pi/180
 	v1 = Vector(v1)
 	v2 = Vector(v2)
@@ -634,7 +646,7 @@ function Evade:DrawCone(v1, v2, angle, radius, color)
 	DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,radius,color)
 end
 
-function Evade:DrawRectangle(startPos, endPos, radius, radius2, t, c)
+function JustEvade:DrawRectangle(startPos, endPos, radius, radius2, t, c)
     local spos = Vector(endPos) - (Vector(endPos) - Vector(startPos)):normalized():perpendicular() * (radius2 or 400)
     local epos = Vector(endPos) + (Vector(endPos) - Vector(startPos)):normalized():perpendicular() * (radius2 or 400)
 	local ePos = Vector(epos)
@@ -651,7 +663,7 @@ function Evade:DrawRectangle(startPos, endPos, radius, radius2, t, c)
 	DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,t,c)
 end
 
-function Evade:AdditionalTime(unit, spell)
+function JustEvade:AdditionalTime(unit, spell)
 	if unit.charName == "Caitlyn" and spell == 1 then return 1 end
 	if unit.charName == "Gangplank" and spell == 3 then return 2 end
 	if unit.charName == "Gragas" and spell == 0 then return 1 end
@@ -679,14 +691,14 @@ function Evade:AdditionalTime(unit, spell)
 	return 0
 end
 
-function Evade:Detect(unit, spell)
+function JustEvade:Detect(unit, spell)
 	if unit and spell and spell.name and unit.team ~= myHero.team then
 		if self.Spells and self.Spells[spell.name] then
 			s = {slot = self.Spells[spell.name].slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(spell.endPos), windUpTime = spell.windUpTime, name = spell.name}
 			table.insert(self.DetSpells, s)
 		end
 	end
-	if unit == myHero and _G.Evade then
+	if unit == myHero and _G.JustEvade then
 		BlockCast()
 	end
 end
