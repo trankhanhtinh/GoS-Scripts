@@ -613,13 +613,13 @@ function JustEvade:DrawCone(v1, v2, angle, radius, color)
 	v2 = Vector(v2)
 	local a1 = Vector(Vector(v2)-Vector(v1)):Rotated(0,-angle*.5,0)
 	local a2 = nil
-	DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,radius,color)
+	self:DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,radius,color)
 	for i = -angle*.5,angle*.5,angle*.1 do
 		a2 = Vector(v2-v1):Rotated(0,i,0)
-		DrawLine3D(v1.x+a2.x,v1.y+a2.y,v1.z+a2.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,radius,color)
+		self:DrawLine3D(v1.x+a2.x,v1.y+a2.y,v1.z+a2.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,radius,color)
 		a1 = a2
 	end
-	DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,radius,color)
+	self:DrawLine3D(v1.x,v1.y,v1.z,v1.x+a1.x,v1.y+a1.y,v1.z+a1.z,radius,color)
 end
 
 function JustEvade:DrawRectangle(startPos, endPos, radius, radius2, t, c)
