@@ -1,3 +1,16 @@
+-- ==================
+-- == Introduction ==
+-- ==================
+-- Current version: 1.0.1 BETA
+-- Intermediate GoS script which draws and attempts to dodge enemy spells.
+-- ===============
+-- == Changelog ==
+-- ===============
+-- 1.0.1 BETA
+-- + Improved Pathfinding
+-- + Added rectangular spells evading
+-- 1.0 BETA
+-- + Initial release
 
 class 'JustEvade'
 
