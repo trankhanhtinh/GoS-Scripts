@@ -28,9 +28,11 @@ function JustEvade:__init()
 	_G.JustEvade = false
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.DetSpells = {}
+	EMenu:MenuElement({id = "Evade", name = "Enable Evade", value = true})
 	EMenu:MenuElement({id = "Dodge", name = "Dodge Spells", value = true})
 	EMenu:MenuElement({id = "Draw", name = "Draw Spells", value = true})
-	EMenu:MenuElement({id = "SafePos", name = "Draw Safe Pos", value = true})
+	EMenu:MenuElement({id = "Status", name = "Draw Evade Status", value = true})
+	EMenu:MenuElement({id = "SafePos", name = "Draw Safe Position", value = true})
 	EMenu:MenuElement({id = "ER", name = "Extra Radius", value = 20, min = 0, max = 100, step = 5})
 	Callback.Add("Tick", function() self:Dodge() end)
 	Callback.Add("Draw", function() self:Draw() end)
@@ -310,7 +312,7 @@ self.Spells = {
 end
 
 function JustEvade:Dodge()
-	if EMenu.Dodge:Value() then
+	if EMenu.Evade:Value() and EMenu.Dodge:Value() then
 		if _G.JustEvade and self.SafePos ~= nil then
 			if GetDistance(self.SafePos, myHero.pos) > myHero.boundingRadius and self.Timer > Game.Timer() then
 				if _G.SDK then
@@ -472,11 +474,18 @@ function JustEvade:Pathfinding(startPos, endPos, radius, boundingRadius)
 end
 
 function JustEvade:Draw()
+	if EMenu.Status:Value() then
+		if EMenu.Evade:Value() then
+			Draw.Text("Evade: ON", 15, myHero.pos2D.x-30, myHero.pos2D.y+30, Draw.Color(255,255,255,255))
+		else
+			Draw.Text("Evade: OFF", 15, myHero.pos2D.x-30, myHero.pos2D.y+30, Draw.Color(255,255,255,255))
+		end
+	end
 	if _G.JustEvade and self.SafePos and EMenu.SafePos:Value() then
 		Draw.Circle(self.SafePos.x,self.SafePos.y,self.SafePos.z,myHero.boundingRadius,2,Draw.Color(255,255,255,255))
 	end
 	for _,spell in pairs(self.DetSpells) do
-		if EMenu.Draw:Value() then
+		if EMenu.Evade:Value() and EMenu.Draw:Value() then
 			local speed = self.Spells[spell.name].speed
 			local range = self.Spells[spell.name].range
 			local delay = self.Spells[spell.name].delay
