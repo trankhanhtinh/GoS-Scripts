@@ -826,7 +826,7 @@ function Yasuo:Flee()
 			for i = 1, Game.MinionCount() do
 				local minion = Game.Minion(i)
 				if minion and minion.isEnemy then
-					if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+					if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 and IsReady(_E) then
 						Control.CastSpell(HK_E, mousePos)
 					end
 				end
