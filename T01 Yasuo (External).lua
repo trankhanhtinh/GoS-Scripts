@@ -6,10 +6,12 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.5
+-- Current version: 1.0.6
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.6
+-- + Added Flee
 -- 1.0.5
 -- + Finished spell database
 -- 1.0.4
@@ -172,6 +174,8 @@ function Mode()
 			return "Harass"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] then
 			return "LaneClear"
+		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
+			return "Flee"
 		end
 	else
 		return GOS.GetMode()
@@ -228,7 +232,7 @@ function Yasuo:Menu()
 	self.YasuoMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.YasuoMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Last Breath]", value = true, leftIcon = RIcon})
 	self.YasuoMenu.KillSteal:MenuElement({id = "UseIgnite", name = "Use Ignite", value = true, leftIcon = IgniteIcon})
-
+	
 	self.YasuoMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.YasuoMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
 	self.YasuoMenu.LaneClear:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
@@ -241,6 +245,9 @@ function Yasuo:Menu()
 	self.YasuoMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
 	self.YasuoMenu.AntiGapcloser:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
 	self.YasuoMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: Q3", value = 400, min = 25, max = 500, step = 25})
+	
+	self.YasuoMenu:MenuElement({id = "Flee", name = "Flee", type = MENU})
+	self.YasuoMenu.Flee:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
 	
 	self.YasuoMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
 	self.YasuoMenu.HitChance:MenuElement({id = "HPredHit", name = "HitChance: HPrediction", value = 1, min = 1, max = 5, step = 1})
@@ -303,6 +310,7 @@ function Yasuo:Tick()
 	self:KillSteal()
 	self:LaneClear()
 	self:LastHit()
+	self:Flee()
 	self:AntiGapcloser()
 end
 
@@ -805,6 +813,21 @@ function Yasuo:LastHit()
 								Control.CastSpell(HK_E, minion)
 							end
 						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Yasuo:Flee()
+	if self.YasuoMenu.Flee.UseE:Value() then
+		if Mode() == "Flee" then
+			for i = 1, Game.MinionCount() do
+				local minion = Game.Minion(i)
+				if minion and minion.isEnemy then
+					if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+						Control.CastSpell(HK_E, mousePos)
 					end
 				end
 			end
