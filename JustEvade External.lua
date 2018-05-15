@@ -20,6 +20,10 @@ function GetDistance(Pos1, Pos2)
 	return math.sqrt(GetDistanceSqr(Pos1, Pos2))
 end
 
+function IsReady(spell)
+	return Game.CanUseSpell(spell) == 0
+end
+
 function JustEvade:__init()
 	_G.JustEvade = false
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
@@ -308,7 +312,7 @@ end
 function JustEvade:Dodge()
 	if EMenu.Dodge:Value() then
 		if _G.JustEvade and self.SafePos ~= nil then
-			if GetDistance(self.SafePos, myHero.pos) > myHero.boundingRadius and timer > Game.Timer() then
+			if GetDistance(self.SafePos, myHero.pos) > myHero.boundingRadius and self.Timer > Game.Timer() then
 				if _G.SDK then
 					_G.SDK.Orbwalker:SetMovement(false)
 					_G.SDK.Orbwalker:SetAttack(false)
@@ -317,6 +321,46 @@ function JustEvade:Dodge()
 					GOS.BlockAttack = true
 				end
 				Control.Move(self.SafePos.x,self.SafePos.y,self.SafePos.z)
+				if myHero.charName == "Ekko" and IsReady(_E) and self.DangerLvl >= 1 and self.DangerLvl <= 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Ezreal" and IsReady(_E) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Gnar" and IsReady(_E) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Graves" and IsReady(_E) and self.DangerLvl >= 1 and self.DangerLvl <= 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Kassadin" and IsReady(_R) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_R, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Katarina" and IsReady(_W) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_W)
+				elseif myHero.charName == "Kindred" and IsReady(_Q) and self.DangerLvl >= 1 and self.DangerLvl <= 2 then
+					Control.CastSpell(HK_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Lucian" and IsReady(_E) and self.DangerLvl >= 1 and self.DangerLvl <= 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Fiora" and IsReady(_Q) and self.DangerLvl >= 1 and self.DangerLvl <= 2 then
+					Control.CastSpell(HK_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Fizz" and IsReady(_E) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Riven" and IsReady(_E) and self.DangerLvl >= 1 and self.DangerLvl <= 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Shaco" and IsReady(_Q) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Teemo" and IsReady(_W) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_W)
+				elseif myHero.charName == "Tryndamere" and IsReady(_E) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Vayne" and IsReady(_Q) and self.DangerLvl >= 1 and self.DangerLvl <= 2 then
+					Control.CastSpell(HK_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+				elseif myHero.charName == "Vladimir" and IsReady(_W) and self.DangerLvl == 2 then
+					Control.CastSpell(HK_W)
+				end
+				if self.DangerLvl == 3 and GetDistance(myHero.pos, self.SafePos) <= 400 then
+					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and IsReady(SUMMONER_1) then
+						Control.CastSpell(HK_SUMMONER_1, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and IsReady(SUMMONER_2) then
+						Control.CastSpell(HK_SUMMONER_2, self.SafePos.x, self.SafePos.y, self.SafePos.z)
+					end
+				end
 				return
 			else
 				DelayAction(function()
@@ -339,6 +383,7 @@ function JustEvade:Dodge()
 		local radius = self.Spells[spell.name].radius
 		local type = self.Spells[spell.name].type
 		local collision = self.Spells[spell.name].collision
+		local danger = self.Spells[spell.name].danger
 		local b = myHero.boundingRadius
 		if type == "linear" then
 			if speed ~= math.huge then
@@ -354,7 +399,8 @@ function JustEvade:Dodge()
 						self.SafePos.startPos = Vector(spell.startPos)
 						self.SafePos.source = spell.source
 						self.SafePos.slot = spell.slot
-						timer = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
+						self.DangerLvl = danger
+						self.Timer = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
 					end
 				else
 					table.remove(self.DetSpells, _)
@@ -371,7 +417,8 @@ function JustEvade:Dodge()
 						self.SafePos.startPos = Vector(spell.startPos)
 						self.SafePos.source = spell.source
 						self.SafePos.slot = spell.slot
-						timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
+						self.DangerLvl = danger
+						self.Timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 					end
 				else
 					table.remove(self.DetSpells, _)
@@ -388,7 +435,8 @@ function JustEvade:Dodge()
 						self.SafePos.startPos = Vector(spell.startPos)
 						self.SafePos.source = spell.source
 						self.SafePos.slot = spell.slot
-						timer = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
+						self.DangerLvl = danger
+						self.Timer = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
 					end
 				else
 					table.remove(self.DetSpells, _)
@@ -402,7 +450,8 @@ function JustEvade:Dodge()
 						self.SafePos.startPos = Vector(spell.startPos)
 						self.SafePos.source = spell.source
 						self.SafePos.slot = spell.slot
-						timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
+						self.DangerLvl = danger
+						self.Timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 					end
 				else
 					table.remove(self.DetSpells, _)
@@ -613,9 +662,15 @@ function JustEvade:OnProcessSpell()
 	local unit, spell = extLib.OnProcessSpell()
 	if unit and unit.team ~= myHero.team then
 		if self.Spells and self.Spells[spell.name] then
-			local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*self.Spells[spell.name].range
-			s = {slot = self.Spells[spell.name].slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), windup = spell.windup, name = spell.name}
-			table.insert(self.DetSpells, s)
+			if self.Spells[spell.name].type == "linear" or self.Spells[spell.name].type == "conic" then
+				local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*self.Spells[spell.name].range
+				s = {slot = self.Spells[spell.name].slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), windup = spell.windup, name = spell.name}
+				table.insert(self.DetSpells, s)
+			else
+				local endPos = spell.placementPos
+				s = {slot = self.Spells[spell.name].slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), windup = spell.windup, name = spell.name}
+				table.insert(self.DetSpells, s)
+			end
 		end
 	end
 end
