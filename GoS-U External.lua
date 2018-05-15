@@ -19,7 +19,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2.1 BETA
+-- Current version: 1.0.2.2 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Ezreal, Jinx, Vayne
@@ -42,6 +42,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2.2 BETA
+-- + Fixed menu value check
 -- 1.0.2.1 BETA
 -- + Improved Jinx's spells logic
 -- 1.0.2 BETA
@@ -723,7 +725,7 @@ end
 function Ashe:Harass()
 	if target == nil then return end
 	if Mode() == "Harass" then
-		if self.AsheMenu.Combo.UseQ:Value() then
+		if self.AsheMenu.Harass.UseQ:Value() then
 			if IsReady(_Q) then
 				if ValidTarget(target, myHero.range+100) then
 					if GotBuff(myHero, "asheqcastready") == 4 then
@@ -732,7 +734,7 @@ function Ashe:Harass()
 				end
 			end
 		end
-		if self.AsheMenu.Combo.UseW:Value() then
+		if self.AsheMenu.Harass.UseW:Value() then
 			if GetPercentMana(myHero) > self.AsheMenu.Harass.MP:Value() then
 				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
 					if ValidTarget(target, AsheW.range) then
@@ -1021,7 +1023,7 @@ end
 function Ezreal:Harass()
 	if target == nil then return end
 	if Mode() == "Harass" then
-		if self.EzrealMenu.Combo.UseQ:Value() then
+		if self.EzrealMenu.Harass.UseQ:Value() then
 			if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
 				if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
 					if ValidTarget(target, EzrealQ.range) then
@@ -1030,7 +1032,7 @@ function Ezreal:Harass()
 				end
 			end
 		end
-		if self.EzrealMenu.Combo.UseW:Value() then
+		if self.EzrealMenu.Harass.UseW:Value() then
 			if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
 				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
 					if ValidTarget(target, EzrealW.range) then
@@ -1630,7 +1632,7 @@ function Vayne:Harass()
 				end
 			end
 		end
-		if self.VayneMenu.Combo.UseE:Value() then
+		if self.VayneMenu.Harass.UseE:Value() then
 			if GetPercentMana(myHero) > self.VayneMenu.Harass.MP:Value() then
 				if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
 					if ValidTarget(target, VayneE.range) then
