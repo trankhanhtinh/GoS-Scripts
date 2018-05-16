@@ -501,7 +501,8 @@ end
 function JustEvade:Dodge()
 	if myHero.dead then return end
 	if EMenu.Main.Evade:Value() and _G.JustEvade and self.SafePos ~= nil then
-		if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.SafePos.time > GetGameTimer() and not EMenu.Misc.DD:Value() then
+		if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.SafePos.time > GetGameTimer() then
+			if EMenu.Misc.DD:Value() and self.SafePos.danger <= 2 then return end
 			if _G.DAC_Loaded then
 				DAC:MovementEnabled(false)
 				DAC:AttacksEnabled(false)
