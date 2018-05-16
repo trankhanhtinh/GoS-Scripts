@@ -1,11 +1,15 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.1 BETA
+-- Current version: 1.0.2 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2 BETA
+-- + Added conic spells evading
+-- + Improved spell usage
+-- + Extended menu settings
 -- 1.0.1 BETA
 -- + Improved Pathfinding
 -- + Added rectangular spells evading
@@ -26,11 +30,15 @@ function JustEvade:__init()
 	self.Flash = (GetCastName(myHero,SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.DetSpells = {}
-	EMenu:Boolean("Evade", "Enable Evade", true)
-	EMenu:Boolean("Status", "Draw Evade Status", true)
-	EMenu:Boolean("SafePos", "Draw Safe Position", true)
+	EMenu:SubMenu("Main", "Main Settings")
+	EMenu.Main:Boolean("Evade", "Enable Evade", true)
+	EMenu.Main:Boolean("Status", "Draw Evade Status", true)
+	EMenu.Main:Boolean("SafePos", "Draw Safe Position", true)
+	EMenu:SubMenu("Misc", "Misc Settings")
+	EMenu.Misc:Key("DD", "Dodge Only Dangerous", string.byte("N"))
+	EMenu.Misc:Slider("ER","Extra Radius", 20, 0, 100, 5)
 	EMenu:SubMenu("Spells", "Spell Settings")
-	EMenu:Slider("ER","Extra Radius", 20, 0, 100, 5)
+	EMenu:SubMenu("EvadeSpells", "Evade Spells")
 	DelayAction(function()
 		for _,spell in pairs(self.Spells) do
 			for l,k in pairs(GetEnemyHeroes()) do
@@ -41,6 +49,20 @@ function JustEvade:__init()
 					EMenu.Spells[_]:Boolean("Draw".._, "Draw Spell", true)
 				end
 			end
+		end
+		if self.EvadeSpells[GetObjectName(myHero)] then
+			for i = 0,3 do
+				if self.EvadeSpells[GetObjectName(myHero)][i] and self.EvadeSpells[GetObjectName(myHero)][i].displayName then
+					if not EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][i].displayName] then
+						EMenu.EvadeSpells:Menu(self.EvadeSpells[GetObjectName(myHero)][i].displayName,""..myHero.charName.." "..(self.SpSlot[i] or "?").." | "..self.EvadeSpells[GetObjectName(myHero)][i].displayName)
+						EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][i].displayName]:Boolean("US"..self.EvadeSpells[GetObjectName(myHero)][i].displayName, "Use Spell", true)
+					end
+				end
+			end
+		end
+		if self.Flash then
+			EMenu.EvadeSpells:Menu("Flash",""..myHero.charName.." | Summoner Flash")
+			EMenu.EvadeSpells.Flash:Boolean("Use", "Use Flash", true)
 		end
 	end,.1)
 	Callback.Add("Tick", function() self:Dodge() end)
@@ -318,12 +340,168 @@ self.Spells = {
 	["ZyraE"]={charName="Zyra",slot=_E,type="linear",displayName="Grasping Roots",danger=1,speed=1150,range=1100,delay=0.25,radius=70,collision=false},
 	["ZyraR"]={charName="Zyra",slot=_R,type="circular",displayName="Stranglethorns",danger=3,speed=math.huge,range=700,delay=1.775,radius=575,collision=false},
 }
+
+self.EvadeSpells = {
+	["Ahri"] = {
+		[3] = {type=1,displayName="Spirit Rush",danger=3,range=450,slot=3},
+	},
+	["Blitzcrank"] = {
+		[1] = {type=2,displayName="Overdrive",danger=2,slot=1},
+	},
+	["Braum"] = {
+		[2] = {type=2,displayName="Unbreakable",danger=1,slot=2},
+	},
+	["Corki"] = {
+		[1] = {type=1,displayName="Valkyrie",danger=2,range=600,slot=1},
+	},
+	["Draven"] = {
+		[2] = {type=2,displayName="Blood Rush",danger=2,slot=2},
+	},
+	["Ekko"] = {
+		[2] = {type=1,displayName="Phase Dive",danger=1,range=325,slot=2},
+	},
+	["Evelynn"] = {
+		[3] = {type=1,displayName="Last Caress",danger=3,range=450,slot=3},
+	},
+	["Ezreal"] = {
+		[2] = {type=1,displayName="Arcane Shift",danger=2,range=475,slot=2},
+	},
+	["Fiora"] = {
+		[0] = {type=1,displayName="Lunge",danger=1,range=400,slot=0},
+	},
+	["Fizz"] = {
+		[2] = {type=2,displayName="Playful",danger=2,slot=2},
+	},
+	["Garen"] = {
+		[0] = {type=2,displayName="Decisive Strike",danger=1,slot=0},
+	},
+	["Gnar"] = {
+		[2] = {type=1,displayName="Hop/Crunch",range=475,danger=2,slot=2},
+	},
+	["Gragas"] = {
+		[2] = {type=1,displayName="Body Slam",range=600,danger=2,slot=2},
+	},
+	["Graves"] = {
+		[2] = {type=1,displayName="Quickdraw",range=425,danger=1,slot=2},
+	},
+	["Hecarim"] = {
+		[2] = {type=2,displayName="Devastating Charge",danger=2,slot=2},
+		[3] = {type=1,displayName="Onslaught of Shadows",range=1000,danger=3,slot=3},
+	},
+	["Jayce"] = {
+		[3] = {type=2,displayName="Transform Mercury Cannon",danger=1,slot=3},
+	},
+	["Kaisa"] = {
+		[2] = {type=2,displayName="Supercharge",danger=1,slot=2},
+	},
+	["Karma"] = {
+		[2] = {type=3,displayName="Inspire",danger=1,slot=2},
+	},
+	["Kassadin"] = {
+		[3] = {type=1,displayName="Riftwalk",range=500,danger=1,slot=3},
+	},
+	["Katarina"] = {
+		[1] = {type=2,displayName="Preparation",danger=2,slot=1},
+	},
+	["Kayle"] = {
+		[1] = {type=3,displayName="Divine Blessing",danger=2,slot=1},
+	},
+	["Kayn"] = {
+		[0] = {type=1,displayName="Reaping Slash",danger=1,slot=0},
+	},
+	["Kennen"] = {
+		[2] = {type=2,displayName="Lightning Rush",danger=2,slot=2},
+	},
+	["Khazix"] = {
+		[2] = {type=1,displayName="Leap",range=700,danger=2,slot=2},
+	},
+	["Kindred"] = {
+		[0] = {type=1,displayName="Dance of Arrows",range=340,danger=1,slot=0},
+	},
+	["Kled"] = {
+		[2] = {type=1,displayName="Jousting",range=550,danger=2,slot=2},
+	},
+	["Leblanc"] = {
+		[1] = {type=1,displayName="Distortion",range=600,danger=2,slot=1},
+	},
+	["Lucian"] = {
+		[2] = {type=1,displayName="Relentless Pursuit",range=425,danger=2,slot=2},
+	},
+	["Poppy"] = {
+		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=1},
+	},
+	["Rakan"] = {
+		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=1},
+	},
+	["Renekton"] = {
+		[2] = {type=1,displayName="Slice and Dice",range=450,danger=2,slot=2},
+	},
+	["Riven"] = {
+		[0] = {type=1,displayName="Broken Wings",range=260,danger=2,slot=0},
+		[2] = {type=1,displayName="Valor",range=325,danger=1,slot=2},
+	},
+	["Rumble"] = {
+		[1] = {type=2,displayName="Scrap Shield",danger=1,slot=1},
+	},
+	["Sejuani"] = {
+		[0] = {type=1,displayName="Arctic Assault",danger=2,slot=0},
+	},
+	["Shaco"] = {
+		[0] = {type=1,displayName="Deceive",range=400,danger=2,slot=0},
+		[3] = {type=2,displayName="Hallucinate",danger=3,slot=3},
+	},
+	["Shen"] = {
+		[2] = {type=1,displayName="Shadow Dash",range=600,danger=2,slot=2},
+	},
+	["Shyvana"] = {
+		[1] = {type=2,displayName="Burnout",danger=2,slot=1},
+	},
+	["Skarner"] = {
+		[1] = {type=2,displayName="Crystalline Exoskeleton",danger=2,slot=1},
+	},
+	["Sona"] = {
+		[2] = {type=2,displayName="Song of Celerity",danger=2,slot=2},
+	},
+	["Teemo"] = {
+		[1] = {type=2,displayName="Move Quick",danger=2,slot=1},
+	},
+	["Tryndamere"] = {
+		[2] = {type=1,displayName="Spinning Slash",range=660,danger=2,slot=2},
+	},
+	["Udyr"] = {
+		[2] = {type=2,displayName="Bear Stance",danger=1,slot=2},
+	},
+	["Vayne"] = {
+		[0] = {type=1,displayName="Tumble",range=300,danger=1,slot=0},
+	},
+	["Vi"] = {
+		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=0},
+	},
+	["Vladimir"] = {
+		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=1},
+	},
+	["Volibear"] = {
+		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=0},
+	},
+	["Wukong"] = {
+		[2] = {type=1,displayName="Nimbus Strike",range=625,danger=1,slot=2},
+	},
+	["Xayah"] = {
+		[3] = {type=2,displayName="Featherstorm",danger=3,slot=3},
+	},
+	["Zed"] = {
+		[3] = {type=4,displayName="Death Mark",range=625,danger=3,slot=3},
+	},
+	["Zilean"] = {
+		[2] = {type=3,displayName="Time Warp",danger=2,slot=2},
+	},
+}
 end
 
 function JustEvade:Dodge()
 	if myHero.dead then return end
-	if EMenu.Evade:Value() and _G.JustEvade and self.SafePos ~= nil then
-		if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.SafePos.time > GetGameTimer() then
+	if EMenu.Main.Evade:Value() and _G.JustEvade and self.SafePos ~= nil then
+		if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.SafePos.time > GetGameTimer() and not EMenu.Misc.DD:Value() then
 			if _G.DAC_Loaded then
 				DAC:MovementEnabled(false)
 				DAC:AttacksEnabled(false)
@@ -341,45 +519,31 @@ function JustEvade:Dodge()
 			BlockF7Dodge(true)
 			BlockInput(true)
 			MoveToXYZ(self.SafePos.x,self.SafePos.y,self.SafePos.z)
-			if myHero.charName == "Ekko" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger >= 1 and self.SafePos.danger <= 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Ezreal" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger == 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Gnar" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger == 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Graves" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger >= 1 and self.SafePos.danger <= 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Kassadin" and CanUseSpell(myHero,_R) == READY and self.SafePos.danger == 2 then
-				CastSkillShot(_R, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Katarina" and CanUseSpell(myHero,_W) == READY and self.SafePos.danger == 2 then
-				CastSpell(_W)
-			elseif myHero.charName == "Kindred" and CanUseSpell(myHero,_Q) == READY and self.SafePos.danger >= 1 and self.SafePos.danger <= 2 then
-				CastSkillShot(_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Lucian" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger >= 1 and self.SafePos.danger <= 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Fiora" and CanUseSpell(myHero,_Q) == READY and self.SafePos.danger >= 1 and self.SafePos.danger <= 2 then
-				CastSkillShot(_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Fizz" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger == 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Riven" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger >= 1 and self.SafePos.danger <= 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Shaco" and CanUseSpell(myHero,_Q) == READY and self.SafePos.danger == 2 then
-				CastSkillShot(_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Teemo" and CanUseSpell(myHero,_W) == READY and self.SafePos.danger == 2 then
-				CastSpell(_W)
-			elseif myHero.charName == "Tryndamere" and CanUseSpell(myHero,_E) == READY and self.SafePos.danger == 2 then
-				CastSkillShot(_E, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Vayne" and CanUseSpell(myHero,_Q) == READY and self.SafePos.danger >= 1 and self.SafePos.danger <= 2 then
-				CastSkillShot(_Q, self.SafePos.x, self.SafePos.y, self.SafePos.z)
-			elseif myHero.charName == "Vladimir" and CanUseSpell(myHero,_W) == READY and self.SafePos.danger == 2 then
-				CastSpell(_W)
+			for op = 0,3 do
+				if EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].displayName] then
+					if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.SafePos.danger >= self.EvadeSpells[GetObjectName(myHero)][op].danger then
+						if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
+							CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
+						elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 2 then
+							CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].slot)
+						elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 3 then
+							CastTargetSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+						elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 4 then
+							for _, enemy in pairs(GetEnemyHeroes()) do
+								if ValidTarget(enemy, self.EvadeSpells[GetObjectName(myHero)][op].range) then
+									CastTargetSpell(enemy, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+								end
+							end
+						end
+					end
+				end
 			end
 			if self.SafePos.danger == 3 then
 				if GetItemSlot(myHero, 2420) > 0 and CanUseSpell(myHero, GetItemSlot(myHero, 2420)) == READY then
 					CastSpell(GetItemSlot(myHero, 2420))
 				elseif GetItemSlot(myHero, 3157) > 0 and CanUseSpell(myHero, GetItemSlot(myHero, 3157)) == READY then
 					CastSpell(GetItemSlot(myHero, 3157))
-				elseif self.Flash and GetDistance(myHero, self.SafePos) <= 400 then
+				elseif self.Flash and GetDistance(myHero, self.SafePos) <= 400 and EMenu.EvadeSpells.Flash.Use:Value() then
 					CastSkillShot(self.Flash, self.SafePos.x, self.SafePos.y, self.SafePos.z)
 				end
 			end
@@ -422,9 +586,9 @@ function JustEvade:Dodge()
 						if GetDistance(spell.startPos,spell.endPos) < range + radius then
 							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(range+radius)
 						end
-						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()+delay-spell.startTime)-radius+EMenu.ER:Value())
+						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()+delay-spell.startTime)-radius+EMenu.Misc.ER:Value())
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero))
-						if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.ER:Value())*1.1 then
+						if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
 							self.SafePos.time = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
@@ -438,9 +602,9 @@ function JustEvade:Dodge()
 						if GetDistance(spell.startPos,spell.endPos) < range then
 							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*GetDistance(spell.startPos,myHero)
 						end
-						if GetDistance(myHero,spell.endPos) < radius+b+EMenu.ER:Value() then
+						if GetDistance(myHero,spell.endPos) < radius+b+EMenu.Misc.ER:Value() then
 							_G.JustEvade = true
-							self.SafePos = self:PathfindingLinear(spell.startPos,spell.endPos,radius,b,type)
+							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
 							self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.SafePos.danger = danger
 						end
@@ -452,7 +616,7 @@ function JustEvade:Dodge()
 			if type == "circular" then
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.ER:Value()) then
+						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
 							self.SafePos.time = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
@@ -463,7 +627,7 @@ function JustEvade:Dodge()
 					end
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.ER:Value()) then
+						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
 							self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
@@ -480,9 +644,9 @@ function JustEvade:Dodge()
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						local StartPosition = Vector(spell.endPos)-(Vector(spell.endPos)-Vector(spell.startPos)):normalized():perpendicular()*(radius2 or 400)
 						local EndPosition = Vector(spell.endPos)+(Vector(spell.endPos)-Vector(spell.startPos)):normalized():perpendicular()*(radius2 or 400)
-						if GetDistance(StartPosition) < (range+b+EMenu.ER:Value()) and GetDistance(EndPosition) < (range+b+EMenu.ER:Value()) then
+						if GetDistance(StartPosition) < (range+b+EMenu.Misc.ER:Value()) and GetDistance(EndPosition) < (range+b+EMenu.Misc.ER:Value()) then
 							local BPos = VectorPointProjectionOnLineSegment(StartPosition,EndPosition,Vector(myHero))
-							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.ER:Value()) then
+							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
 								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
 								self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
@@ -491,6 +655,34 @@ function JustEvade:Dodge()
 						end
 					else
 						table.remove(self.DetSpells, _)
+					end
+				end
+			end
+			if type == "conic" then
+				local angle = self.Spells[spell.name].angle
+				if speed and speed ~= math.huge then
+					if spell.startTime+range/speed+delay+0.25+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
+						if GetDistance(spell.startPos) < (range+b) and GetDistance(spell.endPos) < (range+b) then
+							local BPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero))
+							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
+								_G.JustEvade = true
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
+								self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
+								self.SafePos.danger = danger
+							end
+						end
+					end
+				elseif speed and speed == math.huge then
+					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
+						if GetDistance(spell.startPos) < (range+b) and GetDistance(spell.endPos) < (range+b) then
+							local BPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero))
+							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
+								_G.JustEvade = true
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
+								self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
+								self.SafePos.danger = danger
+							end
+						end
 					end
 				end
 			end
@@ -503,31 +695,31 @@ function JustEvade:Pathfinding(startPos, endPos, radius, boundingRadius, type)
 	if type == "linear" then
 		local DPos = Vector(VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).x,endPos.y,VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).y)
 		if GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular(),DPos) >= GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular2(),DPos) then
-			local Path = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.ER:Value())*1.1
+			local Path = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
 			if not MapPosition:inWall(Path) then
-				local Pos1 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.ER:Value())*1.1
+				local Pos1 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
 				return Pos1
 			else
-				local Pos2 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.ER:Value())*1.1
+				local Pos2 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
 				return Pos2
 			end
 		else
-			local Path = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.ER:Value())*1.1
+			local Path = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
 			if not MapPosition:inWall(Path) then
-				local Pos3 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.ER:Value())*1.1
+				local Pos3 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
 				return Pos3
 			else
-				local Pos4 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.ER:Value())*1.1
+				local Pos4 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
 				return Pos4
 			end
 		end
 	elseif type == "circular" then
-		local Path = Vector(endPos)+(GetOrigin(myHero)-Vector(endPos)):normalized()*(radius+boundingRadius+EMenu.ER:Value())
+		local Path = Vector(endPos)+(GetOrigin(myHero)-Vector(endPos)):normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 		if not MapPosition:inWall(Path) then
-			local Pos1 = Vector(endPos)+(GetOrigin(myHero)-Vector(endPos)):normalized()*(radius+boundingRadius+EMenu.ER:Value())
+			local Pos1 = Vector(endPos)+(GetOrigin(myHero)-Vector(endPos)):normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			return Pos1
 		else
-			local Pos2 = endPos+Vector(Path-endPos):normalized()*(radius+boundingRadius+EMenu.ER:Value())
+			local Pos2 = endPos+Vector(Path-endPos):normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			return Pos2
 		end
 	elseif type == "rectangular" then
@@ -542,19 +734,40 @@ function JustEvade:Pathfinding(startPos, endPos, radius, boundingRadius, type)
 			local Pos2 = Vector(myHero)+Vector(StartPosition-EndPosition):normalized():perpendicular2()*(radius+boundingRadius)
 			return Pos2
 		end
+	elseif type == "conic" then
+		local DPos = Vector(VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).x,endPos.y,VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).y)
+		if GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular(),DPos) >= GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular2(),DPos) then
+			local Path = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius)
+			if not MapPosition:inWall(Path) then
+				local Pos1 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
+				return Pos1
+			else
+				local Pos2 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
+				return Pos2
+			end
+		else
+			local Path = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
+			if not MapPosition:inWall(Path) then
+				local Pos3 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
+				return Pos3
+			else
+				local Pos4 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())*1.1
+				return Pos4
+			end
+		end
 	end
 end
 
 function JustEvade:Draw()
-	if EMenu.Status:Value() then
-		if EMenu.Evade:Value() then
+	if EMenu.Main.Status:Value() then
+		if EMenu.Main.Evade:Value() then
 			DrawText("Evade: ON", 15, myHero.pos2D.x-30, myHero.pos2D.y+30, ARGB(255,255,255,255))
 		else
 			DrawText("Evade: OFF", 15, myHero.pos2D.x-30, myHero.pos2D.y+30, ARGB(255,255,255,255))
 		end
 	end
-	if EMenu.Evade:Value() then
-		if _G.JustEvade and self.SafePos and EMenu.SafePos:Value() then
+	if EMenu.Main.Evade:Value() then
+		if _G.JustEvade and self.SafePos and EMenu.Main.SafePos:Value() then
 			DrawCircle(self.SafePos.x,self.SafePos.y,self.SafePos.z,myHero.boundingRadius,2,32,ARGB(255,255,255,255))
 		end
 		for _,spell in pairs(self.DetSpells) do
@@ -602,14 +815,14 @@ function JustEvade:Draw()
 				if type == "circular" then
 					if speed ~= math.huge then
 						if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.ER:Value(),2,32,ARGB(255,255,255,255))
+							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,32,ARGB(255,255,255,255))
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,32,ARGB(255,255,255,255))
 						else
 							table.remove(self.DetSpells, _)
 						end
 					elseif speed == math.huge then
 						if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.ER:Value(),2,32,ARGB(255,255,255,255))
+							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,32,ARGB(255,255,255,255))
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,32,ARGB(255,255,255,255))
 						else
 							table.remove(self.DetSpells, _)
@@ -637,7 +850,7 @@ function JustEvade:Draw()
 					local radius2 = self.Spells[spell.name].radius2
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						self:DrawRectangle(spell.startPos, spell.endPos, radius+myHero.boundingRadius, radius2, 1, ARGB(255,255,255,255))
-						self:DrawRectangle(spell.startPos, spell.endPos, radius+myHero.boundingRadius+EMenu.ER:Value(), radius2+EMenu.ER:Value(), 1, ARGB(255,255,255,255))
+						self:DrawRectangle(spell.startPos, spell.endPos, radius+myHero.boundingRadius+EMenu.Misc.ER:Value(), radius2+EMenu.Misc.ER:Value(), 1, ARGB(255,255,255,255))
 					else
 						table.remove(self.DetSpells, _)
 					end
@@ -656,11 +869,11 @@ function JustEvade:Draw()
 end
 
 function JustEvade:DrawRectangleOutline(startPos, endPos, pos, radius)
-	if EMenu.ER:Value() > 0 then
-		local z1 = startPos+Vector(Vector(endPos)-startPos):perpendicular():normalized()*(radius+EMenu.ER:Value())
-		local z2 = startPos+Vector(Vector(endPos)-startPos):perpendicular2():normalized()*(radius+EMenu.ER:Value())
-		local z3 = endPos+Vector(Vector(startPos)-endPos):perpendicular():normalized()*(radius+EMenu.ER:Value())
-		local z4 = endPos+Vector(Vector(startPos)-endPos):perpendicular2():normalized()*(radius+EMenu.ER:Value())
+	if EMenu.Misc.ER:Value() > 0 then
+		local z1 = startPos+Vector(Vector(endPos)-startPos):perpendicular():normalized()*(radius+EMenu.Misc.ER:Value())
+		local z2 = startPos+Vector(Vector(endPos)-startPos):perpendicular2():normalized()*(radius+EMenu.Misc.ER:Value())
+		local z3 = endPos+Vector(Vector(startPos)-endPos):perpendicular():normalized()*(radius+EMenu.Misc.ER:Value())
+		local z4 = endPos+Vector(Vector(startPos)-endPos):perpendicular2():normalized()*(radius+EMenu.Misc.ER:Value())
 		local c1 = WorldToScreen(0,z1)
 		local c2 = WorldToScreen(0,z2)
 		local c3 = WorldToScreen(0,z3)
