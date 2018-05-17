@@ -1,3 +1,17 @@
+-- ==================
+-- == Introduction ==
+-- ==================
+-- Current version: 1.0.1 BETA
+-- Intermediate GoS External script which draws and attempts to dodge enemy spells.
+-- ===============
+-- == Changelog ==
+-- ===============
+-- 1.0.1 BETA
+-- + Improved Pathfinding
+-- + Added rectangular and conic spells evading
+-- + A lot of minor changes
+-- 1.0 BETA
+-- + Initial release
 
 require 'MapPositionGOS'
 local extLib = require 'extLib'
