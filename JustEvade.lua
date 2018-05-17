@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2 BETA
+-- Current version: 1.0.2.1 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2.1 BETA
+-- + Fixed minor bug
 -- 1.0.2 BETA
 -- + Added conic spells evading
 -- + Improved spell usage
@@ -520,19 +522,21 @@ function JustEvade:Dodge()
 			BlockF7Dodge(true)
 			BlockInput(true)
 			MoveToXYZ(self.SafePos.x,self.SafePos.y,self.SafePos.z)
-			for op = 0,3 do
-				if EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].displayName] then
-					if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.SafePos.danger >= self.EvadeSpells[GetObjectName(myHero)][op].danger then
-						if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
-							CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
-						elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 2 then
-							CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].slot)
-						elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 3 then
-							CastTargetSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot)
-						elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 4 then
-							for _, enemy in pairs(GetEnemyHeroes()) do
-								if ValidTarget(enemy, self.EvadeSpells[GetObjectName(myHero)][op].range) then
-									CastTargetSpell(enemy, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+			if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] then
+				for op = 0,3 do
+					if EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].displayName] then
+						if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.SafePos.danger >= self.EvadeSpells[GetObjectName(myHero)][op].danger then
+							if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
+								CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
+							elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 2 then
+								CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].slot)
+							elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 3 then
+								CastTargetSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+							elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 4 then
+								for _, enemy in pairs(GetEnemyHeroes()) do
+									if ValidTarget(enemy, self.EvadeSpells[GetObjectName(myHero)][op].range) then
+										CastTargetSpell(enemy, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+									end
 								end
 							end
 						end
