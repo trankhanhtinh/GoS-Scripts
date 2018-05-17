@@ -6,10 +6,12 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.6
+-- Current version: 1.0.6.1
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.6.1
+-- + Added Q to Flee
 -- 1.0.6
 -- + Added Flee
 -- 1.0.5
@@ -247,6 +249,7 @@ function Yasuo:Menu()
 	self.YasuoMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: Q3", value = 400, min = 25, max = 500, step = 25})
 	
 	self.YasuoMenu:MenuElement({id = "Flee", name = "Flee", type = MENU})
+	self.YasuoMenu.Flee:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
 	self.YasuoMenu.Flee:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
 	
 	self.YasuoMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
@@ -826,8 +829,15 @@ function Yasuo:Flee()
 			for i = 1, Game.MinionCount() do
 				local minion = Game.Minion(i)
 				if minion and minion.isEnemy then
-					if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 and IsReady(_E) then
-						Control.CastSpell(HK_E, mousePos)
+					if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+						if IsReady(_Q) and IsReady(_E) then
+							if GotBuff(myHero, "YasuoQ3W") == 0 then
+								Control.CastSpell(HK_E, mousePos)
+								Control.CastSpell(HK_Q)
+							end
+						elseif IsReady(_E) then
+							Control.CastSpell(HK_E, mousePos)
+						end
 					end
 				end
 			end
