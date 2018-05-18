@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2.1 BETA
+-- Current version: 1.0.2.2 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2.2 BETA
+-- + Minor changes in Menu
 -- 1.0.2.1 BETA
 -- + Fixed minor bug
 -- 1.0.2 BETA
@@ -38,7 +40,9 @@ function JustEvade:__init()
 	EMenu.Main:Boolean("SafePos", "Draw Safe Position", true)
 	EMenu:SubMenu("Misc", "Misc Settings")
 	EMenu.Misc:Key("DD", "Dodge Only Dangerous", string.byte("N"))
-	EMenu.Misc:Slider("ER","Extra Radius", 20, 0, 100, 5)
+	EMenu.Misc:Slider("DE","Delay Before Enabling OW", 0.25, 0, 1, 0.01)
+	EMenu.Misc:Slider("TE","Extended Timer On Evade", 0, 0, 1, 0.01)
+	EMenu.Misc:Slider("ER","Extra Spell Radius", 35, 0, 100, 5)
 	EMenu:SubMenu("Spells", "Spell Settings")
 	EMenu:SubMenu("EvadeSpells", "Evade Spells")
 	DelayAction(function()
@@ -503,7 +507,7 @@ end
 function JustEvade:Dodge()
 	if myHero.dead then return end
 	if EMenu.Main.Evade:Value() and _G.JustEvade and self.SafePos ~= nil then
-		if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.SafePos.time > GetGameTimer() then
+		if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.SafePos.time+EMenu.Misc.TE:Value() > GetGameTimer() then
 			if EMenu.Misc.DD:Value() and self.SafePos.danger <= 2 then return end
 			if _G.DAC_Loaded then
 				DAC:MovementEnabled(false)
@@ -572,7 +576,7 @@ function JustEvade:Dodge()
 				BlockF7OrbWalk(false)
 				BlockF7Dodge(false)
 				BlockInput(false)
-			end, 0.25)
+			end, EMenu.Misc.DE:Value())
 		end
 	end
 	for _,spell in pairs(self.DetSpells) do
