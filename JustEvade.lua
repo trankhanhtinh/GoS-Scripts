@@ -434,6 +434,9 @@ self.EvadeSpells = {
 	["Lucian"] = {
 		[2] = {type=1,displayName="Relentless Pursuit",range=425,danger=2,slot=2},
 	},
+	["MasterYi"] = {
+		[0] = {type=4,displayName="Alpha Strike",range=600,danger=2,slot=0},
+	},
 	["Poppy"] = {
 		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=1},
 	},
@@ -825,6 +828,9 @@ function JustEvade:Draw()
 				if type == "circular" then
 					if speed ~= math.huge then
 						if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
+							if GetDistance(spell.startPos,spell.endPos) > range then
+								spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
+							end
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,32,ARGB(255,255,255,255))
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,32,ARGB(255,255,255,255))
 						else
@@ -832,6 +838,9 @@ function JustEvade:Draw()
 						end
 					elseif speed == math.huge then
 						if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
+							if GetDistance(spell.startPos,spell.endPos) > range then
+								spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
+							end
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,32,ARGB(255,255,255,255))
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,32,ARGB(255,255,255,255))
 						else
