@@ -526,7 +526,7 @@ function JustEvade:Dodge()
 					GOS.BlockAttack = true
 				end
 				Control.Move(self.SafePos.x,self.SafePos.y,self.SafePos.z)
-				if self.EvadeSpells[myHero.charName] and self.EvadeSpells[myHero.charName][op] then
+				if self.EvadeSpells[myHero.charName] then
 					for op = 0,3 do
 						if Game.CanUseSpell(self.EvadeSpells[myHero.charName][op].slot) == READY and self.DangerLvl >= self.EvadeSpells[myHero.charName][op].danger then
 							if self.EvadeSpells[myHero.charName][op].type == 1 then
