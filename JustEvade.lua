@@ -629,6 +629,9 @@ function JustEvade:Dodge()
 			if type == "circular" then
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
+						if GetDistance(spell.startPos,spell.endPos) > range then
+							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
+						end
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
@@ -640,6 +643,9 @@ function JustEvade:Dodge()
 					end
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
+						if GetDistance(spell.startPos,spell.endPos) > range then
+							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
+						end
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,b,type)
