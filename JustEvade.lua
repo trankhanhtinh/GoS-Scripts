@@ -240,9 +240,10 @@ self.Spells = {
 	["OrianaDetonateCommand"]={charName="Orianna",slot=_R,type="hybrid",displayName="Command Shockwave",proj="OrianaDetonateCommand-",danger=3,speed=math.huge,range=0,delay=0.5,radius=325,collision=false},
 	["OrnnQ"]={charName="Ornn",slot=_Q,type="linear",displayName="Volcanic Rupture",danger=1,speed=1800,range=800,delay=0.3,radius=65,collision=false},
 	["OrnnE"]={charName="Ornn",slot=_E,type="linear",displayName="Searing Charge",danger=2,speed=1800,range=800,delay=0.35,radius=150,collision=false},
-	["OrnnR"]={charName="Ornn",slot=_R,type="linear",displayName="Call of the Forge God",danger=2,speed=1650,range=2500,delay=0.5,radius=200,collision=false},
+	["OrnnR"]={charName="Ornn",slot=_R,type="linear",displayName="Call of the Forge God",danger=2,speed=1650,range=2500,delay=0.5,radius=250,collision=false},
+	["OrnnRCharge"]={charName="Ornn",slot=_R,type="linear",displayName="Call of the Forge God",danger=2,speed=1650,range=2500,delay=0.25,radius=200,collision=true},
 	["PantheonE"]={charName="Pantheon",slot=_E,type="conic",displayName="Heartseeker Strike",danger=2,speed=math.huge,range=0,delay=0.389,radius=80,angle=80,collision=false},
-	["PantheonRFall"]={charName="Pantheon",slot=_R,type="circular",displayName="Grand Skyfall",danger=2,speed=math.huge,range=5500,delay=0.25,radius=700,collision=false},
+	["PantheonRFall"]={charName="Pantheon",slot=_R,type="circular",displayName="Grand Skyfall",danger=2,speed=math.huge,range=5500,delay=2.25,radius=700,collision=false},
 	["PoppyQSpell"]={charName="Poppy",slot=_Q,type="linear",displayName="Hammer Shock",danger=1,speed=math.huge,range=430,delay=1.32,radius=85,collision=false},
 	["PoppyRSpell"]={charName="Poppy",slot=_R,type="linear",displayName="Keeper's Verdict",danger=2,speed=2000,range=1900,delay=0.333,radius=100,collision=false},
 	["QuinnQ"]={charName="Quinn",slot=_Q,type="linear",displayName="Blinding Assault",danger=1,speed=1550,range=1025,delay=0.25,radius=60,collision=true},
@@ -956,6 +957,7 @@ function JustEvade:AdditionalTime(unit, spell)
 	if unit.charName == "Nidalee" and spell == 1 then return 1 end
 	if unit.charName == "Nunu" and spell == 3 then return 3 end
 	if unit.charName == "Pantheon" and spell == 3 then return 2.5 end
+	if unit.charName == "Rakan" and spell == 1 then return 1 end
 	if unit.charName == "Rumble" and spell == 3 then return 5 end
 	if unit.charName == "Singed" and spell == 1 then return 1 end
 	if unit.charName == "Sion" and spell == 0 then return 2 end
