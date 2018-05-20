@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2 BETA
+-- Current version: 1.0.2.1 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2.1 BETA
+-- + Fixed arithmetic error
 -- 1.0.2 BETA
 -- + Added spell settings
 -- + Removed undetectable spells from table
@@ -619,7 +621,7 @@ function JustEvade:Dodge()
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						if GetDistance(spell.startPos,spell.endPos) < range then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*GetDistance(spell.startPos,myHero)
+							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*GetDistance(spell.startPos,myHero.pos)
 						end
 						if GetDistance(myHero.pos,spell.endPos) < radius+b+EMenu.Misc.ER:Value() then
 							_G.JustEvade = true
