@@ -100,7 +100,7 @@ function JustEvade:__init()
 			for l,k in pairs(GetEnemyHeroes()) do
 				if not self.Spells[_] then return end
 				if spell.charName == k.charName then
-					EMenu.Spells:MenuElement({id = _, name = ""..spell.charName.." "..self.SpSlot[spell.slot].." | "..spell.displayName, type = MENU})
+					if not EMenu.Spells[_] then EMenu.Spells:MenuElement({id = _, name = ""..spell.charName.." "..self.SpSlot[spell.slot].." | "..spell.displayName, type = MENU}) end
 					EMenu.Spells[_]:MenuElement({id = "Dodge".._, name = "Dodge Spell", value = true})
 					EMenu.Spells[_]:MenuElement({id = "Draw".._, name = "Draw Spell", value = true})
 				end
