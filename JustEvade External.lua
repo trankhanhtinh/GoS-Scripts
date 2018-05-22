@@ -383,160 +383,160 @@ self.Spells = {
 
 self.EvadeSpells = {
 	["Ahri"] = {
-		[3] = {type=1,displayName="Spirit Rush",danger=3,range=450,slot=3},
+		[3] = {type=1,displayName="Spirit Rush",danger=3,range=450,slot=HK_R},
 	},
 	["Blitzcrank"] = {
-		[1] = {type=2,displayName="Overdrive",danger=2,slot=1},
+		[1] = {type=2,displayName="Overdrive",danger=2,slot=HK_W},
 	},
 	["Braum"] = {
-		[2] = {type=2,displayName="Unbreakable",danger=1,slot=2},
+		[2] = {type=2,displayName="Unbreakable",danger=1,slot=HK_E},
 	},
 	["Corki"] = {
-		[1] = {type=1,displayName="Valkyrie",danger=2,range=600,slot=1},
+		[1] = {type=1,displayName="Valkyrie",danger=2,range=600,slot=HK_W},
 	},
 	["Draven"] = {
-		[2] = {type=2,displayName="Blood Rush",danger=2,slot=2},
+		[2] = {type=2,displayName="Blood Rush",danger=2,slot=HK_E},
 	},
 	["Ekko"] = {
-		[2] = {type=1,displayName="Phase Dive",danger=1,range=325,slot=2},
+		[2] = {type=1,displayName="Phase Dive",danger=1,range=325,slot=HK_E},
 	},
 	["Evelynn"] = {
-		[3] = {type=1,displayName="Last Caress",danger=3,range=450,slot=3},
+		[3] = {type=1,displayName="Last Caress",danger=3,range=450,slot=HK_R},
 	},
 	["Ezreal"] = {
-		[2] = {type=1,displayName="Arcane Shift",danger=2,range=475,slot=2},
+		[2] = {type=1,displayName="Arcane Shift",danger=2,range=475,slot=HK_E},
 	},
 	["Fiora"] = {
-		[0] = {type=1,displayName="Lunge",danger=1,range=400,slot=0},
+		[0] = {type=1,displayName="Lunge",danger=1,range=400,slot=HK_Q},
 	},
 	["Fizz"] = {
-		[2] = {type=2,displayName="Playful",danger=2,slot=2},
+		[2] = {type=2,displayName="Playful",danger=2,slot=HK_E},
 	},
 	["Garen"] = {
-		[0] = {type=2,displayName="Decisive Strike",danger=1,slot=0},
+		[0] = {type=2,displayName="Decisive Strike",danger=1,slot=HK_Q},
 	},
 	["Gnar"] = {
-		[2] = {type=1,displayName="Hop/Crunch",range=475,danger=2,slot=2},
+		[2] = {type=1,displayName="Hop/Crunch",range=475,danger=2,slot=HK_E},
 	},
 	["Gragas"] = {
-		[2] = {type=1,displayName="Body Slam",range=600,danger=2,slot=2},
+		[2] = {type=1,displayName="Body Slam",range=600,danger=2,slot=HK_E},
 	},
 	["Graves"] = {
-		[2] = {type=1,displayName="Quickdraw",range=425,danger=1,slot=2},
+		[2] = {type=1,displayName="Quickdraw",range=425,danger=1,slot=HK_E},
 	},
 	["Hecarim"] = {
-		[2] = {type=2,displayName="Devastating Charge",danger=2,slot=2},
-		[3] = {type=1,displayName="Onslaught of Shadows",range=1000,danger=3,slot=3},
+		[2] = {type=2,displayName="Devastating Charge",danger=2,slot=HK_E},
+		[3] = {type=1,displayName="Onslaught of Shadows",range=1000,danger=3,slot=HK_R},
 	},
 	["Jayce"] = {
-		[3] = {type=2,displayName="Transform Mercury Cannon",danger=1,slot=3},
+		[3] = {type=2,displayName="Transform Mercury Cannon",danger=1,slot=HK_R},
 	},
 	["Kaisa"] = {
-		[2] = {type=2,displayName="Supercharge",danger=1,slot=2},
+		[2] = {type=2,displayName="Supercharge",danger=1,slot=HK_E},
 	},
 	["Karma"] = {
-		[2] = {type=3,displayName="Inspire",danger=1,slot=2},
+		[2] = {type=3,displayName="Inspire",danger=1,slot=HK_E},
 	},
 	["Kassadin"] = {
-		[3] = {type=1,displayName="Riftwalk",range=500,danger=1,slot=3},
+		[3] = {type=1,displayName="Riftwalk",range=500,danger=1,slot=HK_R},
 	},
 	["Katarina"] = {
-		[1] = {type=2,displayName="Preparation",danger=2,slot=1},
+		[1] = {type=2,displayName="Preparation",danger=2,slot=HK_W},
 	},
 	["Kayle"] = {
-		[1] = {type=3,displayName="Divine Blessing",danger=2,slot=1},
+		[1] = {type=3,displayName="Divine Blessing",danger=2,slot=HK_W},
 	},
 	["Kayn"] = {
-		[0] = {type=1,displayName="Reaping Slash",danger=1,slot=0},
+		[0] = {type=1,displayName="Reaping Slash",danger=1,slot=HK_Q},
 	},
 	["Kennen"] = {
-		[2] = {type=2,displayName="Lightning Rush",danger=2,slot=2},
+		[2] = {type=2,displayName="Lightning Rush",danger=2,slot=HK_E},
 	},
 	["Khazix"] = {
-		[2] = {type=1,displayName="Leap",range=700,danger=2,slot=2},
+		[2] = {type=1,displayName="Leap",range=700,danger=2,slot=HK_E},
 	},
 	["Kindred"] = {
-		[0] = {type=1,displayName="Dance of Arrows",range=340,danger=1,slot=0},
+		[0] = {type=1,displayName="Dance of Arrows",range=340,danger=1,slot=HK_Q},
 	},
 	["Kled"] = {
-		[2] = {type=1,displayName="Jousting",range=550,danger=2,slot=2},
+		[2] = {type=1,displayName="Jousting",range=550,danger=2,slot=HK_E},
 	},
 	["Leblanc"] = {
-		[1] = {type=1,displayName="Distortion",range=600,danger=2,slot=1},
+		[1] = {type=1,displayName="Distortion",range=600,danger=2,slot=HK_W},
 	},
 	["Lucian"] = {
-		[2] = {type=1,displayName="Relentless Pursuit",range=425,danger=2,slot=2},
+		[2] = {type=1,displayName="Relentless Pursuit",range=425,danger=2,slot=HK_E},
 	},
 	["MasterYi"] = {
-		[0] = {type=4,displayName="Alpha Strike",range=600,danger=2,slot=0},
+		[0] = {type=4,displayName="Alpha Strike",range=600,danger=2,slot=HK_Q},
 	},
 	["Poppy"] = {
-		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=1},
+		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=HK_W},
 	},
 	["Rakan"] = {
-		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=1},
+		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=HK_W},
 	},
 	["Renekton"] = {
-		[2] = {type=1,displayName="Slice and Dice",range=450,danger=2,slot=2},
+		[2] = {type=1,displayName="Slice and Dice",range=450,danger=2,slot=HK_E},
 	},
 	["Riven"] = {
-		[0] = {type=1,displayName="Broken Wings",range=260,danger=2,slot=0},
-		[2] = {type=1,displayName="Valor",range=325,danger=1,slot=2},
+		[0] = {type=1,displayName="Broken Wings",range=260,danger=2,slot=HK_Q},
+		[2] = {type=1,displayName="Valor",range=325,danger=1,slot=HK_E},
 	},
 	["Rumble"] = {
-		[1] = {type=2,displayName="Scrap Shield",danger=1,slot=1},
+		[1] = {type=2,displayName="Scrap Shield",danger=1,slot=HK_W},
 	},
 	["Sejuani"] = {
-		[0] = {type=1,displayName="Arctic Assault",danger=2,slot=0},
+		[0] = {type=1,displayName="Arctic Assault",danger=2,slot=HK_Q},
 	},
 	["Shaco"] = {
-		[0] = {type=1,displayName="Deceive",range=400,danger=2,slot=0},
-		[3] = {type=2,displayName="Hallucinate",danger=3,slot=3},
+		[0] = {type=1,displayName="Deceive",range=400,danger=2,slot=HK_Q},
+		[3] = {type=2,displayName="Hallucinate",danger=3,slot=HK_R},
 	},
 	["Shen"] = {
-		[2] = {type=1,displayName="Shadow Dash",range=600,danger=2,slot=2},
+		[2] = {type=1,displayName="Shadow Dash",range=600,danger=2,slot=HK_E},
 	},
 	["Shyvana"] = {
-		[1] = {type=2,displayName="Burnout",danger=2,slot=1},
+		[1] = {type=2,displayName="Burnout",danger=2,slot=HK_W},
 	},
 	["Skarner"] = {
-		[1] = {type=2,displayName="Crystalline Exoskeleton",danger=2,slot=1},
+		[1] = {type=2,displayName="Crystalline Exoskeleton",danger=2,slot=HK_W},
 	},
 	["Sona"] = {
-		[2] = {type=2,displayName="Song of Celerity",danger=2,slot=2},
+		[2] = {type=2,displayName="Song of Celerity",danger=2,slot=HK_E},
 	},
 	["Teemo"] = {
-		[1] = {type=2,displayName="Move Quick",danger=2,slot=1},
+		[1] = {type=2,displayName="Move Quick",danger=2,slot=HK_W},
 	},
 	["Tryndamere"] = {
-		[2] = {type=1,displayName="Spinning Slash",range=660,danger=2,slot=2},
+		[2] = {type=1,displayName="Spinning Slash",range=660,danger=2,slot=HK_E},
 	},
 	["Udyr"] = {
-		[2] = {type=2,displayName="Bear Stance",danger=1,slot=2},
+		[2] = {type=2,displayName="Bear Stance",danger=1,slot=HK_E},
 	},
 	["Vayne"] = {
-		[0] = {type=1,displayName="Tumble",range=300,danger=1,slot=0},
+		[0] = {type=1,displayName="Tumble",range=300,danger=1,slot=HK_Q},
 	},
 	["Vi"] = {
-		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=0},
+		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=HK_Q},
 	},
 	["Vladimir"] = {
-		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=1},
+		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=HK_W},
 	},
 	["Volibear"] = {
-		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=0},
+		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=HK_Q},
 	},
 	["Wukong"] = {
-		[2] = {type=1,displayName="Nimbus Strike",range=625,danger=1,slot=2},
+		[2] = {type=1,displayName="Nimbus Strike",range=625,danger=1,slot=HK_E},
 	},
 	["Xayah"] = {
-		[3] = {type=2,displayName="Featherstorm",danger=3,slot=3},
+		[3] = {type=2,displayName="Featherstorm",danger=3,slot=HK_R},
 	},
 	["Zed"] = {
-		[3] = {type=4,displayName="Death Mark",range=625,danger=3,slot=3},
+		[3] = {type=4,displayName="Death Mark",range=625,danger=3,slot=HK_R},
 	},
 	["Zilean"] = {
-		[2] = {type=3,displayName="Time Warp",danger=2,slot=2},
+		[2] = {type=3,displayName="Time Warp",danger=2,slot=HK_E},
 	},
 }
 end
