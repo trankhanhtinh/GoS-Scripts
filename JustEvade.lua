@@ -535,7 +535,7 @@ function JustEvade:Dodge()
 			MoveToXYZ(self.SafePos.x,self.SafePos.y,self.SafePos.z)
 			if self.EvadeSpells[GetObjectName(myHero)] then
 				for op = 0,3 do
-					if EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].displayName] then
+					if self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].displayName] then
 						if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.SafePos.danger >= self.EvadeSpells[GetObjectName(myHero)][op].danger then
 							if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
 								CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
