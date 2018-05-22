@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.3 BETA
+-- Current version: 1.0.3.1 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.3.1 BETA
+-- + Fixed minor bug
 -- 1.0.3 BETA
 -- + Imported 2 more Pathfindings
 -- + Fixed spell detection
@@ -383,160 +385,160 @@ self.Spells = {
 
 self.EvadeSpells = {
 	["Ahri"] = {
-		[3] = {type=1,displayName="Spirit Rush",danger=3,range=450,slot=HK_R},
+		[3] = {type=1,displayName="Spirit Rush",danger=3,range=450,slot=HK_R,slot2=_R},
 	},
 	["Blitzcrank"] = {
-		[1] = {type=2,displayName="Overdrive",danger=2,slot=HK_W},
+		[1] = {type=2,displayName="Overdrive",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Braum"] = {
-		[2] = {type=2,displayName="Unbreakable",danger=1,slot=HK_E},
+		[2] = {type=2,displayName="Unbreakable",danger=1,slot=HK_E,slot2=_E},
 	},
 	["Corki"] = {
-		[1] = {type=1,displayName="Valkyrie",danger=2,range=600,slot=HK_W},
+		[1] = {type=1,displayName="Valkyrie",danger=2,range=600,slot=HK_W,slot2=_W},
 	},
 	["Draven"] = {
-		[2] = {type=2,displayName="Blood Rush",danger=2,slot=HK_E},
+		[2] = {type=2,displayName="Blood Rush",danger=2,slot=HK_E,slot2=_E},
 	},
 	["Ekko"] = {
-		[2] = {type=1,displayName="Phase Dive",danger=1,range=325,slot=HK_E},
+		[2] = {type=1,displayName="Phase Dive",danger=1,range=325,slot=HK_E,slot2=_E},
 	},
 	["Evelynn"] = {
-		[3] = {type=1,displayName="Last Caress",danger=3,range=450,slot=HK_R},
+		[3] = {type=1,displayName="Last Caress",danger=3,range=450,slot=HK_R,slot2=_R},
 	},
 	["Ezreal"] = {
-		[2] = {type=1,displayName="Arcane Shift",danger=2,range=475,slot=HK_E},
+		[2] = {type=1,displayName="Arcane Shift",danger=2,range=475,slot=HK_E,slot2=_E},
 	},
 	["Fiora"] = {
-		[0] = {type=1,displayName="Lunge",danger=1,range=400,slot=HK_Q},
+		[0] = {type=1,displayName="Lunge",danger=1,range=400,slot=HK_Q,slot2=_Q},
 	},
 	["Fizz"] = {
-		[2] = {type=2,displayName="Playful",danger=2,slot=HK_E},
+		[2] = {type=2,displayName="Playful",danger=2,slot=HK_E,slot2=_E},
 	},
 	["Garen"] = {
-		[0] = {type=2,displayName="Decisive Strike",danger=1,slot=HK_Q},
+		[0] = {type=2,displayName="Decisive Strike",danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Gnar"] = {
-		[2] = {type=1,displayName="Hop/Crunch",range=475,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Hop/Crunch",range=475,danger=2,slot=HK_E,slot2=_E},
 	},
 	["Gragas"] = {
-		[2] = {type=1,displayName="Body Slam",range=600,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Body Slam",range=600,danger=2,slot=HK_E,slot2=_E},
 	},
 	["Graves"] = {
-		[2] = {type=1,displayName="Quickdraw",range=425,danger=1,slot=HK_E},
+		[2] = {type=1,displayName="Quickdraw",range=425,danger=1,slot=HK_E,slot2=_E},
 	},
 	["Hecarim"] = {
-		[2] = {type=2,displayName="Devastating Charge",danger=2,slot=HK_E},
-		[3] = {type=1,displayName="Onslaught of Shadows",range=1000,danger=3,slot=HK_R},
+		[2] = {type=2,displayName="Devastating Charge",danger=2,slot=HK_E,slot2=_E},
+		[3] = {type=1,displayName="Onslaught of Shadows",range=1000,danger=3,slot=HK_R,slot2=_R},
 	},
 	["Jayce"] = {
-		[3] = {type=2,displayName="Transform Mercury Cannon",danger=1,slot=HK_R},
+		[3] = {type=2,displayName="Transform Mercury Cannon",danger=1,slot=HK_R,slot2=_R},
 	},
 	["Kaisa"] = {
-		[2] = {type=2,displayName="Supercharge",danger=1,slot=HK_E},
+		[2] = {type=2,displayName="Supercharge",danger=1,slot=HK_E,slot2=_E},
 	},
 	["Karma"] = {
-		[2] = {type=3,displayName="Inspire",danger=1,slot=HK_E},
+		[2] = {type=3,displayName="Inspire",danger=1,slot=HK_E,slot2=_E},
 	},
 	["Kassadin"] = {
-		[3] = {type=1,displayName="Riftwalk",range=500,danger=1,slot=HK_R},
+		[3] = {type=1,displayName="Riftwalk",range=500,danger=1,slot=HK_R,slot2=_R},
 	},
 	["Katarina"] = {
-		[1] = {type=2,displayName="Preparation",danger=2,slot=HK_W},
+		[1] = {type=2,displayName="Preparation",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Kayle"] = {
-		[1] = {type=3,displayName="Divine Blessing",danger=2,slot=HK_W},
+		[1] = {type=3,displayName="Divine Blessing",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Kayn"] = {
-		[0] = {type=1,displayName="Reaping Slash",danger=1,slot=HK_Q},
+		[0] = {type=1,displayName="Reaping Slash",danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Kennen"] = {
-		[2] = {type=2,displayName="Lightning Rush",danger=2,slot=HK_E},
+		[2] = {type=2,displayName="Lightning Rush",danger=2,slot=HK_E,slot2=_E},
 	},
 	["Khazix"] = {
-		[2] = {type=1,displayName="Leap",range=700,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Leap",range=700,danger=2,slot=HK_E,slot2=_E},
 	},
 	["Kindred"] = {
-		[0] = {type=1,displayName="Dance of Arrows",range=340,danger=1,slot=HK_Q},
+		[0] = {type=1,displayName="Dance of Arrows",range=340,danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Kled"] = {
-		[2] = {type=1,displayName="Jousting",range=550,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Jousting",range=550,danger=2,slot=HK_E,slot2=_E},
 	},
 	["Leblanc"] = {
-		[1] = {type=1,displayName="Distortion",range=600,danger=2,slot=HK_W},
+		[1] = {type=1,displayName="Distortion",range=600,danger=2,slot=HK_W,slot2=_W},
 	},
 	["Lucian"] = {
-		[2] = {type=1,displayName="Relentless Pursuit",range=425,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Relentless Pursuit",range=425,danger=2,slot=HK_E,slot2=_E},
 	},
 	["MasterYi"] = {
-		[0] = {type=4,displayName="Alpha Strike",range=600,danger=2,slot=HK_Q},
+		[0] = {type=4,displayName="Alpha Strike",range=600,danger=2,slot=HK_Q,slot2=_Q},
 	},
 	["Poppy"] = {
-		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=HK_W},
+		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Rakan"] = {
-		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=HK_W},
+		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=HK_W,slot2=_W},
 	},
 	["Renekton"] = {
-		[2] = {type=1,displayName="Slice and Dice",range=450,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Slice and Dice",range=450,danger=2,slot=HK_E,slot2=_E},
 	},
 	["Riven"] = {
-		[0] = {type=1,displayName="Broken Wings",range=260,danger=2,slot=HK_Q},
-		[2] = {type=1,displayName="Valor",range=325,danger=1,slot=HK_E},
+		[0] = {type=1,displayName="Broken Wings",range=260,danger=2,slot=HK_Q,slot2=_Q},
+		[2] = {type=1,displayName="Valor",range=325,danger=1,slot=HK_E,slot2=_E},
 	},
 	["Rumble"] = {
-		[1] = {type=2,displayName="Scrap Shield",danger=1,slot=HK_W},
+		[1] = {type=2,displayName="Scrap Shield",danger=1,slot=HK_W,slot2=_W},
 	},
 	["Sejuani"] = {
-		[0] = {type=1,displayName="Arctic Assault",danger=2,slot=HK_Q},
+		[0] = {type=1,displayName="Arctic Assault",danger=2,slot=HK_Q,slot2=_Q},
 	},
 	["Shaco"] = {
-		[0] = {type=1,displayName="Deceive",range=400,danger=2,slot=HK_Q},
-		[3] = {type=2,displayName="Hallucinate",danger=3,slot=HK_R},
+		[0] = {type=1,displayName="Deceive",range=400,danger=2,slot=HK_Q,slot2=_Q},
+		[3] = {type=2,displayName="Hallucinate",danger=3,slot=HK_R,slot2=_R},
 	},
 	["Shen"] = {
-		[2] = {type=1,displayName="Shadow Dash",range=600,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Shadow Dash",range=600,danger=2,slot=HK_E,slot2=_E},
 	},
 	["Shyvana"] = {
-		[1] = {type=2,displayName="Burnout",danger=2,slot=HK_W},
+		[1] = {type=2,displayName="Burnout",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Skarner"] = {
-		[1] = {type=2,displayName="Crystalline Exoskeleton",danger=2,slot=HK_W},
+		[1] = {type=2,displayName="Crystalline Exoskeleton",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Sona"] = {
-		[2] = {type=2,displayName="Song of Celerity",danger=2,slot=HK_E},
+		[2] = {type=2,displayName="Song of Celerity",danger=2,slot=HK_E,slot2=_E},
 	},
 	["Teemo"] = {
-		[1] = {type=2,displayName="Move Quick",danger=2,slot=HK_W},
+		[1] = {type=2,displayName="Move Quick",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Tryndamere"] = {
-		[2] = {type=1,displayName="Spinning Slash",range=660,danger=2,slot=HK_E},
+		[2] = {type=1,displayName="Spinning Slash",range=660,danger=2,slot=HK_E,slot2=_E},
 	},
 	["Udyr"] = {
-		[2] = {type=2,displayName="Bear Stance",danger=1,slot=HK_E},
+		[2] = {type=2,displayName="Bear Stance",danger=1,slot=HK_E,slot2=_E},
 	},
 	["Vayne"] = {
-		[0] = {type=1,displayName="Tumble",range=300,danger=1,slot=HK_Q},
+		[0] = {type=1,displayName="Tumble",range=300,danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Vi"] = {
-		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=HK_Q},
+		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Vladimir"] = {
-		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=HK_W},
+		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Volibear"] = {
-		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=HK_Q},
+		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Wukong"] = {
-		[2] = {type=1,displayName="Nimbus Strike",range=625,danger=1,slot=HK_E},
+		[2] = {type=1,displayName="Nimbus Strike",range=625,danger=1,slot=HK_E,slot2=_E},
 	},
 	["Xayah"] = {
-		[3] = {type=2,displayName="Featherstorm",danger=3,slot=HK_R},
+		[3] = {type=2,displayName="Featherstorm",danger=3,slot=HK_R,slot2=_R},
 	},
 	["Zed"] = {
-		[3] = {type=4,displayName="Death Mark",range=625,danger=3,slot=HK_R},
+		[3] = {type=4,displayName="Death Mark",range=625,danger=3,slot=HK_R,slot2=_R},
 	},
 	["Zilean"] = {
-		[2] = {type=3,displayName="Time Warp",danger=2,slot=HK_E},
+		[2] = {type=3,displayName="Time Warp",danger=2,slot=HK_E,slot2=_E},
 	},
 }
 end
@@ -555,7 +557,7 @@ function JustEvade:Dodge()
 				Control.Move(self.SafePos.x,self.SafePos.y,self.SafePos.z)
 				if self.EvadeSpells[myHero.charName] then
 					for op = 0,3 do
-						if Game.CanUseSpell(self.EvadeSpells[myHero.charName][op].slot) == READY and self.DangerLvl >= self.EvadeSpells[myHero.charName][op].danger then
+						if self.EvadeSpells[myHero.charName][op] and IsReady(self.EvadeSpells[myHero.charName][op].slot2) and self.DangerLvl >= self.EvadeSpells[myHero.charName][op].danger then
 							if self.EvadeSpells[myHero.charName][op].type == 1 then
 								Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot, self.SafePos)
 							elseif self.EvadeSpells[myHero.charName][op].type == 2 then
