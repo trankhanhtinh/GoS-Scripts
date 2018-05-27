@@ -94,6 +94,8 @@ end
 function GetTarget(range)
 	if _G.SDK then
 		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
+	elseif _G.gsoSDK then
+		return _G.gsoSDK.TS:GetTarget(GetEnemyHeroes(), true)
 	else
 		return _G.GOS:GetTarget(range,"AP")
 	end
