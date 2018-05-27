@@ -543,7 +543,7 @@ self.EvadeSpells = {
 		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Vladimir"] = {
-		[1] = {type=2,displayName="Sanguine Pool",danger=1,slot=HK_W,slot2=_W},
+		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=HK_W,slot2=_W},
 	},
 	["Volibear"] = {
 		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=HK_Q,slot2=_Q},
