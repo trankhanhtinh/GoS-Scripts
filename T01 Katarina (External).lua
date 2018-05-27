@@ -56,22 +56,6 @@ function EnemiesAround(pos, range)
 	return N
 end
 
-function GetBestCircularFarmPos(range, radius)
-	local BestPos = nil
-	local MostHit = 0
-	for i = 1, Game.MinionCount() do
-		local m = Game.Minion(i)
-		if m and m.isEnemy and not m.dead then
-			local Count = MinionsAround(m.pos, radius, 300-myHero.team)
-			if Count > MostHit then
-				MostHit = Count
-				BestPos = m.pos
-			end
-		end
-	end
-	return BestPos, MostHit
-end
-
 function GetDistanceSqr(Pos1, Pos2)
 	local Pos2 = Pos2 or myHero.pos
 	local dx = Pos1.x - Pos2.x
@@ -129,32 +113,6 @@ function IsReady(spell)
 	return Game.CanUseSpell(spell) == 0
 end
 
-function MinionsAround(pos, range, team)
-	local Count = 0
-	for i = 1, Game.MinionCount() do
-		local m = Game.Minion(i)
-		if m and m.team == team and not m.dead and GetDistance(pos, m.pos) <= range then
-			Count = Count + 1
-		end
-	end
-	return Count
-end
-
-function MinionsOnLine(startpos, endpos, width, team)
-	local Count = 0
-	for i = 1, Game.MinionCount() do
-		local m = Game.Minion(i)
-		if m and m.team == team and not m.dead then
-			local w = width + m.boundingRadius
-			local pointSegment, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(startpos, endpos, m.pos)
-			if isOnSegment and GetDistanceSqr(pointSegment, m.pos) < w^2 and GetDistanceSqr(startpos, endpos) > GetDistanceSqr(startpos, m.pos) then
-				Count = Count + 1
-			end
-		end
-	end
-	return Count
-end
-
 function Mode()
 	if _G.SDK then
 		if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
@@ -166,6 +124,8 @@ function Mode()
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
 			return "Flee"
 		end
+	elseif _G.gsoSDK then
+		return _G.gsoSDK.Orbwalker:GetMode()
 	else
 		return GOS.GetMode()
 	end
