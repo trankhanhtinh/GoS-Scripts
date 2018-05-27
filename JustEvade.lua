@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.3 BETA
+-- Current version: 1.0.4 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.4 BETA
+-- + Added 'stop dodging' keybinds
 -- 1.0.3 BETA
 -- + Imported 2 more Pathfindings
 -- 1.0.2.2 BETA
@@ -42,6 +44,7 @@ function JustEvade:__init()
 	EMenu.Main:Boolean("SafePos", "Draw Safe Position", true)
 	EMenu.Main:DropDown("Pathfinding", "Pathfinding Type", 3, {"Basic", "Mouse", "Effective"})
 	EMenu:SubMenu("Misc", "Misc Settings")
+	EMenu.Misc:Key("SD", "Stop Dodging", string.byte("A"))
 	EMenu.Misc:Key("DD", "Dodge Only Dangerous", string.byte("N"))
 	EMenu.Misc:Slider("DE","Delay Before Enabling OW", 0.3, 0, 1, 0.01)
 	EMenu.Misc:Slider("TE","Extended Timer On Evade", 0, 0, 1, 0.01)
@@ -515,7 +518,7 @@ function JustEvade:Dodge()
 	if myHero.dead then return end
 	if EMenu.Main.Evade:Value() and _G.JustEvade and self.SafePos ~= nil then
 		if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.SafePos.time+EMenu.Misc.TE:Value() > GetGameTimer() then
-			if EMenu.Misc.DD:Value() and self.SafePos.danger <= 2 then return end
+			if EMenu.Misc.DD:Value() and self.SafePos.danger <= 2 or EMenu.Misc.SD:Value() then return end
 			if _G.DAC_Loaded then
 				DAC:MovementEnabled(false)
 				DAC:AttacksEnabled(false)
