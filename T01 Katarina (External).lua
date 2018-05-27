@@ -195,6 +195,9 @@ function Katarina:Menu()
 	self.KatarinaMenu.AntiGapcloser:MenuElement({id = "UseW", name = "Use W [Preparation]", value = true, leftIcon = WIcon})
 	self.KatarinaMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: W", value = 250, min = 25, max = 500, step = 25})
 	
+	self.KatarinaMenu:MenuElement({id = "Dodge", name = "Dodge", type = MENU})
+	self.KatarinaMenu.Dodge:MenuElement({id = "UseE", name = "Use E [Shunpo]", value = true, leftIcon = EIcon})
+	
 	self.KatarinaMenu:MenuElement({id = "Flee", name = "Flee", type = MENU})
 	self.KatarinaMenu.Flee:MenuElement({id = "UseW", name = "Use W [Preparation]", value = true, leftIcon = QIcon})
 	self.KatarinaMenu.Flee:MenuElement({id = "UseE", name = "Use E [Shunpo]", value = true, leftIcon = EIcon})
@@ -414,33 +417,35 @@ local Spells = {
 }
 
 function Katarina:Detect()
-	for i = 1, Game.HeroCount() do
-		local hero = Game.Hero(i);
-		if hero.isEnemy then
-			if hero.activeSpell.valid and hero.activeSpell.width > 0 and hero.activeSpell.range > 0 then
-				local t = Spells[hero.charName]
-				if t then
-					for j = 1, #t do
-						if hero.activeSpell.name == t[j] then
-							if hero.activeSpell.speed > 0 then
-								if IS[hero.networkID] == nil then
-									IS[hero.networkID] = {
-									startPos = hero.activeSpell.startPos, 
-									endPos = hero.activeSpell.startPos+Vector(hero.activeSpell.startPos,hero.activeSpell.placementPos):Normalized()*hero.activeSpell.range, 
-									radius = hero.activeSpell.width, 
-									speed = hero.activeSpell.speed, 
-									startTime = hero.activeSpell.startTime
-									}
-								end
-							else
-								if IS[hero.networkID] == nil then
-									IS[hero.networkID] = {
-									startPos = hero.activeSpell.startPos, 
-									endPos = hero.activeSpell.startPos+Vector(hero.activeSpell.startPos,hero.activeSpell.placementPos):Normalized()*hero.activeSpell.range, 
-									radius = hero.activeSpell.width, 
-									speed = 9999, 
-									startTime = hero.activeSpell.startTime
-									}
+	if self.KatarinaMenu.Dodge.UseE:Value() then
+		for i = 1, Game.HeroCount() do
+			local hero = Game.Hero(i);
+			if hero.isEnemy then
+				if hero.activeSpell.valid and hero.activeSpell.width > 0 and hero.activeSpell.range > 0 then
+					local t = Spells[hero.charName]
+					if t then
+						for j = 1, #t do
+							if hero.activeSpell.name == t[j] then
+								if hero.activeSpell.speed > 0 then
+									if IS[hero.networkID] == nil then
+										IS[hero.networkID] = {
+										startPos = hero.activeSpell.startPos, 
+										endPos = hero.activeSpell.startPos+Vector(hero.activeSpell.startPos,hero.activeSpell.placementPos):Normalized()*hero.activeSpell.range, 
+										radius = hero.activeSpell.width, 
+										speed = hero.activeSpell.speed, 
+										startTime = hero.activeSpell.startTime
+										}
+									end
+								else
+									if IS[hero.networkID] == nil then
+										IS[hero.networkID] = {
+										startPos = hero.activeSpell.startPos, 
+										endPos = hero.activeSpell.startPos+Vector(hero.activeSpell.startPos,hero.activeSpell.placementPos):Normalized()*hero.activeSpell.range, 
+										radius = hero.activeSpell.width, 
+										speed = 9999, 
+										startTime = hero.activeSpell.startTime
+										}
+									end
 								end
 							end
 						end
@@ -452,29 +457,31 @@ function Katarina:Detect()
 end
 
 function Katarina:Dodge()
-	for key, v in pairs(IS) do
-		local SpellHit = v.startPos+Vector(v.startPos,v.endPos):Normalized()*GetDistance(myHero.pos,v.startPos)
-		local SpellPosition = v.startPos+Vector(v.startPos,v.endPos):Normalized()*(v.speed*(Game.Timer()-v.startTime)*3)
-		local Dodge = SpellPosition + Vector(v.startPos,v.endPos):Normalized()*(v.speed*0.1)
-		if GetDistanceSqr(SpellHit,SpellPosition) <= GetDistanceSqr(Dodge,SpellPosition) and GetDistance(SpellHit,v.startPos)-v.radius-myHero.boundingRadius <= GetDistance(v.startPos,v.endPos) then
-			if GetDistanceSqr(myHero.pos,SpellHit) < (v.radius+myHero.boundingRadius)^2 then
-				if IsReady(_E) then
-					for i = 1, Game.MinionCount() do
-						local minion = Game.Minion(i)
-						if minion and minion.isTargetable then
-							if GetDistance(minion.pos, myHero.pos) < KatarinaE.range then
-								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(Vector(v.startPos), Vector(v.endPos), minion.pos)
-								if pointLine and GetDistance(pointSegment, minion.pos) > v.radius+minion.boundingRadius then
-									Control.CastSpell(HK_E, minion.pos)
+	if self.KatarinaMenu.Dodge.UseE:Value() then
+		for key, v in pairs(IS) do
+			local SpellHit = v.startPos+Vector(v.startPos,v.endPos):Normalized()*GetDistance(myHero.pos,v.startPos)
+			local SpellPosition = v.startPos+Vector(v.startPos,v.endPos):Normalized()*(v.speed*(Game.Timer()-v.startTime)*3)
+			local Dodge = SpellPosition + Vector(v.startPos,v.endPos):Normalized()*(v.speed*0.1)
+			if GetDistanceSqr(SpellHit,SpellPosition) <= GetDistanceSqr(Dodge,SpellPosition) and GetDistance(SpellHit,v.startPos)-v.radius-myHero.boundingRadius <= GetDistance(v.startPos,v.endPos) then
+				if GetDistanceSqr(myHero.pos,SpellHit) < (v.radius+myHero.boundingRadius)^2 then
+					if IsReady(_E) then
+						for i = 1, Game.MinionCount() do
+							local minion = Game.Minion(i)
+							if minion and minion.isTargetable then
+								if GetDistance(minion.pos, myHero.pos) < KatarinaE.range then
+									local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(Vector(v.startPos), Vector(v.endPos), minion.pos)
+									if pointLine and GetDistance(pointSegment, minion.pos) > v.radius+minion.boundingRadius then
+										Control.CastSpell(HK_E, minion.pos)
+									end
 								end
 							end
 						end
 					end
 				end
 			end
-		end
-		if (GetDistanceSqr(SpellPosition,v.startPos) >= GetDistanceSqr(v.startPos,v.endPos)) then
-			IS[key] = nil
+			if (GetDistanceSqr(SpellPosition,v.startPos) >= GetDistanceSqr(v.startPos,v.endPos)) then
+				IS[key] = nil
+			end
 		end
 	end
 end
