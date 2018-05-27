@@ -1,11 +1,14 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.3.1 BETA
+-- Current version: 1.0.4 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.4 BETA
+-- + Added 'dodge only dangerous' and 'stop dodging' keybinds
+-- + Added menu for evade spells
 -- 1.0.3.1 BETA
 -- + Fixed minor bug
 -- 1.0.3 BETA
@@ -93,10 +96,13 @@ function JustEvade:__init()
 	EMenu.Main:MenuElement({id = "SafePos", name = "Draw Safe Position", value = true})
 	EMenu.Main:MenuElement({id = "Pathfinding", name = "Pathfinding Type", drop = {"Simple", "Mouse", "Effective"}, value = 2})
 	EMenu:MenuElement({id = "Misc", name = "Misc Settings", type = MENU})
+	EMenu.Misc:MenuElement({id = "SD", name = "Stop Dodging", key = string.byte("A")})
+	EMenu.Misc:MenuElement({id = "DD", name = "Dodge Only Dangerous", key = string.byte(" ")})
 	EMenu.Misc:MenuElement({id = "DE", name = "Delay Before Enabling OW", value = 0.25, min = 0, max = 1, step = 0.01})
 	EMenu.Misc:MenuElement({id = "TE", name = "Extended Timer On Evade", value = 0, min = 0, max = 1, step = 0.01})
 	EMenu.Misc:MenuElement({id = "ER", name = "Extra Spell Radius", value = 20, min = 0, max = 100, step = 5})
 	EMenu:MenuElement({id = "Spells", name = "Spell Settings", type = MENU})
+	EMenu:MenuElement({id = "EvadeSpells", name = "Evade Spells", type = MENU})
 	DelayAction(function()
 		for _,spell in pairs(self.Spells) do
 			for l,k in pairs(GetEnemyHeroes()) do
@@ -108,7 +114,21 @@ function JustEvade:__init()
 				end
 			end
 		end
-	end, 0.1)
+		if self.EvadeSpells[myHero.charName] then
+			for i = 0,3 do
+				if self.EvadeSpells[myHero.charName][i] and self.EvadeSpells[myHero.charName][i].displayName then
+					if not EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].displayName] then
+						EMenu.EvadeSpells:MenuElement({id = self.EvadeSpells[myHero.charName][i].displayName, name = ""..myHero.charName.." "..(self.SpSlot[i] or "?").." | "..self.EvadeSpells[myHero.charName][i].displayName, type = MENU})
+						EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].displayName]:MenuElement({id = "US"..self.EvadeSpells[myHero.charName][i].displayName, name = "Use Spell", value = true})
+					end
+				end
+			end
+		end
+		if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" or myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" then
+			EMenu.EvadeSpells:MenuElement({id = "Flash", name = ""..myHero.charName.." | Summoner Flash", type = MENU})
+			EMenu.EvadeSpells.Flash:MenuElement({id = "Use", name = "Use Flash", value = true})
+		end
+	end,.1)
 	Callback.Add("Tick", function() self:Dodge() end)
 	Callback.Add("Draw", function() self:Draw() end)
 	Callback.Add("Tick", function() self:OnProcessSpell() end)
@@ -523,7 +543,7 @@ self.EvadeSpells = {
 		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=HK_Q,slot2=_Q},
 	},
 	["Vladimir"] = {
-		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=HK_W,slot2=_W},
+		[1] = {type=2,displayName="Sanguine Pool",danger=1,slot=HK_W,slot2=_W},
 	},
 	["Volibear"] = {
 		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=HK_Q,slot2=_Q},
@@ -547,6 +567,7 @@ function JustEvade:Dodge()
 	if EMenu.Main.Evade:Value() and EMenu.Main.Dodge:Value() then
 		if _G.JustEvade and self.SafePos ~= nil then
 			if GetDistance(self.SafePos, myHero.pos) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:Value() > Game.Timer() then
+				if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() then return end
 				if _G.SDK then
 					_G.SDK.Orbwalker:SetMovement(false)
 					_G.SDK.Orbwalker:SetAttack(false)
@@ -558,23 +579,25 @@ function JustEvade:Dodge()
 				if self.EvadeSpells[myHero.charName] then
 					for op = 0,3 do
 						if self.EvadeSpells[myHero.charName][op] and IsReady(self.EvadeSpells[myHero.charName][op].slot2) and self.DangerLvl >= self.EvadeSpells[myHero.charName][op].danger then
-							if self.EvadeSpells[myHero.charName][op].type == 1 then
-								Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot, self.SafePos)
-							elseif self.EvadeSpells[myHero.charName][op].type == 2 then
-								Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot)
-							elseif self.EvadeSpells[myHero.charName][op].type == 3 then
-								Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot, myHero.pos)
-							elseif self.EvadeSpells[myHero.charName][op].type == 4 then
-								for _, enemy in pairs(GetEnemyHeroes()) do
-									if ValidTarget(enemy, self.EvadeSpells[myHero.charName][op].range) then
-										Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot, enemy.pos)
+							if EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][op].displayName] then
+								if self.EvadeSpells[myHero.charName][op].type == 1 then
+									Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot, self.SafePos)
+								elseif self.EvadeSpells[myHero.charName][op].type == 2 then
+									Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot)
+								elseif self.EvadeSpells[myHero.charName][op].type == 3 then
+									Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot, myHero.pos)
+								elseif self.EvadeSpells[myHero.charName][op].type == 4 then
+									for _, enemy in pairs(GetEnemyHeroes()) do
+										if ValidTarget(enemy, self.EvadeSpells[myHero.charName][op].range) then
+											Control.CastSpell(self.EvadeSpells[myHero.charName][op].slot, enemy.pos)
+										end
 									end
 								end
 							end
 						end
 					end
 				end
-				if self.DangerLvl == 3 and GetDistance(myHero.pos, self.SafePos) <= 400 then
+				if self.DangerLvl == 3 and GetDistance(myHero.pos, self.SafePos) <= 400 and EMenu.EvadeSpells.Flash.Use:Value() then
 					if myHero:GetSpellData(SUMMONER_1).name == "SummonerFlash" and IsReady(SUMMONER_1) then
 						Control.CastSpell(HK_SUMMONER_1, self.SafePos.x, self.SafePos.y, self.SafePos.z)
 					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerFlash" and IsReady(SUMMONER_2) then
