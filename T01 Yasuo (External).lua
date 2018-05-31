@@ -6,10 +6,13 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.6.1
+-- Current version: 1.0.7
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.7
+-- + Added Pyke Q to spell database
+-- + Optimized code
 -- 1.0.6.1
 -- + Added Q to Flee
 -- 1.0.6
@@ -175,7 +178,7 @@ function Mode()
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 			return "Harass"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] then
-			return "LaneClear"
+			return "Clear"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
 			return "Flee"
 		end
@@ -295,7 +298,7 @@ end
 
 function Yasuo:Tick()
 	if myHero.dead or Game.IsChatOpen() == true then return end
-	target = GetTarget(1400)
+	target = GetTarget(2000)
 	Item_HK[ITEM_1] = HK_ITEM_1
 	Item_HK[ITEM_2] = HK_ITEM_2
 	Item_HK[ITEM_3] = HK_ITEM_3
@@ -303,42 +306,47 @@ function Yasuo:Tick()
 	Item_HK[ITEM_5] = HK_ITEM_5
 	Item_HK[ITEM_6] = HK_ITEM_6
 	Item_HK[ITEM_7] = HK_ITEM_7
-	self:Items1()
-	self:Items2()
 	self:Auto()
-	self:Detect()
 	self:WindWall()
-	self:Combo()
-	self:Harass()
 	self:KillSteal()
-	self:LaneClear()
-	self:LastHit()
-	self:Flee()
-	self:AntiGapcloser()
+	if Mode() == "Combo" then
+		self:Items1()
+		self:Items2()
+		self:Combo()
+	end
+	if Mode() == "Harass" then
+		self:Harass()
+	end
+	if Mode() == "Clear" then
+		self:LaneClear()
+		self:LastHit()
+	end
+	if Mode() == "Flee" then
+		self:Flee()
+	end
 end
 
 function Yasuo:Items1()
-	if EnemiesAround(myHero, 1000) >= 1 then
-		if (target.health / target.maxHealth)*100 <= self.YasuoMenu.Items.OI:Value() then
-			if self.YasuoMenu.Items.UseBC:Value() then
-				if GetItemSlot(myHero, 3144) > 0 and ValidTarget(target, 550) then
-					if myHero:GetSpellData(GetItemSlot(myHero, 3144)).currentCd == 0 then
-						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3144)], target)
-					end
+	if target == nil then return end
+	if (target.health / target.maxHealth)*100 <= self.YasuoMenu.Items.OI:Value() then
+		if self.YasuoMenu.Items.UseBC:Value() then
+			if GetItemSlot(myHero, 3144) > 0 and ValidTarget(target, 550) then
+				if myHero:GetSpellData(GetItemSlot(myHero, 3144)).currentCd == 0 then
+					Control.CastSpell(Item_HK[GetItemSlot(myHero, 3144)], target)
 				end
 			end
-			if self.YasuoMenu.Items.UseBOTRK:Value() then
-				if GetItemSlot(myHero, 3153) > 0 and ValidTarget(target, 550) then
-					if myHero:GetSpellData(GetItemSlot(myHero, 3153)).currentCd == 0 then
-						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3153)], target)
-					end
+		end
+		if self.YasuoMenu.Items.UseBOTRK:Value() then
+			if GetItemSlot(myHero, 3153) > 0 and ValidTarget(target, 550) then
+				if myHero:GetSpellData(GetItemSlot(myHero, 3153)).currentCd == 0 then
+					Control.CastSpell(Item_HK[GetItemSlot(myHero, 3153)], target)
 				end
 			end
-			if self.YasuoMenu.Items.UseHG:Value() then
-				if GetItemSlot(myHero, 3146) > 0 and ValidTarget(target, 700) then
-					if myHero:GetSpellData(GetItemSlot(myHero, 3146)).currentCd == 0 then
-						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3146)], target)
-					end
+		end
+		if self.YasuoMenu.Items.UseHG:Value() then
+			if GetItemSlot(myHero, 3146) > 0 and ValidTarget(target, 700) then
+				if myHero:GetSpellData(GetItemSlot(myHero, 3146)).currentCd == 0 then
+					Control.CastSpell(Item_HK[GetItemSlot(myHero, 3146)], target)
 				end
 			end
 		end
@@ -346,6 +354,7 @@ function Yasuo:Items1()
 end
 
 function Yasuo:Items2()
+	if target == nil then return end
 	if self.YasuoMenu.Items.UseMS:Value() then
 		if GetItemSlot(myHero, 3139) > 0 then
 			if myHero:GetSpellData(GetItemSlot(myHero, 3139)).currentCd == 0 then
@@ -466,6 +475,15 @@ function Yasuo:Auto()
 			end
 		end
 	end
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") > 0 then
+			if self.YasuoMenu.AntiGapcloser.UseQ3:Value() then
+				if ValidTarget(antigap, self.YasuoMenu.AntiGapcloser.Distance:Value()) then
+					self:UseQ3(antigap)
+				end
+			end
+		end
+	end
 end
 
 local Spells = {
@@ -473,7 +491,7 @@ local Spells = {
 	["Ahri"] = {"AhriOrbofDeception", "AhriFoxFire", "AhriSeduce", "AhriTumble"},
 	["Akali"] = {"AkaliMota"},
 	["Amumu"] = {"BandageToss"},
-	["Anivia"] = {"FlashFrost", "Frostbite"},
+	["Anivia"] = {"FlashFrostSpell", "Frostbite"},
 	["Annie"] = {"Disintegrate"},
 	["Ashe"] = {"Volley", "EnchantedCrystalArrow"},
 	["AurelionSol"] = {"AurelionSolQ"},
@@ -481,7 +499,7 @@ local Spells = {
 	["Blitzcrank"] = {"RocketGrab"},
 	["Brand"] = {"BrandQ", "BrandR"},
 	["Braum"] = {"BraumQ", "BraumR"},
-	["Caitlyn"] = {"CaitlynPiltoverPeacemaker", "CaitlynEntrapmentMissile", "CaitlynAceintheHole"},
+	["Caitlyn"] = {"CaitlynPiltoverPeacemaker", "CaitlynEntrapment", "CaitlynAceintheHole"},
 	["Cassiopeia"] = {"CassiopeiaW", "CassiopeiaTwinFang"},
 	["Corki"] = {"PhosphorusBomb", "MissileBarrageMissile", "MissileBarrageMissile2"},
 	["Diana"] = {"DianaArc", "DianaOrbs"},
@@ -496,7 +514,7 @@ local Spells = {
 	["Fizz"] = {"FizzR"},
 	["Galio"] = {"GalioQ"},
 	["Gangplank"] = {"GangplankQ"},
-	["Gnar"] = {"GnarQ", "GnarBigQ"},
+	["Gnar"] = {"GnarQMissile", "GnarBigQMissile"},
 	["Gragas"] = {"GragasQ", "GragasR"},
 	["Graves"] = {"GravesQLineSpell", "GravesSmokeGrenade", "GravesChargeShot"},
 	["Hecarim"] = {"HecarimUlt"},
@@ -522,7 +540,7 @@ local Spells = {
 	["Leblanc"] = {"LeblancQ", "LeblancE", "LeblancRQ", "LeblancRE"},
 	["Leesin"] = {"BlinkMonkQOne"},
 	["Leona"] = {"LeonaZenithBlade"},
-	["Lissandra"] = {"LissandraQ", "LissandraE"},
+	["Lissandra"] = {"LissandraQMissile", "LissandraEMissile"},
 	["Lucian"] = {"LucianW", "LucianRMis"},
 	["Lulu"] = {"LuluQ", "LuluW"},
 	["Lux"] = {"LuxLightBinding", "LuxPrismaticWave", "LuxLightStrikeKugel"},
@@ -530,16 +548,17 @@ local Spells = {
 	["Maokai"] = {"MaokaiQ", "MaokaiR"},
 	["MissFortune"] = {"MissFortuneRicochetShot", "MissFortuneBulletTime"},
 	["Morgana"] = {"DarkBindingMissile"},
-	["Nami"] = {"NamiQ", "NamiW", "NamiR"},
-	["Nautilus"] = {"NautilusAnchorDrag"},
+	["Nami"] = {"NamiQ", "NamiW", "NamiRMissile"},
+	["Nautilus"] = {"NautilusAnchorDragMissile"},
 	["Nidalee"] = {"JavelinToss"},
 	["Nocturne"] = {"NocturneDuskbringer"},
 	["Nunu"] = {"IceBlast"},
 	["Olaf"] = {"OlafAxeThrowCast"},
 	["Orianna"] = {"OrianaIzunaCommand", "OrianaRedactCommand"},
-	["Ornn"] = {"OrnnQ", "OrnnR"},
+	["Ornn"] = {"OrnnQ", "OrnnR", "OrnnRCharge"},
 	["Pantheon"] = {"PantheonQ"},
 	["Poppy"] = {"PoppyRSpell"},
+	["Pyke"] = {"PykeQRange"},
 	["Quinn"] = {"QuinnQ"},
 	["Rakan"] = {"RakanQ"},
 	["Reksai"] = {"RekSaiQBurrowed"},
@@ -552,7 +571,7 @@ local Spells = {
 	["Shyvana"] = {"ShyvanaFireball", "ShyvanaFireballDragon2"},
 	["Sion"] = {"SionE"},
 	["Sivir"] = {"SivirQ"},
-	["Skarner"] = {"SkarnerFracture"},
+	["Skarner"] = {"SkarnerFractureMissile"},
 	["Sona"] = {"SonaQ", "SonaR"},
 	["Swain"] = {"SwainE"},
 	["Syndra"] = {"SyndraR"},
@@ -560,7 +579,7 @@ local Spells = {
 	["Taliyah"] = {"TaliyahQ"},
 	["Talon"] = {"TalonW", "TalonR"},
 	["Teemo"] = {"BlindingDart", "TeemoRCast"},
-	["Thresh"] = {"ThreshQ"},
+	["Thresh"] = {"ThreshQInternal"},
 	["Tristana"] = {"TristanaE", "TristanaR"},
 	["TwistedFate"] = {"WildCards"},
 	["Twitch"] = {"TwitchVenomCask"},
@@ -579,11 +598,11 @@ local Spells = {
 	["Zed"] = {"ZedQ"},
 	["Ziggs"] = {"ZiggsQ", "ZiggsW", "ZiggsE"},
 	["Zilean"] = {"ZileanQ", "ZileanQAttachAudio"},
-	["Zoe"] = {"ZoeQ", "ZoeQRecast", "ZoeE"},
+	["Zoe"] = {"ZoeQMissile", "ZoeQRecast", "ZoeE"},
 	["Zyra"] = {"ZyraE"},
 }
 
-function Yasuo:Detect()
+function Yasuo:WindWall()
 	for i = 1, Game.HeroCount() do
 		local h = Game.Hero(i);
 		if h.isEnemy then
@@ -607,9 +626,6 @@ function Yasuo:Detect()
 			end
 		end
 	end
-end
-
-function Yasuo:WindWall()
 	for key, v in pairs(IS) do
 		local SpellHit = v.sPos + Vector(v.sPos,v.ePos):Normalized() * GetDistance(myHero.pos,v.sPos)
 		local SpellPosition = v.sPos + Vector(v.sPos,v.ePos):Normalized() * (v.speed * (Game.Timer() - v.startTime) * 3)
@@ -630,55 +646,53 @@ end
 
 function Yasuo:Combo()
 	if target == nil then return end
-	if Mode() == "Combo" then
-		if self.YasuoMenu.Combo.UseQ:Value() then
-			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-				if GotBuff(myHero, "YasuoQ3W") == 0 then
-					if ValidTarget(target, YasuoQ.range) then
-						self:UseQ(target)
-					end
+	if self.YasuoMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if GotBuff(myHero, "YasuoQ3W") == 0 then
+				if ValidTarget(target, YasuoQ.range) then
+					self:UseQ(target)
 				end
 			end
 		end
-		if self.YasuoMenu.Combo.UseQ3:Value() then
-			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-				if GotBuff(myHero, "YasuoQ3W") > 0 and ETravel then
-					if ValidTarget(target, YasuoQ3.range) then
-						self:UseQ3(target)
-					end
+	end
+	if self.YasuoMenu.Combo.UseQ3:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if GotBuff(myHero, "YasuoQ3W") > 0 and ETravel then
+				if ValidTarget(target, YasuoQ3.range) then
+					self:UseQ3(target)
 				end
 			end
 		end
-		if self.YasuoMenu.Combo.UseE:Value() then
-			if IsReady(_E) then
-				if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
-					if GotBuff(target, "YasuoDashWrapper") == 0 then
-						Control.CastSpell(HK_E, target)
-					end
-				elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
-					for i = 1, Game.MinionCount() do
-						local minion = Game.Minion(i)
-						if minion and minion.isEnemy then
-							if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
-								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
-								if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-									ETravel = false
-									Control.CastSpell(HK_E, minion)
-									DelayAction(function() ETravel = true end, 0.8)
-								end
+	end
+	if self.YasuoMenu.Combo.UseE:Value() then
+		if IsReady(_E) then
+			if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
+				if GotBuff(target, "YasuoDashWrapper") == 0 then
+					Control.CastSpell(HK_E, target)
+				end
+			elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
+				for i = 1, Game.MinionCount() do
+					local minion = Game.Minion(i)
+					if minion and minion.isEnemy then
+						if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+							local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
+							if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
+								ETravel = false
+								Control.CastSpell(HK_E, minion)
+								DelayAction(function() ETravel = true end, 0.8)
 							end
 						end
 					end
 				end
 			end
 		end
-		if self.YasuoMenu.Combo.UseR:Value() then
-			if IsReady(_R) then
-				if ValidTarget(target, YasuoR.range) and IsKnocked(target) then
-					if GetPercentHP(target) < self.YasuoMenu.Combo.HP:Value() then
-						if EnemiesAround(myHero, YasuoR.range) >= self.YasuoMenu.Combo.X:Value() then
-							Control.CastSpell(HK_R, target)
-						end
+	end
+	if self.YasuoMenu.Combo.UseR:Value() then
+		if IsReady(_R) then
+			if ValidTarget(target, YasuoR.range) and IsKnocked(target) then
+				if GetPercentHP(target) < self.YasuoMenu.Combo.HP:Value() then
+					if EnemiesAround(myHero, YasuoR.range) >= self.YasuoMenu.Combo.X:Value() then
+						Control.CastSpell(HK_R, target)
 					end
 				end
 			end
@@ -688,42 +702,40 @@ end
 
 function Yasuo:Harass()
 	if target == nil then return end
-	if Mode() == "Harass" then
-		if self.YasuoMenu.Harass.UseQ:Value() then
-			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-				if GotBuff(myHero, "YasuoQ3W") == 0 then
-					if ValidTarget(target, YasuoQ.range) then
-						self:UseQ(target)
-					end
+	if self.YasuoMenu.Harass.UseQ:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if GotBuff(myHero, "YasuoQ3W") == 0 then
+				if ValidTarget(target, YasuoQ.range) then
+					self:UseQ(target)
 				end
 			end
 		end
-		if self.YasuoMenu.Harass.UseQ3:Value() then
-			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-				if GotBuff(myHero, "YasuoQ3W") > 0 and ETravel then
-					if ValidTarget(target, YasuoQ3.range) then
-						self:UseQ3(target)
-					end
+	end
+	if self.YasuoMenu.Harass.UseQ3:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if GotBuff(myHero, "YasuoQ3W") > 0 and ETravel then
+				if ValidTarget(target, YasuoQ3.range) then
+					self:UseQ3(target)
 				end
 			end
 		end
-		if self.YasuoMenu.Harass.UseE:Value() then
-			if IsReady(_E) then
-				if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
-					if GotBuff(target, "YasuoDashWrapper") == 0 then
-						Control.CastSpell(HK_E, target)
-					end
-				elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
-					for i = 1, Game.MinionCount() do
-						local minion = Game.Minion(i)
-						if minion and minion.isEnemy then
-							if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
-								local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
-								if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-									ETravel = false
-									Control.CastSpell(HK_E, minion)
-									DelayAction(function() ETravel = true end, 0.8)
-								end
+	end
+	if self.YasuoMenu.Harass.UseE:Value() then
+		if IsReady(_E) then
+			if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
+				if GotBuff(target, "YasuoDashWrapper") == 0 then
+					Control.CastSpell(HK_E, target)
+				end
+			elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
+				for i = 1, Game.MinionCount() do
+					local minion = Game.Minion(i)
+					if minion and minion.isEnemy then
+						if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+							local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
+							if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
+								ETravel = false
+								Control.CastSpell(HK_E, minion)
+								DelayAction(function() ETravel = true end, 0.8)
 							end
 						end
 					end
@@ -759,33 +771,31 @@ function Yasuo:KillSteal()
 end
 
 function Yasuo:LaneClear()
-	if Mode() == "LaneClear" then
-		if self.YasuoMenu.LaneClear.UseQ3:Value() then
-			if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") > 0 then
-				local BestPos, BestHit = GetBestLinearFarmPos(YasuoQ3.range, YasuoQ3.width)
-				if BestPos and BestHit >= 3 then
-					Control.SetCursorPos(BestPos)
-					Control.CastSpell(HK_Q, BestPos)
-				end
+	if self.YasuoMenu.LaneClear.UseQ3:Value() then
+		if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") > 0 then
+			local BestPos, BestHit = GetBestLinearFarmPos(YasuoQ3.range, YasuoQ3.width)
+			if BestPos and BestHit >= 3 then
+				Control.SetCursorPos(BestPos)
+				Control.CastSpell(HK_Q, BestPos)
 			end
 		end
-		for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
-			if minion and minion.isEnemy then
-				if self.YasuoMenu.LaneClear.UseQ:Value() then
-					if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") == 0 then
-						if ValidTarget(minion, YasuoQ.range) then
-							Control.SetCursorPos(minion)
-							Control.CastSpell(HK_Q, minion)
-						end
+	end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and minion.isEnemy then
+			if self.YasuoMenu.LaneClear.UseQ:Value() then
+				if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") == 0 then
+					if ValidTarget(minion, YasuoQ.range) then
+						Control.SetCursorPos(minion)
+						Control.CastSpell(HK_Q, minion)
 					end
 				end
-				if self.YasuoMenu.LaneClear.UseE:Value() then
-					if IsReady(_E) and GotBuff(minion, "YasuoDashWrapper") == 0 then
-						if ValidTarget(minion, YasuoE.range) then
-							Control.SetCursorPos(minion)
-							Control.CastSpell(HK_E, minion)
-						end
+			end
+			if self.YasuoMenu.LaneClear.UseE:Value() then
+				if IsReady(_E) and GotBuff(minion, "YasuoDashWrapper") == 0 then
+					if ValidTarget(minion, YasuoE.range) then
+						Control.SetCursorPos(minion)
+						Control.CastSpell(HK_E, minion)
 					end
 				end
 			end
@@ -794,27 +804,25 @@ function Yasuo:LaneClear()
 end
 
 function Yasuo:LastHit()
-	if Mode() == "LaneClear" then
-		for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
-			if minion and minion.isEnemy then
-				if self.YasuoMenu.LastHit.UseQ:Value() then
-					if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") == 0 then
-						if ValidTarget(minion, YasuoQ.range) then
-							local YasuoQDmg = ((({20, 45, 70, 95, 120})[myHero:GetSpellData(_Q).level]) + myHero.totalDamage)
-							if minion.health < YasuoQDmg then
-								Control.CastSpell(HK_Q, minion)
-							end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and minion.isEnemy then
+			if self.YasuoMenu.LastHit.UseQ:Value() then
+				if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") == 0 then
+					if ValidTarget(minion, YasuoQ.range) then
+						local YasuoQDmg = ((({20, 45, 70, 95, 120})[myHero:GetSpellData(_Q).level]) + myHero.totalDamage)
+						if minion.health < YasuoQDmg then
+							Control.CastSpell(HK_Q, minion)
 						end
 					end
 				end
-				if self.YasuoMenu.LastHit.UseE:Value() then
-					if IsReady(_E) then
-						if ValidTarget(minion, YasuoE.range) and GotBuff(minion, "YasuoDashWrapper") == 0 then
-							local YasuoEDmg = ((({60, 70, 80, 90, 100})[myHero:GetSpellData(_E).level]) + 0.2 * myHero.bonusDamage)
-							if minion.health < YasuoEDmg then
-								Control.CastSpell(HK_E, minion)
-							end
+			end
+			if self.YasuoMenu.LastHit.UseE:Value() then
+				if IsReady(_E) then
+					if ValidTarget(minion, YasuoE.range) and GotBuff(minion, "YasuoDashWrapper") == 0 then
+						local YasuoEDmg = ((({60, 70, 80, 90, 100})[myHero:GetSpellData(_E).level]) + 0.2 * myHero.bonusDamage)
+						if minion.health < YasuoEDmg then
+							Control.CastSpell(HK_E, minion)
 						end
 					end
 				end
@@ -825,32 +833,18 @@ end
 
 function Yasuo:Flee()
 	if self.YasuoMenu.Flee.UseE:Value() then
-		if Mode() == "Flee" then
-			for i = 1, Game.MinionCount() do
-				local minion = Game.Minion(i)
-				if minion and minion.isEnemy then
-					if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
-						if IsReady(_Q) and IsReady(_E) then
-							if GotBuff(myHero, "YasuoQ3W") == 0 then
-								Control.CastSpell(HK_E, mousePos)
-								Control.CastSpell(HK_Q)
-							end
-						elseif IsReady(_E) then
+		for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+			if minion and minion.isEnemy then
+				if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
+					if IsReady(_Q) and IsReady(_E) then
+						if GotBuff(myHero, "YasuoQ3W") == 0 then
 							Control.CastSpell(HK_E, mousePos)
+							Control.CastSpell(HK_Q)
 						end
+					elseif IsReady(_E) then
+						Control.CastSpell(HK_E, mousePos)
 					end
-				end
-			end
-		end
-	end
-end
-
-function Yasuo:AntiGapcloser()
-	for i,antigap in pairs(GetEnemyHeroes()) do
-		if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") > 0 then
-			if self.YasuoMenu.AntiGapcloser.UseQ3:Value() then
-				if ValidTarget(antigap, self.YasuoMenu.AntiGapcloser.Distance:Value()) then
-					self:UseQ3(antigap)
 				end
 			end
 		end
