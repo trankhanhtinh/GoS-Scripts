@@ -1,11 +1,14 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.4 BETA
+-- Current version: 1.0.5 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5 BETA
+-- + Added Pyke Q detection
+-- + Added Pyke E to evade spells
 -- 1.0.4 BETA
 -- + Added 'dodge only dangerous' and 'stop dodging' keybinds
 -- + Added menu for evade spells
@@ -56,6 +59,16 @@ function GetEnemyHeroes()
 		end
 	end
 	return EnemyHeroes
+end
+
+function GotBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name == buffname and buff.count > 0 then 
+			return buff.count
+		end
+	end
+	return 0
 end
 
 function IsReady(spell)
@@ -301,6 +314,8 @@ self.Spells = {
 	["PantheonRFall"]={charName="Pantheon",slot=_R,type="circular",displayName="Grand Skyfall",danger=2,speed=math.huge,range=5500,delay=2.25,radius=700,collision=false},
 	["PoppyQSpell"]={charName="Poppy",slot=_Q,type="linear",displayName="Hammer Shock",danger=1,speed=math.huge,range=430,delay=1.32,radius=85,collision=false},
 	["PoppyRSpell"]={charName="Poppy",slot=_R,type="linear",displayName="Keeper's Verdict",danger=2,speed=2000,range=1900,delay=0.333,radius=100,collision=false},
+	["PykeQMelee"]={charName="Pyke",slot=_Q,type="linear",displayName="Bone Skewer",danger=2,speed=math.huge,range=400,delay=0.25,radius=70,collision=false},
+	["PykeQRange"]={charName="Pyke",slot=_Q,type="linear",displayName="Bone Skewer",danger=2,speed=2000,range=1100,delay=0.2,radius=70,collision=true},
 	["QuinnQ"]={charName="Quinn",slot=_Q,type="linear",displayName="Blinding Assault",danger=1,speed=1550,range=1025,delay=0.25,radius=60,collision=true},
 	["RakanQ"]={charName="Rakan",slot=_Q,type="linear",displayName="Gleaming Quill",danger=1,speed=1850,range=900,delay=0.25,radius=65,collision=true},
 	["RakanW"]={charName="Rakan",slot=_W,type="circular",displayName="Grand Entrance",danger=2,speed=2050,range=600,delay=0,radius=250,collision=false},
@@ -495,6 +510,9 @@ self.EvadeSpells = {
 	["Poppy"] = {
 		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=HK_W,slot2=_W},
 	},
+	["Pyke"] = {
+		[2] = {type=1,displayName="Phantom Undertow",range=550,danger=2,slot=HK_E,slot2=_E},
+	},
 	["Rakan"] = {
 		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=HK_W,slot2=_W},
 	},
@@ -566,7 +584,7 @@ end
 function JustEvade:Dodge()
 	if EMenu.Main.Evade:Value() and EMenu.Main.Dodge:Value() then
 		if _G.JustEvade and self.SafePos ~= nil then
-			if GetDistance(self.SafePos, myHero.pos) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:Value() > Game.Timer() then
+			if GetDistance(self.SafePos, myHero.pos) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:Value() > Game.Timer() and GotBuff(myHero, "katarinarsound") == 0 then
 				if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() then return end
 				if _G.SDK then
 					_G.SDK.Orbwalker:SetMovement(false)
