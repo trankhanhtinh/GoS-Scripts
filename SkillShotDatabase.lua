@@ -16,6 +16,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [31-05] Updated for patch 8.11
+-- (Pyke Q & R)
 -- [02-05] Updated for patch 8.9
 -- (Ivern Q, Lux E, Poppy R)
 -- [18-04] Updated for patch 8.8
@@ -227,6 +229,9 @@ Spells = {
 	["PoppyQSpell"]={charName="Poppy",slot=_Q,type="linear",speed=math.huge,range=430,delay=1.32,radius=85,hitbox=true,aoe=true,cc=true,collision=false},
 	["PoppyW"]={charName="Poppy",slot=_W,type="circular",speed=math.huge,range=0,delay=0,radius=400,hitbox=false,aoe=true,cc=false,collision=false},
 	["PoppyRSpell"]={charName="Poppy",slot=_R,type="linear",speed=2000,range=1900,delay=0.333,radius=100,hitbox=true,aoe=true,cc=true,collision=false},
+	["PykeQMelee"]={charName="Pyke",slot=_Q,type="linear",speed=math.huge,range=400,delay=0.25,radius=70,hitbox=true,aoe=true,cc=true,collision=false},
+	["PykeQRange"]={charName="Pyke",slot=_Q,type="linear",speed=2000,range=1100,delay=0.2,radius=70,hitbox=true,aoe=false,cc=true,collision=true},
+	["PykeR"]={charName="Pyke",slot=_R,type="cross",speed=math.huge,range=750,delay=0.5,radius1=300,radius2=50,hitbox=true,aoe=true,cc=false,collision=false},
 	["QuinnQ"]={charName="Quinn",slot=_Q,type="linear",speed=1550,range=1025,delay=0.25,radius=60,hitbox=true,aoe=false,cc=false,collision=true},
 	["RakanQ"]={charName="Rakan",slot=_Q,type="linear",speed=1850,range=900,delay=0.25,radius=65,hitbox=true,aoe=false,cc=false,collision=true},
 	["RakanW"]={charName="Rakan",slot=_W,type="circular",speed=2050,range=600,delay=0,radius=250,hitbox=true,aoe=true,cc=false,collision=false},
