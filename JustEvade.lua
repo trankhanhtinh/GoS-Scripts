@@ -1,11 +1,14 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.4 BETA
+-- Current version: 1.0.5 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5 BETA
+-- + Added Pyke Q detection
+-- + Added Pyke E to evade spells
 -- 1.0.4 BETA
 -- + Added 'stop dodging' keybinds
 -- 1.0.3 BETA
@@ -252,6 +255,8 @@ self.Spells = {
 	["PantheonRFall"]={charName="Pantheon",slot=_R,type="circular",displayName="Grand Skyfall",danger=2,speed=math.huge,range=5500,delay=2.25,radius=700,collision=false},
 	["PoppyQSpell"]={charName="Poppy",slot=_Q,type="linear",displayName="Hammer Shock",danger=1,speed=math.huge,range=430,delay=1.32,radius=85,collision=false},
 	["PoppyRSpell"]={charName="Poppy",slot=_R,type="linear",displayName="Keeper's Verdict",danger=2,speed=2000,range=1900,delay=0.333,radius=100,collision=false},
+	["PykeQMelee"]={charName="Pyke",slot=_Q,type="linear",displayName="Bone Skewer",danger=2,speed=math.huge,range=400,delay=0.25,radius=70,collision=false},
+	["PykeQRange"]={charName="Pyke",slot=_Q,type="linear",displayName="Bone Skewer",danger=2,speed=2000,range=1100,delay=0.2,radius=70,collision=true},
 	["QuinnQ"]={charName="Quinn",slot=_Q,type="linear",displayName="Blinding Assault",danger=1,speed=1550,range=1025,delay=0.25,radius=60,collision=true},
 	["RakanQ"]={charName="Rakan",slot=_Q,type="linear",displayName="Gleaming Quill",danger=1,speed=1850,range=900,delay=0.25,radius=65,collision=true},
 	["RakanW"]={charName="Rakan",slot=_W,type="circular",displayName="Grand Entrance",danger=2,speed=2050,range=600,delay=0,radius=250,collision=false},
@@ -445,6 +450,9 @@ self.EvadeSpells = {
 	},
 	["Poppy"] = {
 		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=1},
+	},
+	["Pyke"] = {
+		[2] = {type=1,displayName="Phantom Undertow",range=550,danger=2,slot=2},
 	},
 	["Rakan"] = {
 		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=1},
