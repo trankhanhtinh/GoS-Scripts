@@ -662,15 +662,14 @@ function Katarina:LaneClear()
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
 		if minion and minion.isEnemy then
-			if self.KatarinaMenu.LaneClear.UseQ:Value() then
-				if IsReady(_Q) and GotBuff(myHero, "katarinarsound") == 0 then
+			if IsReady(_Q) then
+				if self.KatarinaMenu.LaneClear.UseQ:Value() then
 					if ValidTarget(minion, KatarinaQ.range) then
 						Control.CastSpell(HK_Q, minion.pos)
 					end
 				end
-			end
-			if self.KatarinaMenu.LaneClear.UseE:Value() then
-				if IsReady(_E) and GotBuff(myHero, "katarinarsound") == 0 then
+			elseif IsReady(_E) then
+				if self.KatarinaMenu.LaneClear.UseE:Value() then
 					if ValidTarget(minion, KatarinaE.range) then
 						if Counter + 100 > GetTickCount() then return end
 						for i = 0, Game.ObjectCount() do
