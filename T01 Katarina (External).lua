@@ -6,10 +6,12 @@
 --   |____|    \_____  /___| |____|__ (____  /__| (____  /__|  |__|___|  (____  /
 --                   \/              \/    \/          \/              \/     \/ 
 --
--- Current version: 1.0
+-- Current version: 1.0.1
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.1
+-- + Optimized code
 -- 1.0
 -- + Initial release
 
@@ -95,7 +97,7 @@ function GetTarget(range)
 	if _G.SDK then
 		return _G.SDK.TargetSelector:GetTarget(range, _G.SDK.DAMAGE_TYPE_MAGICAL);
 	elseif _G.gsoSDK then
-		return _G.gsoSDK.TS:GetTarget(GetEnemyHeroes(), true)
+		return _G.gsoSDK.TS:GetTarget()
 	else
 		return _G.GOS:GetTarget(range,"AP")
 	end
@@ -180,7 +182,7 @@ function Katarina:Menu()
 	self.KatarinaMenu.Harass:MenuElement({id = "ModeE", name = "Cast Mode: E", drop = {"Enemy", "Dagger"}, value = 1})
 	
 	self.KatarinaMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
-	self.KatarinaMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q [Bouncing Blade]", value = true, leftIcon = QIcon})
+	self.KatarinaMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q [Bouncing Blade]", value = false, leftIcon = QIcon})
 	self.KatarinaMenu.KillSteal:MenuElement({id = "UseE", name = "Use E [Shunpo]", value = true, leftIcon = EIcon})
 	self.KatarinaMenu.KillSteal:MenuElement({id = "UseIgnite", name = "Use Ignite", value = true, leftIcon = IgniteIcon})
 	
@@ -190,10 +192,6 @@ function Katarina:Menu()
 	self.KatarinaMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.KatarinaMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Bouncing Blade]", value = false, leftIcon = QIcon})
 	self.KatarinaMenu.LaneClear:MenuElement({id = "UseE", name = "Use E [Shunpo]", value = false, leftIcon = EIcon})
-	
-	self.KatarinaMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
-	self.KatarinaMenu.AntiGapcloser:MenuElement({id = "UseW", name = "Use W [Preparation]", value = true, leftIcon = WIcon})
-	self.KatarinaMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: W", value = 250, min = 25, max = 500, step = 25})
 	
 	self.KatarinaMenu:MenuElement({id = "Dodge", name = "Dodge", type = MENU})
 	self.KatarinaMenu.Dodge:MenuElement({id = "UseE", name = "Use E [Shunpo]", value = true, leftIcon = EIcon})
@@ -214,7 +212,7 @@ function Katarina:Menu()
 	self.KatarinaMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
 	self.KatarinaMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
 	self.KatarinaMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
-	self.KatarinaMenu.Drawings:MenuElement({id = "DrawTD", name = "Draw Killable Enemy", value = true})
+	self.KatarinaMenu.Drawings:MenuElement({id = "DrawTD", name = "Draw Killable Enemy", value = false})
 	self.KatarinaMenu.Drawings:MenuElement({id = "DrawJng", name = "Draw Jungler Info", value = true})
 	
 	self.KatarinaMenu:MenuElement({id = "Items", name = "Items", type = MENU})
@@ -231,6 +229,8 @@ function Katarina:Spells()
 end
 
 function Katarina:__init()
+	Counter = 0
+	TotalDmg = 0
 	Item_HK = {}
 	self:Menu()
 	self:Spells()
@@ -248,67 +248,69 @@ function Katarina:Tick()
 	Item_HK[ITEM_5] = HK_ITEM_5
 	Item_HK[ITEM_6] = HK_ITEM_6
 	Item_HK[ITEM_7] = HK_ITEM_7
-	self:Check()
-	self:Daggers()
-	self:Damage()
-	self:Detect()
-	self:Dodge()
-	self:Items()
-	self:Auto()
-	self:Combo()
-	self:Harass()
-	self:KillSteal()
-	self:LastHit()
-	self:LaneClear()
-	self:Flee()
-	self:AntiGapcloser()
-end
-
-function Katarina:Check()
-	if GotBuff(myHero, "katarinarsound") > 0 then
-		if EnemiesAround(myHero.pos, KatarinaR.range-100) >= 1 then
-			if _G.SDK then
-				_G.SDK.Orbwalker:SetMovement(false)
-				_G.SDK.Orbwalker:SetAttack(false)
-			else
-				GOS.BlockMovement = true
-				GOS.BlockAttack = true
-			end
-		else
-			Control.Move(myHero.pos.x+1, myHero.pos.y+1, myHero.pos.z)
-			if _G.SDK then
-				_G.SDK.Orbwalker:SetMovement(true)
-				_G.SDK.Orbwalker:SetAttack(true)
-			else
-				GOS.BlockMovement = false
-				GOS.BlockAttack = false
-			end
-		end
-	else
-		if _G.SDK then
-			_G.SDK.Orbwalker:SetMovement(true)
-			_G.SDK.Orbwalker:SetAttack(true)
-		else
-			GOS.BlockMovement = false
-			GOS.BlockAttack = false
+	self:Calc()
+	if GotBuff(myHero, "katarinarsound") == 0 then
+		self:Auto()
+		self:KillSteal()
+		if Mode() == "Combo" then
+			self:Combo()
+		elseif Mode() == "Harass" then
+			self:Harass()
+		elseif Mode() == "Clear" then
+			self:LaneClear()
+			self:LastHit()
+		elseif Mode() == "Flee" then
+			self:Flee()
 		end
 	end
 end
 
-function Katarina:Daggers()
-	for i = 0, Game.ObjectCount() do
-		local object = Game.Object(i)
-		if object and not object.dead then
-			if object.name:lower():find("katarina_base_dagger_ground_indicator") then
-				table.insert(Daggers, object)
-				DelayAction(function() table.remove(Daggers, 1) end, 4)
-			end
-		end
-	end
-end
+local Spells = {
+	["Alistar"] = {"Pulverize"},
+	["Amumu"] = {"BandageToss", "CurseoftheSadMummy"},
+	["Annie"] = {"InfernalGuardian"},
+	["Ashe"] = {"EnchantedCrystalArrow"},
+	["AurelionSol"] = {"AurelionSolR"},
+	["Bard"] = {"BardR"},
+	["Blitzcrank"] = {"RocketGrab", "StaticField"},
+	["Braum"] = {"BraumR"},
+	["CassiopeiaR"] = {"CassiopeiaR"},
+	["Draven"] = {"DravenRCast"},
+	["EvelynnR"] = {"EvelynnR"},
+	["Ekko"] = {"EkkoR"},
+	["Ezreal"] = {"EzrealTrueshotBarrage"},
+	["Fizz"] = {"FizzR"},
+	["Galio"] = {"GalioR"},
+	["Gangplank"] = {"GangplankR"},
+	["Gnar"] = {"GnarR"},
+	["Gragas"] = {"GragasR"},
+	["Graves"] = {"GravesChargeShot"},
+	["Hecarim"] = {"HecarimUlt"},
+	["Illaoi"] = {"IllaoiR"},
+	["Irelia"] = {"IreliaR"},
+	["Jinx"] = {"JinxR"},
+	["Kassadin"] = {"Riftwalk"},
+	["Katarina"] = {"KatarinaR"},
+	["Leona"] = {"LeonaSolarFlare"},
+	["Lux"] = {"LuxMaliceCannonMis"},
+	["MissFortune"] = {"MissFortuneBulletTime"},
+	["Nami"] = {"NamiRMissile"},
+	["Nautilus"] = {"NautilusAnchorDragMissile"},
+	["Nunu"] = {"AbsoluteZero"},
+	["Orianna"] = {"OrianaDetonateCommand"},
+	["Ornn"] = {"OrnnRCharge"},
+	["Pantheon"] = {"PantheonRFall"},
+	["Riven"] = {"RivenIzunaBlade"},
+	["Sejuani"] = {"SejuaniR"},
+	["Shyvana"] = {"ShyvanaTransformLeap"},
+	["Urgot"] = {"UrgotR"},
+	["Varus"] = {"VarusR"},
+	["Zac"] = {"ZacR"},
+	["Ziggs"] = {"ZiggsR"},
+	["Zyra"] = {"ZyraR"},
+}
 
-function Katarina:Damage()
-	if myHero.dead then return end
+function Katarina:Calc()
 	if self.KatarinaMenu.Drawings.DrawTD:Value() then
 		for i, enemy in pairs(GetEnemyHeroes()) do
 			if myHero.levelData.lvl >= 0 and myHero.levelData.lvl <= 5 then
@@ -366,57 +368,8 @@ function Katarina:Damage()
 			elseif IsReady(_R) then
 				TotalDmg = RDmg
 			end
-			return TotalDmg
 		end
 	end
-end
-
-local Spells = {
-	["Alistar"] = {"Pulverize"},
-	["Amumu"] = {"BandageToss", "CurseoftheSadMummy"},
-	["Annie"] = {"InfernalGuardian"},
-	["Ashe"] = {"EnchantedCrystalArrow"},
-	["AurelionSol"] = {"AurelionSolR"},
-	["Bard"] = {"BardR"},
-	["Blitzcrank"] = {"RocketGrab", "StaticField"},
-	["Braum"] = {"BraumR"},
-	["CassiopeiaR"] = {"CassiopeiaR"},
-	["Draven"] = {"DravenRCast"},
-	["EvelynnR"] = {"EvelynnR"},
-	["Ekko"] = {"EkkoR"},
-	["Ezreal"] = {"EzrealTrueshotBarrage"},
-	["Fizz"] = {"FizzR"},
-	["Galio"] = {"GalioR"},
-	["Gangplank"] = {"GangplankR"},
-	["Gnar"] = {"GnarR"},
-	["Gragas"] = {"GragasR"},
-	["Graves"] = {"GravesChargeShot"},
-	["Hecarim"] = {"HecarimUlt"},
-	["Illaoi"] = {"IllaoiR"},
-	["Irelia"] = {"IreliaR"},
-	["Jinx"] = {"JinxR"},
-	["Kassadin"] = {"Riftwalk"},
-	["Katarina"] = {"KatarinaR"},
-	["Leona"] = {"LeonaSolarFlare"},
-	["Lux"] = {"LuxMaliceCannonMis"},
-	["MissFortune"] = {"MissFortuneBulletTime"},
-	["Nami"] = {"NamiRMissile"},
-	["Nautilus"] = {"NautilusAnchorDragMissile"},
-	["Nunu"] = {"AbsoluteZero"},
-	["Orianna"] = {"OrianaDetonateCommand"},
-	["Ornn"] = {"OrnnRCharge"},
-	["Pantheon"] = {"PantheonRFall"},
-	["Riven"] = {"RivenIzunaBlade"},
-	["Sejuani"] = {"SejuaniR"},
-	["Shyvana"] = {"ShyvanaTransformLeap"},
-	["Urgot"] = {"UrgotR"},
-	["Varus"] = {"VarusR"},
-	["Zac"] = {"ZacR"},
-	["Ziggs"] = {"ZiggsR"},
-	["Zyra"] = {"ZyraR"},
-}
-
-function Katarina:Detect()
 	if self.KatarinaMenu.Dodge.UseE:Value() then
 		for i = 1, Game.HeroCount() do
 			local hero = Game.Hero(i);
@@ -453,11 +406,6 @@ function Katarina:Detect()
 				end
 			end
 		end
-	end
-end
-
-function Katarina:Dodge()
-	if self.KatarinaMenu.Dodge.UseE:Value() then
 		for key, v in pairs(IS) do
 			local SpellHit = v.startPos+Vector(v.startPos,v.endPos):Normalized()*GetDistance(myHero.pos,v.startPos)
 			local SpellPosition = v.startPos+Vector(v.startPos,v.endPos):Normalized()*(v.speed*(Game.Timer()-v.startTime)*3)
@@ -481,28 +429,6 @@ function Katarina:Dodge()
 			end
 			if (GetDistanceSqr(SpellPosition,v.startPos) >= GetDistanceSqr(v.startPos,v.endPos)) then
 				IS[key] = nil
-			end
-		end
-	end
-end
-
-function Katarina:Items()
-	if target == nil then return end
-	if EnemiesAround(myHero, 1000) >= 1 then
-		if (target.health / target.maxHealth)*100 <= self.KatarinaMenu.Items.OI:Value() then
-			if self.KatarinaMenu.Items.UseBC:Value() then
-				if GetItemSlot(myHero, 3144) > 0 and ValidTarget(target, 550) then
-					if myHero:GetSpellData(GetItemSlot(myHero, 3144)).currentCd == 0 then
-						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3144)], target)
-					end
-				end
-			end
-			if self.KatarinaMenu.Items.UseHG:Value() then
-				if GetItemSlot(myHero, 3146) > 0 and ValidTarget(target, 700) then
-					if myHero:GetSpellData(GetItemSlot(myHero, 3146)).currentCd == 0 then
-						Control.CastSpell(Item_HK[GetItemSlot(myHero, 3146)], target)
-					end
-				end
 			end
 		end
 	end
@@ -539,7 +465,7 @@ function Katarina:Draw()
 		end
 		if self.KatarinaMenu.Drawings.DrawTD:Value() then
 			if ValidTarget(enemy) then
-				if enemy.health < self:Damage() then
+				if enemy.health < TotalDmg then
 					Draw.Circle(enemy.pos, 100, 20, Draw.Color(255, 220, 20, 60))
 				end
 			end
@@ -570,10 +496,8 @@ function Katarina:Auto()
 	if target == nil then return end
 	if self.KatarinaMenu.Auto.UseQ:Value() then
 		if IsReady(_Q) then
-			if GotBuff(myHero, "katarinarsound") == 0 then
-				if ValidTarget(target, KatarinaQ.range) then
-					Control.CastSpell(HK_Q, target.pos)
-				end
+			if ValidTarget(target, KatarinaQ.range) then
+				Control.CastSpell(HK_Q, target.pos)
 			end
 		end
 	end
@@ -581,48 +505,64 @@ end
 
 function Katarina:Combo()
 	if target == nil then return end
-	if Mode() == "Combo" then
-		if GotBuff(myHero, "katarinarsound") == 0 then
-			if self.KatarinaMenu.Combo.UseQ:Value() then
-				if IsReady(_Q) then
-					if ValidTarget(target, KatarinaQ.range) then
-						Control.CastSpell(HK_Q, target)
-					end
-				end
+	if self.KatarinaMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) then
+			if ValidTarget(target, KatarinaQ.range) then
+				Control.CastSpell(HK_Q, target)
 			end
-			if self.KatarinaMenu.Combo.UseW:Value() then
-				if IsReady(_W) then
-					if ValidTarget(target, KatarinaW.range) then
-						Control.CastSpell(HK_W)
-					end
-				end
+		end
+	end
+	if self.KatarinaMenu.Combo.UseW:Value() then
+		if IsReady(_W) then
+			if ValidTarget(target, KatarinaW.range) then
+				Control.CastSpell(HK_W)
 			end
-			if self.KatarinaMenu.Combo.UseE:Value() then
-				if IsReady(_E) then
-					if ValidTarget(target, KatarinaE.range+KatarinaE.width) then
-						if self.KatarinaMenu.Combo.ModeE:Value() == 1 then
-							self:UseE(target)
-						elseif self.KatarinaMenu.Combo.ModeE:Value() == 2 then
-							for i, dagger in pairs(Daggers) do
-								if GetDistance(target.pos, dagger.pos) < KatarinaW.range then
-									Control.CastSpell(HK_E, dagger.pos)
-									table.remove(Daggers, i)
-								end
+		end
+	end
+	if self.KatarinaMenu.Combo.UseE:Value() then
+		if IsReady(_E) then
+			if ValidTarget(target, KatarinaE.range+KatarinaE.width) then
+				if self.KatarinaMenu.Combo.ModeE:Value() == 1 then
+					self:UseE(target)
+				elseif self.KatarinaMenu.Combo.ModeE:Value() == 2 then
+					if Counter + 100 > GetTickCount() then return end
+					for i = 0, Game.ObjectCount() do
+						local object = Game.Object(i)
+						if object and object.name:lower():find("katarina_base_dagger_ground_indicator") then
+							local DaggerPos = object.pos
+							if GetDistance(target.pos, DaggerPos) < KatarinaW.range then
+								Control.CastSpell(HK_E, DaggerPos)
 							end
 						end
 					end
+					Counter = GetTickCount()
 				end
 			end
-			if self.KatarinaMenu.Combo.UseR:Value() then
-				if IsReady(_R) then
-					if ValidTarget(target, KatarinaR.range) then
-						if GetPercentHP(target) < self.KatarinaMenu.Combo.HP:Value() then
-							if EnemiesAround(myHero, KatarinaR.range) >= self.KatarinaMenu.Combo.X:Value() then
-								DisableAll()
-								DelayAction(function() Control.CastSpell(HK_R) end,0.1)
-							end
-						end
+		end
+	end
+	if self.KatarinaMenu.Combo.UseR:Value() then
+		if IsReady(_R) then
+			if ValidTarget(target, KatarinaR.range) then
+				if GetPercentHP(target) < self.KatarinaMenu.Combo.HP:Value() then
+					if EnemiesAround(myHero, KatarinaR.range) >= self.KatarinaMenu.Combo.X:Value() then
+						Control.CastSpell(HK_R)
 					end
+				end
+			end
+		end
+	end
+	if (target.health / target.maxHealth)*100 <= self.KatarinaMenu.Items.OI:Value() then
+		if self.KatarinaMenu.Items.UseBC:Value() then
+			if GetItemSlot(myHero, 3144) > 0 and ValidTarget(target, 550) then
+				if myHero:GetSpellData(GetItemSlot(myHero, 3144)).currentCd == 0 then
+					Control.CastSpell(Item_HK[GetItemSlot(myHero, 3144)], target)
+				end
+			end
+		end
+		if self.KatarinaMenu.Items.UseHG:Value() then
+			if GetItemSlot(myHero, 3146) > 0 and ValidTarget(target, 700) then
+				if myHero:GetSpellData(GetItemSlot(myHero, 3146)).currentCd == 0 then
+					Control.CastSpell(Item_HK[GetItemSlot(myHero, 3146)], target)
 				end
 			end
 		end
@@ -631,36 +571,37 @@ end
 
 function Katarina:Harass()
 	if target == nil then return end
-	if Mode() == "Harass" then
-		if GotBuff(myHero, "katarinarsound") == 0 then
-			if self.KatarinaMenu.Harass.UseQ:Value() then
-				if IsReady(_Q) then
-					if ValidTarget(target, KatarinaQ.range) then
-						Control.CastSpell(HK_Q, target)
-					end
-				end
+	if self.KatarinaMenu.Harass.UseQ:Value() then
+		if IsReady(_Q) then
+			if ValidTarget(target, KatarinaQ.range) then
+				Control.CastSpell(HK_Q, target)
 			end
-			if self.KatarinaMenu.Harass.UseW:Value() then
-				if IsReady(_W) then
-					if ValidTarget(target, KatarinaW.range) then
-						Control.CastSpell(HK_W)
-					end
-				end
+		end
+	end
+	if self.KatarinaMenu.Harass.UseW:Value() then
+		if IsReady(_W) then
+			if ValidTarget(target, KatarinaW.range) then
+				Control.CastSpell(HK_W)
 			end
-			if self.KatarinaMenu.Harass.UseE:Value() then
-				if IsReady(_E) then
-					if ValidTarget(target, KatarinaE.range+KatarinaE.width) then
-						if self.KatarinaMenu.Harass.ModeE:Value() == 1 then
-							self:UseE(target)
-						elseif self.KatarinaMenu.Harass.ModeE:Value() == 2 then
-							for i, dagger in pairs(Daggers) do
-								if GetDistance(target.pos, dagger.pos) < KatarinaW.range then
-									Control.CastSpell(HK_E, dagger.pos)
-									table.remove(Daggers, i)
-								end
+		end
+	end
+	if self.KatarinaMenu.Harass.UseE:Value() then
+		if IsReady(_E) then
+			if ValidTarget(target, KatarinaE.range+KatarinaE.width) then
+				if self.KatarinaMenu.Harass.ModeE:Value() == 1 then
+					self:UseE(target)
+				elseif self.KatarinaMenu.Harass.ModeE:Value() == 2 then
+					if Counter + 100 > GetTickCount() then return end
+					for i = 0, Game.ObjectCount() do
+						local object = Game.Object(i)
+						if object and object.name:lower():find("katarina_base_dagger_ground_indicator") then
+							local DaggerPos = object.pos
+							if GetDistance(target.pos, DaggerPos) < KatarinaW.range then
+								Control.CastSpell(HK_E, DaggerPos)
 							end
 						end
 					end
+					Counter = GetTickCount()
 				end
 			end
 		end
@@ -669,52 +610,46 @@ end
 
 function Katarina:KillSteal()
 	for i,enemy in pairs(GetEnemyHeroes()) do
-		if GotBuff(myHero, "katarinarsound") == 0 then
-			if IsReady(_E) then
-				if self.KatarinaMenu.KillSteal.UseE:Value() then
-					if ValidTarget(enemy, KatarinaE.range) then
-						local KatarinaEDmg = CalcMagicalDamage(myHero, enemy, ((({15, 30, 45, 60, 75})[myHero:GetSpellData(_E).level]) + 0.5 * myHero.totalDamage + 0.25 * myHero.ap))
-						if enemy.health < KatarinaEDmg then
-							Control.CastSpell(HK_E, enemy)
-						end
+		if IsReady(_E) then
+			if self.KatarinaMenu.KillSteal.UseE:Value() then
+				if ValidTarget(enemy, KatarinaE.range) then
+					if enemy.health < EDmg then
+						Control.CastSpell(HK_E, enemy)
 					end
 				end
-			elseif IsReady(_Q) then
-				if self.KatarinaMenu.KillSteal.UseQ:Value() then
-					if ValidTarget(enemy, KatarinaQ.range) then
-						local KatarinaQDmg = CalcMagicalDamage(myHero, enemy, ((({75, 105, 135, 165, 195})[myHero:GetSpellData(_Q).level]) + 0.3 * myHero.ap))
-						if enemy.health < KatarinaQDmg then
-							Control.CastSpell(HK_Q, enemy)
-						end
+			end
+		elseif IsReady(_Q) then
+			if self.KatarinaMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, KatarinaQ.range) then
+					if enemy.health < QDmg then
+						Control.CastSpell(HK_Q, enemy)
 					end
 				end
 			end
 		end
-		if self.KatarinaMenu.KillSteal.UseIgnite:Value() then
-			local IgniteDmg = (55 + 25 * myHero.levelData.lvl)
-			if ValidTarget(enemy, 600) and enemy.health + enemy.shieldAD < IgniteDmg then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and IsReady(SUMMONER_1) then
-					Control.CastSpell(HK_SUMMONER_1, enemy)
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and IsReady(SUMMONER_2) then
-					Control.CastSpell(HK_SUMMONER_2, enemy)
-				end
+	end
+	if self.KatarinaMenu.KillSteal.UseIgnite:Value() then
+		local IgniteDmg = (55 + 25 * myHero.levelData.lvl)
+		if ValidTarget(enemy, 600) and enemy.health + enemy.shieldAD < IgniteDmg then
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and IsReady(SUMMONER_1) then
+				Control.CastSpell(HK_SUMMONER_1, enemy)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and IsReady(SUMMONER_2) then
+				Control.CastSpell(HK_SUMMONER_2, enemy)
 			end
 		end
 	end
 end
 
 function Katarina:LastHit()
-	if Mode() == "Clear" then
-		for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
-			if minion and minion.isEnemy then
-				if self.KatarinaMenu.LastHit.UseQ:Value() then
-					if IsReady(_Q) and GotBuff(myHero, "katarinarsound") == 0 then
-						if ValidTarget(minion, KatarinaQ.range) then
-							local KatarinaQDmg = ((({75, 105, 135, 165, 195})[myHero:GetSpellData(_Q).level]) + 0.3 * myHero.ap)
-							if minion.health < KatarinaQDmg then
-								Control.CastSpell(HK_Q, minion.pos)
-							end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and minion.isEnemy then
+			if self.KatarinaMenu.LastHit.UseQ:Value() then
+				if IsReady(_Q) and GotBuff(myHero, "katarinarsound") == 0 then
+					if ValidTarget(minion, KatarinaQ.range) then
+						local KatarinaQDmg = ((({75, 105, 135, 165, 195})[myHero:GetSpellData(_Q).level]) + 0.3 * myHero.ap)
+						if minion.health < KatarinaQDmg then
+							Control.CastSpell(HK_Q, minion.pos)
 						end
 					end
 				end
@@ -724,27 +659,30 @@ function Katarina:LastHit()
 end
 
 function Katarina:LaneClear()
-	if Mode() == "Clear" then
-		for i = 1, Game.MinionCount() do
-			local minion = Game.Minion(i)
-			if minion and minion.isEnemy then
-				if self.KatarinaMenu.LaneClear.UseQ:Value() then
-					if IsReady(_Q) and GotBuff(myHero, "katarinarsound") == 0 then
-						if ValidTarget(minion, KatarinaQ.range) then
-							Control.CastSpell(HK_Q, minion.pos)
-						end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if minion and minion.isEnemy then
+			if self.KatarinaMenu.LaneClear.UseQ:Value() then
+				if IsReady(_Q) and GotBuff(myHero, "katarinarsound") == 0 then
+					if ValidTarget(minion, KatarinaQ.range) then
+						Control.CastSpell(HK_Q, minion.pos)
 					end
 				end
-				if self.KatarinaMenu.LaneClear.UseE:Value() then
-					if IsReady(_E) and GotBuff(myHero, "katarinarsound") == 0 then
-						if ValidTarget(minion, KatarinaE.range) then
-							for i, dagger in pairs(Daggers) do
-								if GetDistance(minion.pos, dagger.pos) < KatarinaW.range then
-									Control.CastSpell(HK_E, dagger.pos)
-									table.remove(Daggers, i)
+			end
+			if self.KatarinaMenu.LaneClear.UseE:Value() then
+				if IsReady(_E) and GotBuff(myHero, "katarinarsound") == 0 then
+					if ValidTarget(minion, KatarinaE.range) then
+						if Counter + 100 > GetTickCount() then return end
+						for i = 0, Game.ObjectCount() do
+							local object = Game.Object(i)
+							if object and object.name:lower():find("katarina_base_dagger_ground_indicator") then
+								local DaggerPos = object.pos
+								if GetDistance(minion.pos, DaggerPos) < KatarinaW.range then
+									Control.CastSpell(HK_E, DaggerPos)
 								end
 							end
 						end
+						Counter = GetTickCount()
 					end
 				end
 			end
@@ -754,29 +692,15 @@ end
 
 function Katarina:Flee()
 	if self.KatarinaMenu.Flee.UseE:Value() then
-		if Mode() == "Flee" then
-			for i = 1, Game.MinionCount() do
-				local minion = Game.Minion(i)
-				if minion then
-					if GetDistance(minion.pos) <= KatarinaE.range then
-						if IsReady(_E) then
-							Control.CastSpell(HK_E, mousendPos)
-						elseif IsReady(_W) then
-							Control.CastSpell(HK_W)
-						end
+		for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+			if minion then
+				if GetDistance(minion.pos) <= KatarinaE.range then
+					if IsReady(_E) then
+						Control.CastSpell(HK_E, mousendPos)
+					elseif IsReady(_W) then
+						Control.CastSpell(HK_W)
 					end
-				end
-			end
-		end
-	end
-end
-
-function Katarina:AntiGapcloser()
-	for i,antigap in pairs(GetEnemyHeroes()) do
-		if IsReady(_W) and GotBuff(myHero, "katarinarsound") == 0 then
-			if self.KatarinaMenu.AntiGapcloser.UseW:Value() then
-				if ValidTarget(antigap, self.KatarinaMenu.AntiGapcloser.Distance:Value()) then
-					Control.CastSpell(HK_W)
 				end
 			end
 		end
