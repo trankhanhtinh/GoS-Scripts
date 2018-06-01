@@ -840,7 +840,7 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 			local EndPosition = Vector(endPos)+(Vector(endPos)-Vector(startPos)):Normalized():Perpendicular()*(radius2 or 400)
 			local Path1 = Vector(MPos)+Vector(StartPosition-EndPosition):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			local Path2 = Vector(MPos)+Vector(StartPosition-EndPosition):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
-			if GetDistance(Vector(MPos)+Vector(StartPosition-EndPosition):Normalized():Perpendicular2(),bPos) > GetDistance(Vector(MPos)+Vector(startp-endp):Normalized():Perpendicular(),bPos) then
+			if GetDistance(Vector(MPos)+Vector(StartPosition-EndPosition):Normalized():Perpendicular2(),bPos) > GetDistance(Vector(MPos)+Vector(StartPosition-EndPosition):Normalized():Perpendicular(),bPos) then
 				if not MapPosition:inWall(Path2) then
 					local Pos1 = Vector(MPos)+Vector(StartPosition-EndPosition):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 					return Pos1
