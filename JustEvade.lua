@@ -30,6 +30,9 @@
 -- 1.0 BETA
 -- + Initial release
 
+local TableInsert = table.insert
+local TableRemove = table.remove
+
 class 'JustEvade'
 
 OnLoad(function()
@@ -41,8 +44,6 @@ end)
 
 function JustEvade:__init()
 	_G.JustEvade = false
-	TableInsert = table.insert
-	TableRemove = table.remove
 	self.Flash = (GetCastName(myHero,SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.DetSpells = {}
@@ -1104,7 +1105,7 @@ function JustEvade:AdditionalTime(unit, spell)
 end
 
 function JustEvade:Detect(unit, spell)
-	if unit and spell and spell.name then
+	if unit and spell and unit.team ~= myHero.team then
 		if self.Spells[spell.name] then
 			local SpellDet = self.Spells[spell.name]
 			local SType = SpellDet.type
