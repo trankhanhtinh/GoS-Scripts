@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.5 BETA
+-- Current version: 1.0.5.1 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5.1 BETA
+-- + Fixed drawings
 -- 1.0.5 BETA
 -- + Added Pyke Q detection
 -- + Added Pyke E to evade spells
@@ -610,9 +612,6 @@ function JustEvade:Dodge()
 			if type == "linear" then
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-						if GetDistance(spell.startPos,spell.endPos) < range + radius then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(range+radius)
-						end
 						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()+delay-spell.startTime)-radius+EMenu.Misc.ER:Value())
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero))
 						if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
@@ -626,9 +625,6 @@ function JustEvade:Dodge()
 					end
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-						if GetDistance(spell.startPos,spell.endPos) < range then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*GetDistance(spell.startPos,myHero)
-						end
 						if GetDistance(myHero,spell.endPos) < radius+b+EMenu.Misc.ER:Value() then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
@@ -643,9 +639,6 @@ function JustEvade:Dodge()
 			if type == "circular" then
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-						if GetDistance(spell.startPos,spell.endPos) > range then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
-						end
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
@@ -657,9 +650,6 @@ function JustEvade:Dodge()
 					end
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-						if GetDistance(spell.startPos,spell.endPos) > range then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
-						end
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
@@ -947,9 +937,6 @@ function JustEvade:Draw()
 				--			end
 				--		end
 						if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-							if GetDistance(spell.startPos,spell.endPos) < range then
-								spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
-							end
 							local pos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()-delay-spell.startTime)-radius)
 							self:DrawRectangleOutline(spell.startPos, spell.endPos, (spell.startTime+delay < GetGameTimer() and pos or nil), radius)
 						else
@@ -957,9 +944,6 @@ function JustEvade:Draw()
 						end
 					elseif speed == math.huge then
 						if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-							if GetDistance(spell.startPos,spell.endPos) < range then
-								spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
-							end
 							self:DrawRectangleOutline(spell.startPos, spell.endPos, nil, radius)
 						else
 							table.remove(self.DetSpells, _)
@@ -969,9 +953,6 @@ function JustEvade:Draw()
 				if type == "circular" then
 					if speed ~= math.huge then
 						if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-							if GetDistance(spell.startPos,spell.endPos) > range then
-								spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
-							end
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,32,ARGB(255,255,255,255))
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,32,ARGB(255,255,255,255))
 						else
@@ -979,9 +960,6 @@ function JustEvade:Draw()
 						end
 					elseif speed == math.huge then
 						if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-							if GetDistance(spell.startPos,spell.endPos) > range then
-								spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*range
-							end
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,32,ARGB(255,255,255,255))
 							DrawCircle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,32,ARGB(255,255,255,255))
 						else
@@ -1122,11 +1100,31 @@ function JustEvade:AdditionalTime(unit, spell)
 	return 0
 end
 
-function JustEvade:Detect(unit, spell)
-	if unit and spell and spell.name and unit.team ~= myHero.team then
+function Evade:Detect(unit, spell)
+	if unit and spell and spell.name then
 		if self.Spells and self.Spells[spell.name] then
-			s = {slot = self.Spells[spell.name].slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(spell.endPos), windUpTime = spell.windUpTime, name = spell.name}
-			table.insert(self.DetSpells, s)
+			local SpellDet = self.Spells[spell.name]
+			if SpellDet.type == "linear" or SpellDet.type == "conic" then
+				local endPos = unit.pos-(unit.pos-Vector(spell.endPos)):normalized()*SpellDet.range
+				s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+				table.insert(self.DetSpells, s)
+			elseif SpellDet.type == "circular" or SpellDet.type == "rectangular" or SpellDet.type == "annular" then
+				if SpellDet.range > 0 then
+					if GetDistance(unit.pos, spell.endPos) > SpellDet.range then
+						local endPos = unit.pos-(unit.pos-Vector(spell.endPos)):normalized()*SpellDet.range
+						s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+						table.insert(self.DetSpells, s)
+					else
+						local endPos = spell.endPos
+						s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+						table.insert(self.DetSpells, s)
+					end
+				else
+					local endPos = unit.pos
+					s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+					table.insert(self.DetSpells, s)
+				end
+			end
 		end
 	end
 	if unit == myHero and _G.JustEvade then
