@@ -659,7 +659,7 @@ function JustEvade:Dodge()
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero.pos))
 						if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
+							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
 							self.Timer = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.DangerLvl = danger
 						end
@@ -670,7 +670,7 @@ function JustEvade:Dodge()
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						if GetDistance(myHero.pos,spell.endPos) < radius+b+EMenu.Misc.ER:Value() then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
+							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
 							self.Timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.DangerLvl = danger
 						end
@@ -684,7 +684,7 @@ function JustEvade:Dodge()
 					if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						if GetDistance(myHero.pos,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
+							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
 							self.Timer = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.DangerLvl = danger
 						end
@@ -695,7 +695,7 @@ function JustEvade:Dodge()
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						if GetDistance(myHero.pos,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
+							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
 							self.Timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.DangerLvl = danger
 						end
@@ -714,7 +714,7 @@ function JustEvade:Dodge()
 							local BPos = VectorPointProjectionOnLineSegment(StartPosition,EndPosition,Vector(myHero.pos))
 							if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
 								self.Timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 								self.DangerLvl = danger
 							end
@@ -732,7 +732,7 @@ function JustEvade:Dodge()
 							local BPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero.pos))
 							if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
 								self.Timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 								self.DangerLvl = danger
 							end
@@ -744,7 +744,7 @@ function JustEvade:Dodge()
 							local BPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero.pos))
 							if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
 								self.Timer = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 								self.DangerLvl = danger
 							end
@@ -756,40 +756,22 @@ function JustEvade:Dodge()
 	end
 end
 
-function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius, sPos, bPos, type)
+function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius, bPos, type)
 	if myHero.dead then return end
 	if EMenu.Main.Pathfinding:Value() == 1 then
-		if type == "linear" then
-			local Pos1 = myHero.pos+Vector(Vector(myHero.pos)-sPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
-			local Pos2 = myHero.pos+Vector(Vector(myHero.pos)-sPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
-			if GetDistance(Pos1, startPos) < GetDistance(Pos2, startPos) then
-				if not MapPosition:inWall(Pos1) then
-					return Pos1
-				else
-					return Pos2
-				end
+		local Pos1 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+		local Pos2 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+		if GetDistance(Pos1, startPos) < GetDistance(Pos2, startPos) then
+			if not MapPosition:inWall(Pos1) then
+				return Pos1
 			else
-				if not MapPosition:inWall(Pos2) then
-					return Pos2
-				else
-					return Pos1
-				end
+				return Pos2
 			end
 		else
-			local Pos3 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
-			local Pos4 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
-			if GetDistance(Pos3, startPos) < GetDistance(Pos4, startPos) then
-				if not MapPosition:inWall(Pos3) then
-					return Pos3
-				else
-					return Pos4
-				end
+			if not MapPosition:inWall(Pos2) then
+				return Pos1
 			else
-				if not MapPosition:inWall(Pos4) then
-					return Pos4
-				else
-					return Pos3
-				end
+				return Pos2
 			end
 		end
 	elseif EMenu.Main.Pathfinding:Value() == 2 then
