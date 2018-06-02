@@ -57,7 +57,7 @@ function JustEvade:__init()
 	EMenu.Misc:Key("DD", "Dodge Only Dangerous", string.byte("N"))
 	EMenu.Misc:Slider("DE","Delay Before Enabling OW", 0.25, 0, 1, 0.01)
 	EMenu.Misc:Slider("TE","Extended Timer On Evade", 0, 0, 1, 0.01)
-	EMenu.Misc:Slider("ER","Extra Spell Radius", 15, 0, 100, 5)
+	EMenu.Misc:Slider("ER","Extra Spell Radius", 25, 0, 100, 5)
 	EMenu:SubMenu("Spells", "Spell Settings")
 	EMenu:SubMenu("EvadeSpells", "Evade Spells")
 	DelayAction(function()
@@ -616,7 +616,7 @@ function JustEvade:Dodge()
 			if type == "linear" then
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
-						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()+delay-spell.startTime)-radius+EMenu.Misc.ER:Value())
+						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()-delay-spell.startTime)-radius)
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero))
 						if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
 							_G.JustEvade = true
