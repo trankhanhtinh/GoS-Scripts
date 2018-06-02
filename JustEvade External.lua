@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.5 BETA
+-- Current version: 1.0.5.1 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5.1 BETA
+-- + Fixed Yasuo Q and Thresh Q drawings
 -- 1.0.5 BETA
 -- + Added Pyke Q detection
 -- + Added Pyke E to evade spells
@@ -1147,9 +1149,15 @@ function JustEvade:OnProcessSpell()
 		if self.Spells and self.Spells[spell.name] then
 			local SpellDet = self.Spells[spell.name]
 			if SpellDet.type == "linear" or SpellDet.type == "conic" then
-				local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*SpellDet.range
-				s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-				table.insert(self.DetSpells, s)
+				if SpellDet.displayName == "Steel Tempest" or SpellDet.displayName == "Steel Wind Rising" or SpellDet.displayName == "Gathering Storm" or SpellDet.displayName == "Death Sentence" then
+					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*(-SpellDet.range)
+					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+					table.insert(self.DetSpells, s)
+				else
+					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*SpellDet.range
+					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+					table.insert(self.DetSpells, s)
+				end
 			elseif SpellDet.type == "circular" or SpellDet.type == "rectangular" or SpellDet.type == "annular" then
 				if SpellDet.range > 0 then
 					if GetDistance(unit.pos, spell.placementPos) > SpellDet.range then
