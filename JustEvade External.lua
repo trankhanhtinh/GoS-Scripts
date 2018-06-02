@@ -652,9 +652,6 @@ function JustEvade:Dodge()
 			if type == "linear" then
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
-						if GetDistance(spell.startPos,spell.endPos) < range + radius then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(range+radius)
-						end
 						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(Game.Timer()+delay-spell.startTime)-radius+EMenu.Misc.ER:Value())
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero.pos))
 						if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
@@ -668,9 +665,6 @@ function JustEvade:Dodge()
 					end
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
-						if GetDistance(spell.startPos,spell.endPos) < range then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*GetDistance(spell.startPos,myHero.pos)
-						end
 						if GetDistance(myHero.pos,spell.endPos) < radius+b+EMenu.Misc.ER:Value() then
 							_G.JustEvade = true
 							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
@@ -970,9 +964,6 @@ function JustEvade:Draw()
 			if type == "linear" then
 				if speed ~= math.huge then
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
-						if GetDistance(spell.startPos,spell.endPos) < range then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*range
-						end
 						local pos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
 						self:DrawRectangleOutline(spell.startPos, spell.endPos, (spell.startTime+delay < Game.Timer() and pos or nil), radius)
 					else
@@ -980,9 +971,6 @@ function JustEvade:Draw()
 					end
 				elseif speed == math.huge then
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
-						if GetDistance(spell.startPos,spell.endPos) < range then
-							spell.endPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*range
-						end
 						self:DrawRectangleOutline(spell.startPos, spell.endPos, nil, radius)
 					else
 						table.remove(self.DetSpells, _)
