@@ -8,6 +8,7 @@
 -- ===============
 -- 1.0.5.1 BETA
 -- + Fixed Yasuo Q and Thresh Q drawings
+-- + Optimized code
 -- 1.0.5 BETA
 -- + Added Pyke Q detection
 -- + Added Pyke E to evade spells
@@ -33,6 +34,8 @@
 
 require 'MapPositionGOS'
 local extLib = require 'extLib'
+local TableInsert = table.insert
+local TableRemove = table.remove
 
 class 'JustEvade'
 
@@ -57,7 +60,7 @@ function GetEnemyHeroes()
 	for i = 1, Game.HeroCount() do
 		local Hero = Game.Hero(i)
 		if Hero.isEnemy then
-			table.insert(EnemyHeroes, Hero)
+			TableInsert(EnemyHeroes, Hero)
 		end
 	end
 	return EnemyHeroes
@@ -652,7 +655,7 @@ function JustEvade:Dodge()
 			if type == "linear" then
 				if speed and speed ~= math.huge then
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
-						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(Game.Timer()+delay-spell.startTime)-radius+EMenu.Misc.ER:Value())
+						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero.pos))
 						if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
 							_G.JustEvade = true
@@ -661,7 +664,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
@@ -672,7 +675,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				end
 			end
@@ -686,7 +689,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				elseif speed and speed == math.huge then
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
@@ -697,7 +700,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				end
 			end
@@ -717,7 +720,7 @@ function JustEvade:Dodge()
 							end
 						end
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				end
 			end
@@ -967,13 +970,13 @@ function JustEvade:Draw()
 						local pos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
 						self:DrawRectangleOutline(spell.startPos, spell.endPos, (spell.startTime+delay < Game.Timer() and pos or nil), radius)
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				elseif speed == math.huge then
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						self:DrawRectangleOutline(spell.startPos, spell.endPos, nil, radius)
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				end
 			end
@@ -983,14 +986,14 @@ function JustEvade:Draw()
 						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,Draw.Color(255,255,255,255))
 						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,Draw.Color(255,255,255,255))
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				elseif speed == math.huge then
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius+EMenu.Misc.ER:Value(),2,Draw.Color(255,255,255,255))
 						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,Draw.Color(255,255,255,255))
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				end
 			end
@@ -1001,13 +1004,13 @@ function JustEvade:Draw()
 					if spell.startTime+range/speed+delay+0.25+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						self:DrawCone(spell.startPos, Vector(EndPosition), angle or 40,1,Draw.Color(255,255,255,255))
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				elseif speed == math.huge then
 					if spell.startTime+delay+0.25+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						self:DrawCone(spell.startPos, Vector(EndPosition), angle or 40,1,Draw.Color(255,255,255,255))
 					else
-						table.remove(self.DetSpells, _)
+						TableRemove(self.DetSpells, _)
 					end
 				end
 			end
@@ -1017,7 +1020,7 @@ function JustEvade:Draw()
 					self:DrawRectangle(spell.startPos, spell.endPos, radius+myHero.boundingRadius, radius2, 1, Draw.Color(255,255,255,255))
 					self:DrawRectangle(spell.startPos, spell.endPos, radius+myHero.boundingRadius+EMenu.Misc.ER:Value(), radius2+EMenu.Misc.ER:Value(), 1, Draw.Color(255,255,255,255))
 				else
-					table.remove(self.DetSpells, _)
+					TableRemove(self.DetSpells, _)
 				end
 			end
 			if type == "annular" then
@@ -1025,7 +1028,7 @@ function JustEvade:Draw()
 					Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,5,Draw.Color(255,255,255,255))
 					Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius/1.5,2,5,Draw.Color(255,255,255,255))
 				else
-					table.remove(self.DetSpells, _)
+					TableRemove(self.DetSpells, _)
 				end
 			end
 		end
@@ -1136,31 +1139,33 @@ function JustEvade:OnProcessSpell()
 	if unit and unit.team ~= myHero.team then
 		if self.Spells and self.Spells[spell.name] then
 			local SpellDet = self.Spells[spell.name]
-			if SpellDet.type == "linear" or SpellDet.type == "conic" then
+			local SType = SpellDet.type
+			local SRange = SpellDet.range
+			if SType == "linear" or SType == "conic" then
 				if SpellDet.displayName == "Steel Tempest" or SpellDet.displayName == "Steel Wind Rising" or SpellDet.displayName == "Gathering Storm" or SpellDet.displayName == "Death Sentence" then
-					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*(-SpellDet.range)
+					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):normalized()*(-SRange)
 					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-					table.insert(self.DetSpells, s)
+					TableInsert(self.DetSpells, s)
 				else
-					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*SpellDet.range
+					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):normalized()*SRange
 					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-					table.insert(self.DetSpells, s)
+					TableInsert(self.DetSpells, s)
 				end
-			elseif SpellDet.type == "circular" or SpellDet.type == "rectangular" or SpellDet.type == "annular" then
-				if SpellDet.range > 0 then
-					if GetDistance(unit.pos, spell.placementPos) > SpellDet.range then
-						local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*SpellDet.range
+			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
+				if SRange > 0 then
+					if GetDistance(unit.pos, spell.placementPos) > SRange then
+						local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*SRange
 						s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-						table.insert(self.DetSpells, s)
+						TableInsert(self.DetSpells, s)
 					else
 						local endPos = spell.placementPos
 						s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-						table.insert(self.DetSpells, s)
+						TableInsert(self.DetSpells, s)
 					end
 				else
 					local endPos = unit.pos
 					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-					table.insert(self.DetSpells, s)
+					TableInsert(self.DetSpells, s)
 				end
 			end
 		end
