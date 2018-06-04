@@ -116,14 +116,14 @@ function JustEvade:__init()
 	EMenu.Main:MenuElement({id = "Draw", name = "Draw Spells", value = true})
 	EMenu.Main:MenuElement({id = "Status", name = "Draw Evade Status", value = true})
 	EMenu.Main:MenuElement({id = "SafePos", name = "Draw Safe Position", value = true})
-	EMenu.Main:MenuElement({id = "RP", name = "Recalculate Path", value = false})
+	EMenu.Main:MenuElement({id = "RP", name = "Recalculate Path", value = true})
 	EMenu.Main:MenuElement({id = "Pathfinding", name = "Pathfinding Type", drop = {"Simple", "Mouse", "Effective"}, value = 2})
 	EMenu:MenuElement({id = "Misc", name = "Misc Settings", type = MENU})
 	EMenu.Misc:MenuElement({id = "SD", name = "Stop Dodging", key = string.byte("A")})
 	EMenu.Misc:MenuElement({id = "DD", name = "Dodge Only Dangerous", key = string.byte(" ")})
 	EMenu.Misc:MenuElement({id = "DE", name = "Delay Before Enabling OW", value = 0.25, min = 0, max = 1, step = 0.01})
 	EMenu.Misc:MenuElement({id = "TE", name = "Extended Timer On Evade", value = 0, min = 0, max = 1, step = 0.01})
-	EMenu.Misc:MenuElement({id = "ER", name = "Extra Spell Radius", value = 10, min = 0, max = 100, step = 5})
+	EMenu.Misc:MenuElement({id = "ER", name = "Extra Spell Radius", value = 25, min = 0, max = 100, step = 5})
 	EMenu:MenuElement({id = "Spells", name = "Spell Settings", type = MENU})
 	EMenu:MenuElement({id = "EvadeSpells", name = "Evade Spells", type = MENU})
 	DelayAction(function()
@@ -1166,18 +1166,18 @@ function JustEvade:OnProcessSpell()
 			local SRange = SpellDet.range
 			if SType == "linear" or SType == "conic" then
 				if SpellDet.displayName == "Steel Tempest" or SpellDet.displayName == "Steel Wind Rising" or SpellDet.displayName == "Gathering Storm" or SpellDet.displayName == "Death Sentence" then
-					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*(-SRange)
+					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):normalized()*(-SRange)
 					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 					TableInsert(self.DetSpells, s)
 				else
-					local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*SRange
+					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):normalized()*SRange
 					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 					TableInsert(self.DetSpells, s)
 				end
 			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
 				if SRange > 0 then
 					if GetDistance(unit.pos, spell.placementPos) > SRange then
-						local endPos = unit.pos-(unit.pos-Vector(spell.placementPos)):Normalized()*SRange
+						local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):normalized()*SRange
 						s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 						TableInsert(self.DetSpells, s)
 					else
