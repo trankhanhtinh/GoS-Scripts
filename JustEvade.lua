@@ -1,11 +1,14 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.5.1 BETA
+-- Current version: 1.0.5.2 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.5.2 BETA
+-- + Added 'Recalculate Path'
+-- + Fixed dodging
 -- 1.0.5.1 BETA
 -- + Fixed drawings
 -- + Optimized code
@@ -44,6 +47,7 @@ end)
 
 function JustEvade:__init()
 	_G.JustEvade = false
+	self.ReCalc = false
 	self.Flash = (GetCastName(myHero,SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero,SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
 	self.SpSlot = {[_Q]="Q",[_W]="W",[_E]="E",[_R]="R"}
 	self.DetSpells = {}
@@ -51,13 +55,14 @@ function JustEvade:__init()
 	EMenu.Main:Boolean("Evade", "Enable Evade", true)
 	EMenu.Main:Boolean("Status", "Draw Evade Status", true)
 	EMenu.Main:Boolean("SafePos", "Draw Safe Position", true)
+	EMenu.Main:Boolean("RP", "Recalculate Path", false)
 	EMenu.Main:DropDown("Pathfinding", "Pathfinding Type", 3, {"Basic", "Mouse", "Effective"})
 	EMenu:SubMenu("Misc", "Misc Settings")
 	EMenu.Misc:Key("SD", "Stop Dodging", string.byte("A"))
 	EMenu.Misc:Key("DD", "Dodge Only Dangerous", string.byte("N"))
 	EMenu.Misc:Slider("DE","Delay Before Enabling OW", 0.25, 0, 1, 0.01)
 	EMenu.Misc:Slider("TE","Extended Timer On Evade", 0, 0, 1, 0.01)
-	EMenu.Misc:Slider("ER","Extra Spell Radius", 25, 0, 100, 5)
+	EMenu.Misc:Slider("ER","Extra Spell Radius", 0, 0, 100, 5)
 	EMenu:SubMenu("Spells", "Spell Settings")
 	EMenu:SubMenu("EvadeSpells", "Evade Spells")
 	DelayAction(function()
@@ -620,7 +625,12 @@ function JustEvade:Dodge()
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero))
 						if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+							if self.ReCalc then
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								if not EMenu.Main.RP:Value() then
+									self.ReCalc = false
+								end
+							end
 							self.SafePos.time = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.SafePos.danger = danger
 						end
@@ -631,7 +641,12 @@ function JustEvade:Dodge()
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						if GetDistance(myHero,spell.endPos) < radius+b+EMenu.Misc.ER:Value() then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+							if self.ReCalc then
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								if not EMenu.Main.RP:Value() then
+									self.ReCalc = false
+								end
+							end
 							self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.SafePos.danger = danger
 						end
@@ -645,7 +660,12 @@ function JustEvade:Dodge()
 					if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+							if self.ReCalc then
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								if not EMenu.Main.RP:Value() then
+									self.ReCalc = false
+								end
+							end
 							self.SafePos.time = spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.SafePos.danger = danger
 						end
@@ -656,7 +676,12 @@ function JustEvade:Dodge()
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
-							self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+							if self.ReCalc then
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								if not EMenu.Main.RP:Value() then
+									self.ReCalc = false
+								end
+							end
 							self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 							self.SafePos.danger = danger
 						end
@@ -675,7 +700,12 @@ function JustEvade:Dodge()
 							local BPos = VectorPointProjectionOnLineSegment(StartPosition,EndPosition,Vector(myHero))
 							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								if self.ReCalc then
+									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+									if not EMenu.Main.RP:Value() then
+										self.ReCalc = false
+									end
+								end
 								self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 								self.SafePos.danger = danger
 							end
@@ -693,7 +723,12 @@ function JustEvade:Dodge()
 							local BPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero))
 							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								if self.ReCalc then
+									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+									if not EMenu.Main.RP:Value() then
+										self.ReCalc = false
+									end
+								end
 								self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 								self.SafePos.danger = danger
 							end
@@ -705,7 +740,12 @@ function JustEvade:Dodge()
 							local BPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero))
 							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								if self.ReCalc then
+									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+									if not EMenu.Main.RP:Value() then
+										self.ReCalc = false
+									end
+								end
 								self.SafePos.time = spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot)
 								self.SafePos.danger = danger
 							end
@@ -738,22 +778,22 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 	elseif EMenu.Main.Pathfinding:Value() == 2 then
 		local MPos = Vector(myHero)+Vector(Vector(mousePos)-myHero.pos):normalized()*(radius+boundingRadius)
 		if type == "linear" then
-			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
-			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 			if GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2(),bPos) > GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular(),bPos) then
 				if not MapPosition:inWall(Path2) then
-					local Pos1 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos1 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos1
 				else
-					local Pos2 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos2 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos2
 				end
 			else
 				if not MapPosition:inWall(Path1) then
-					local Pos3 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos3 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos3
 				else
-					local Pos4 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos4 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos4
 				end
 			end
@@ -824,21 +864,21 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 		if type == "linear" then
 			local DPos = Vector(VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).x,endPos.y,VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).y)
 			if GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular(),DPos) >= GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular2(),DPos) then
-				local Path = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+				local Path = DPos+Vector(startPos-endPos):perpendicular():normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 				if not MapPosition:inWall(Path) then
-					local Pos1 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos1 = DPos+Vector(startPos-endPos):perpendicular():normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos1
 				else
-					local Pos2 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos2 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos2
 				end
 			else
-				local Path = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+				local Path = DPos+Vector(startPos-endPos):perpendicular2():normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 				if not MapPosition:inWall(Path) then
-					local Pos3 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos3 = DPos+Vector(startPos-endPos):perpendicular2():normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos3
 				else
-					local Pos4 = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+					local Pos4 = DPos+Vector(startPos-endPos):perpendicular():normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
 					return Pos4
 				end
 			end
@@ -1089,11 +1129,12 @@ end
 function JustEvade:Detect(unit, spell)
 	if unit and spell and unit.team ~= myHero.team then
 		if self.Spells[spell.name] then
+			self.ReCalc = true
 			local SpellDet = self.Spells[spell.name]
 			local SType = SpellDet.type
 			local SRange = SpellDet.range
 			if SType == "linear" or SType == "conic" then
-				local endPos = unit.pos-(unit.pos-Vector(spell.endPos)):normalized()*SRange
+				local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.endPos):normalized()*SRange
 				s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 				TableInsert(self.DetSpells, s)
 			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
