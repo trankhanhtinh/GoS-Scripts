@@ -1140,7 +1140,7 @@ function JustEvade:Detect(unit, spell)
 			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
 				if SRange > 0 then
 					if GetDistance(unit.pos, spell.endPos) > SRange then
-						local endPos = unit.pos-(unit.pos-Vector(spell.endPos)):normalized()*SRange
+						local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.endPos):normalized()*SRange
 						s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 						TableInsert(self.DetSpells, s)
 					else
