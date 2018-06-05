@@ -78,10 +78,10 @@ function JustEvade:__init()
 		end
 		if self.EvadeSpells[GetObjectName(myHero)] then
 			for i = 0,3 do
-				if self.EvadeSpells[GetObjectName(myHero)][i] and self.EvadeSpells[GetObjectName(myHero)][i].displayName then
-					if not EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][i].displayName] then
-						EMenu.EvadeSpells:Menu(self.EvadeSpells[GetObjectName(myHero)][i].displayName,""..myHero.charName.." "..(self.SpSlot[i] or "?").." | "..self.EvadeSpells[GetObjectName(myHero)][i].displayName)
-						EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][i].displayName]:Boolean("US"..self.EvadeSpells[GetObjectName(myHero)][i].displayName, "Use Spell", true)
+				if self.EvadeSpells[GetObjectName(myHero)][i] and self.EvadeSpells[GetObjectName(myHero)][i].name then
+					if not EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][i].name] then
+						EMenu.EvadeSpells:Menu(self.EvadeSpells[GetObjectName(myHero)][i].name,""..myHero.charName.." "..(self.SpSlot[i] or "?").." | "..self.EvadeSpells[GetObjectName(myHero)][i].displayName)
+						EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][i].name]:Boolean("US"..self.EvadeSpells[GetObjectName(myHero)][i].name, "Use Spell", true)
 					end
 				end
 			end
@@ -372,163 +372,162 @@ self.Spells = {
 
 self.EvadeSpells = {
 	["Ahri"] = {
-		[3] = {type=1,displayName="Spirit Rush",danger=3,range=450,slot=3},
+		[3] = {type=1,displayName="Spirit Rush",name="AhriR",danger=3,range=450,slot=3},
 	},
 	["Blitzcrank"] = {
-		[1] = {type=2,displayName="Overdrive",danger=2,slot=1},
+		[1] = {type=2,displayName="Overdrive",name="BlitzcrankW",danger=2,slot=1},
 	},
 	["Braum"] = {
-		[2] = {type=2,displayName="Unbreakable",danger=1,slot=2},
+		[2] = {type=2,displayName="Unbreakable",name="BraumE",danger=1,slot=2},
 	},
 	["Corki"] = {
-		[1] = {type=1,displayName="Valkyrie",danger=2,range=600,slot=1},
+		[1] = {type=1,displayName="Valkyrie",name="CorkiW",danger=2,range=600,slot=1},
 	},
 	["Draven"] = {
-		[2] = {type=2,displayName="Blood Rush",danger=2,slot=2},
+		[2] = {type=2,displayName="Blood Rush",name="DravenW",danger=2,slot=2},
 	},
 	["Ekko"] = {
-		[2] = {type=1,displayName="Phase Dive",danger=1,range=325,slot=2},
+		[2] = {type=1,displayName="Phase Dive",name="EkkoE",danger=1,range=325,slot=2},
 	},
 	["Evelynn"] = {
-		[3] = {type=1,displayName="Last Caress",danger=3,range=450,slot=3},
+		[3] = {type=1,displayName="Last Caress",name="EvelynnR",danger=3,range=450,slot=3},
 	},
 	["Ezreal"] = {
-		[2] = {type=1,displayName="Arcane Shift",danger=2,range=475,slot=2},
+		[2] = {type=1,displayName="Arcane Shift",name="EzrealQ",danger=2,range=475,slot=2},
 	},
 	["Fiora"] = {
-		[0] = {type=1,displayName="Lunge",danger=1,range=400,slot=0},
+		[0] = {type=1,displayName="Lunge",name="FioraQ",danger=1,range=400,slot=0},
 	},
 	["Fizz"] = {
-		[2] = {type=2,displayName="Playful",danger=2,slot=2},
+		[2] = {type=2,displayName="Playful",name="FizzE",danger=2,slot=2},
 	},
 	["Garen"] = {
-		[0] = {type=2,displayName="Decisive Strike",danger=1,slot=0},
+		[0] = {type=2,displayName="Decisive Strike",name="GarenQ",danger=1,slot=0},
 	},
 	["Gnar"] = {
-		[2] = {type=1,displayName="Hop/Crunch",range=475,danger=2,slot=2},
+		[2] = {type=1,displayName="Hop/Crunch",name="GnarE",range=475,danger=2,slot=2},
 	},
 	["Gragas"] = {
-		[2] = {type=1,displayName="Body Slam",range=600,danger=2,slot=2},
+		[2] = {type=1,displayName="Body Slam",name="GragasE",range=600,danger=2,slot=2},
 	},
 	["Graves"] = {
-		[2] = {type=1,displayName="Quickdraw",range=425,danger=1,slot=2},
+		[2] = {type=1,displayName="Quickdraw",name="GravesE",range=425,danger=1,slot=2},
 	},
 	["Hecarim"] = {
-		[2] = {type=2,displayName="Devastating Charge",danger=2,slot=2},
-		[3] = {type=1,displayName="Onslaught of Shadows",range=1000,danger=3,slot=3},
+		[2] = {type=2,displayName="Devastating Charge",name="HecarimE",danger=2,slot=2},
+		[3] = {type=1,displayName="Onslaught of Shadows",name="HecarimR",range=1000,danger=3,slot=3},
 	},
 	["Jayce"] = {
-		[3] = {type=2,displayName="Transform Mercury Cannon",danger=1,slot=3},
+		[3] = {type=2,displayName="Transform Mercury Cannon",name="JayceR",danger=1,slot=3},
 	},
 	["Kaisa"] = {
-		[2] = {type=2,displayName="Supercharge",danger=1,slot=2},
+		[2] = {type=2,displayName="Supercharge",name="KaisaE",danger=1,slot=2},
 	},
 	["Karma"] = {
-		[2] = {type=3,displayName="Inspire",danger=1,slot=2},
+		[2] = {type=3,displayName="Inspire",name="KarmaE",danger=1,slot=2},
 	},
 	["Kassadin"] = {
-		[3] = {type=1,displayName="Riftwalk",range=500,danger=1,slot=3},
+		[3] = {type=1,displayName="Riftwalk",name="KassadinR",range=500,danger=1,slot=3},
 	},
 	["Katarina"] = {
-		[1] = {type=2,displayName="Preparation",danger=2,slot=1},
+		[1] = {type=2,displayName="Preparation",name="KatarinaW",danger=2,slot=1},
 	},
 	["Kayle"] = {
-		[1] = {type=3,displayName="Divine Blessing",danger=2,slot=1},
+		[1] = {type=3,displayName="Divine Blessing",name="KayleW",danger=2,slot=1},
 	},
 	["Kayn"] = {
-		[0] = {type=1,displayName="Reaping Slash",danger=1,slot=0},
+		[0] = {type=1,displayName="Reaping Slash",name="KaynQ",danger=1,slot=0},
 	},
 	["Kennen"] = {
-		[2] = {type=2,displayName="Lightning Rush",danger=2,slot=2},
+		[2] = {type=2,displayName="Lightning Rush",name="KennenE",danger=2,slot=2},
 	},
 	["Khazix"] = {
-		[2] = {type=1,displayName="Leap",range=700,danger=2,slot=2},
+		[2] = {type=1,displayName="Leap",name="KhazixW",range=700,danger=2,slot=2},
 	},
 	["Kindred"] = {
-		[0] = {type=1,displayName="Dance of Arrows",range=340,danger=1,slot=0},
+		[0] = {type=1,displayName="Dance of Arrows",name="KindredQ",range=340,danger=1,slot=0},
 	},
 	["Kled"] = {
-		[2] = {type=1,displayName="Jousting",range=550,danger=2,slot=2},
+		[2] = {type=1,displayName="Jousting",name="KledE",range=550,danger=2,slot=2},
 	},
 	["Leblanc"] = {
-		[1] = {type=1,displayName="Distortion",range=600,danger=2,slot=1},
+		[1] = {type=1,displayName="Distortion",name="LeblancW",range=600,danger=2,slot=1},
 	},
 	["Lucian"] = {
-		[2] = {type=1,displayName="Relentless Pursuit",range=425,danger=2,slot=2},
+		[2] = {type=1,displayName="Relentless Pursuit",name="LucianE",range=425,danger=2,slot=2},
 	},
 	["MasterYi"] = {
-		[0] = {type=4,displayName="Alpha Strike",range=600,danger=2,slot=0},
+		[0] = {type=4,displayName="Alpha Strike",name="MasterYiQ",range=600,danger=2,slot=0},
 	},
 	["Poppy"] = {
-		[1] = {type=2,displayName="Steadfast Presence",danger=2,slot=1},
+		[1] = {type=2,displayName="Steadfast Presence",name="PoppyW",danger=2,slot=1},
 	},
 	["Pyke"] = {
-		[2] = {type=1,displayName="Phantom Undertow",range=550,danger=2,slot=2},
+		[2] = {type=1,displayName="Phantom Undertow",name="PykeE",range=550,danger=2,slot=2},
 	},
 	["Rakan"] = {
-		[1] = {type=1,displayName="Grand Entrance",range=600,danger=2,slot=1},
+		[1] = {type=1,displayName="Grand Entrance",name="RakanW",range=600,danger=2,slot=1},
 	},
 	["Renekton"] = {
-		[2] = {type=1,displayName="Slice and Dice",range=450,danger=2,slot=2},
+		[2] = {type=1,displayName="Slice and Dice",name="RenektonE",range=450,danger=2,slot=2},
 	},
 	["Riven"] = {
-		[0] = {type=1,displayName="Broken Wings",range=260,danger=2,slot=0},
-		[2] = {type=1,displayName="Valor",range=325,danger=1,slot=2},
+		[2] = {type=1,displayName="Valor",name="RivenE",range=325,danger=1,slot=2},
 	},
 	["Rumble"] = {
-		[1] = {type=2,displayName="Scrap Shield",danger=1,slot=1},
+		[1] = {type=2,displayName="Scrap Shield",name="RumbleW",danger=1,slot=1},
 	},
 	["Sejuani"] = {
-		[0] = {type=1,displayName="Arctic Assault",danger=2,slot=0},
+		[0] = {type=1,displayName="Arctic Assault",name="SejuaniQ",danger=2,slot=0},
 	},
 	["Shaco"] = {
-		[0] = {type=1,displayName="Deceive",range=400,danger=2,slot=0},
-		[3] = {type=2,displayName="Hallucinate",danger=3,slot=3},
+		[0] = {type=1,displayName="Deceive",name="ShacoQ",range=400,danger=2,slot=0},
+		[3] = {type=2,displayName="Hallucinate",name="ShacoR",danger=3,slot=3},
 	},
 	["Shen"] = {
-		[2] = {type=1,displayName="Shadow Dash",range=600,danger=2,slot=2},
+		[2] = {type=1,displayName="Shadow Dash",name="ShenE",range=600,danger=2,slot=2},
 	},
 	["Shyvana"] = {
-		[1] = {type=2,displayName="Burnout",danger=2,slot=1},
+		[1] = {type=2,displayName="Burnout",name="ShyvanaW",danger=2,slot=1},
 	},
 	["Skarner"] = {
-		[1] = {type=2,displayName="Crystalline Exoskeleton",danger=2,slot=1},
+		[1] = {type=2,displayName="Crystalline Exoskeleton",name="SkarnerW",danger=2,slot=1},
 	},
 	["Sona"] = {
-		[2] = {type=2,displayName="Song of Celerity",danger=2,slot=2},
+		[2] = {type=2,displayName="Song of Celerity",name="SonaE",danger=2,slot=2},
 	},
 	["Teemo"] = {
-		[1] = {type=2,displayName="Move Quick",danger=2,slot=1},
+		[1] = {type=2,displayName="Move Quick",name="TeemoW",danger=2,slot=1},
 	},
 	["Tryndamere"] = {
-		[2] = {type=1,displayName="Spinning Slash",range=660,danger=2,slot=2},
+		[2] = {type=1,displayName="Spinning Slash",name="TryndamereE",range=660,danger=2,slot=2},
 	},
 	["Udyr"] = {
-		[2] = {type=2,displayName="Bear Stance",danger=1,slot=2},
+		[2] = {type=2,displayName="Bear Stance",name="UdyrE",danger=1,slot=2},
 	},
 	["Vayne"] = {
-		[0] = {type=1,displayName="Tumble",range=300,danger=1,slot=0},
+		[0] = {type=1,displayName="Tumble",name="VayneQ",range=300,danger=1,slot=0},
 	},
 	["Vi"] = {
-		[0] = {type=1,displayName="Vault Breaker",range=250,danger=1,slot=0},
+		[0] = {type=1,displayName="Vault Breaker",name="ViQ",range=250,danger=1,slot=0},
 	},
 	["Vladimir"] = {
-		[1] = {type=2,displayName="Sanguine Pool",danger=2,slot=1},
+		[1] = {type=2,displayName="Sanguine Pool",name="VladimirW",danger=2,slot=1},
 	},
 	["Volibear"] = {
-		[0] = {type=2,displayName="Rolling Thunder",danger=1,slot=0},
+		[0] = {type=2,displayName="Rolling Thunder",name="VolibearQ",danger=1,slot=0},
 	},
 	["Wukong"] = {
-		[2] = {type=1,displayName="Nimbus Strike",range=625,danger=1,slot=2},
+		[2] = {type=1,displayName="Nimbus Strike",name="WukongE",range=625,danger=1,slot=2},
 	},
 	["Xayah"] = {
-		[3] = {type=2,displayName="Featherstorm",danger=3,slot=3},
+		[3] = {type=2,displayName="Featherstorm",name="XayahR",danger=3,slot=3},
 	},
 	["Zed"] = {
-		[3] = {type=4,displayName="Death Mark",range=625,danger=3,slot=3},
+		[3] = {type=4,displayName="Death Mark",name="ZedR",range=625,danger=3,slot=3},
 	},
 	["Zilean"] = {
-		[2] = {type=3,displayName="Time Warp",danger=2,slot=2},
+		[2] = {type=3,displayName="Time Warp",name="ZileanE",danger=2,slot=2},
 	},
 }
 end
@@ -557,18 +556,20 @@ function JustEvade:Dodge()
 			MoveToXYZ(self.SafePos.x,self.SafePos.y,self.SafePos.z)
 			if self.EvadeSpells[GetObjectName(myHero)] then
 				for op = 0,3 do
-					if self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].displayName] then
-						if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.SafePos.danger >= self.EvadeSpells[GetObjectName(myHero)][op].danger then
-							if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
-								CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
-							elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 2 then
-								CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].slot)
-							elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 3 then
-								CastTargetSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot)
-							elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 4 then
-								for _, enemy in pairs(GetEnemyHeroes()) do
-									if ValidTarget(enemy, self.EvadeSpells[GetObjectName(myHero)][op].range) then
-										CastTargetSpell(enemy, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+					if self.EvadeSpells[GetObjectName(myHero)][op] then
+						if EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name] then
+							if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.SafePos.danger >= self.EvadeSpells[GetObjectName(myHero)][op].danger then
+								if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
+									CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
+								elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 2 then
+									CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].slot)
+								elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 3 then
+									CastTargetSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+								elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 4 then
+									for _, enemy in pairs(GetEnemyHeroes()) do
+										if ValidTarget(enemy, self.EvadeSpells[GetObjectName(myHero)][op].range) then
+											CastTargetSpell(enemy, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+										end
 									end
 								end
 							end
@@ -1129,6 +1130,9 @@ end
 function JustEvade:Detect(unit, spell)
 	if unit and spell and unit.team ~= myHero.team then
 		if self.Spells[spell.name] then
+			for i,spell in pairs(self.DetSpells) do
+				TableRemove(self.DetSpells, i)
+			end
 			self.ReCalc = true
 			local SpellDet = self.Spells[spell.name]
 			local SType = SpellDet.type
