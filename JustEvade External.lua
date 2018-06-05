@@ -1166,18 +1166,18 @@ function JustEvade:OnProcessSpell()
 			local SRange = SpellDet.range
 			if SType == "linear" or SType == "conic" then
 				if SpellDet.displayName == "Steel Tempest" or SpellDet.displayName == "Steel Wind Rising" or SpellDet.displayName == "Gathering Storm" or SpellDet.displayName == "Death Sentence" then
-					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):normalized()*(-SRange)
+					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):Normalized()*(-SRange)
 					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 					TableInsert(self.DetSpells, s)
 				else
-					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):normalized()*SRange
+					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):Normalized()*SRange
 					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 					TableInsert(self.DetSpells, s)
 				end
 			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
 				if SRange > 0 then
 					if GetDistance(unit.pos, spell.placementPos) > SRange then
-						local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):normalized()*SRange
+						local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):Normalized()*SRange
 						s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 						TableInsert(self.DetSpells, s)
 					else
