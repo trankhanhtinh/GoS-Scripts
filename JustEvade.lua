@@ -93,6 +93,7 @@ function JustEvade:__init()
 	end,.1)
 	Callback.Add("Tick", function() self:Dodge() end)
 	Callback.Add("Draw", function() self:Draw() end)
+	Callback.Add("IssueOrder", function(order) self:Block(order) end)
 	Callback.Add("ProcessSpell", function(unit, spell) self:Detect(unit, spell) end)
 
 self.Spells = {
@@ -1125,6 +1126,18 @@ function JustEvade:AdditionalTime(unit, spell)
 	if unit.charName == "Ziggs" and spell == 2 then return 1 end
 	if unit.charName == "Zilean" and spell == 0 then return 1 end
 	return 0
+end
+
+function JustEvade:Block(order)
+	for _,spell in pairs(self.DetSpells) do
+		if order.flag ~= 3 and order.position then
+			local SpellPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero))
+			local radius = self.Spells[spell.name].radius
+			if SpellPos and GetDistance(order.position, BPos) < ((radius+myHero.boundingRadius+EMenu.Misc.ER:Value())*1.1) then
+				BlockOrder()
+			end
+		end
+	end
 end
 
 function JustEvade:Detect(unit, spell)
