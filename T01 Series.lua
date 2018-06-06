@@ -4241,12 +4241,12 @@ OnDeleteObj(function(Object)
 	end
 end)
 OnObjectLoad(function(Object)
-	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally.troy" then
+	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally" then
 		Dagger = Object
 	end
 end)
 OnCreateObj(function(Object)
-	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally.troy" then
+	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally" then
 		Dagger = Object
 	end
 end)
@@ -5540,12 +5540,12 @@ OnProcessSpell(function(unit, spell)
 	end
 end)
 OnObjectLoad(function(Object)  
-	if GetObjectBaseName(Object) == "Orianna_Base_Q_yomu_ring_green.troy" then
+	if GetObjectBaseName(Object) == "Orianna_Base_Q_yomu_ring_green" then
 		Ball = Object
 	end
 end)
 OnCreateObj(function(Object) 
-	if GetObjectBaseName(Object) == "Orianna_Base_Q_yomu_ring_green.troy" then
+	if GetObjectBaseName(Object) == "Orianna_Base_Q_yomu_ring_green" then
 		Ball = Object
 	end
 end)
@@ -9599,7 +9599,7 @@ WALL_SPELLS = {
     ["Corki"]                      = {_Q,_R},
     ["Diana"]                      = {_Q},
     ["DrMundo"]                      = {_Q},
-    ["Draven"]                      = {_Q,_E,_R},
+    ["Draven"]                      = {_E,_R},
     ["Ekko"]                      = {_Q},
     ["Elise"]                      = {_Q,_E},
     ["Evelynn"]                      = {_Q},
@@ -9690,27 +9690,26 @@ WALL_SPELLS = {
     ["AkaliMota"]                      = {Spellname ="AkaliMota",Name = "Akali", Spellslot =_Q},
     ["BandageToss"]                      = {Spellname ="BandageToss",Name ="Amumu",Spellslot =_Q},
     ["FlashFrost"]                      = {Spellname ="FlashFrost",Name = "Anivia", Spellslot =_Q},
-    ["Anivia2"]                      = {Spellname ="Frostbite",Name = "Anivia", Spellslot =_E},
+    ["Frostbite"]                      = {Spellname ="Frostbite",Name = "Anivia", Spellslot =_E},
     ["Disintegrate"]                      = {Spellname ="Disintegrate",Name = "Annie", Spellslot =_Q},
     ["Volley"]                      = {Spellname ="Volley",Name ="Ashe", Spellslot =_W},
     ["EnchantedCrystalArrow"]                      = {Spellname ="EnchantedCrystalArrow",Name ="Ashe", Spellslot =_R},
     ["AurelionSolQ"]                      = {Spellname ="AurelionSolQ",Name ="AurelionSol", Spellslot =_Q},
     ["BardQ"]                      = {Spellname ="BardQ",Name ="Bard", Spellslot =_Q},
     ["RocketGrabMissile"]                      = {Spellname ="RocketGrabMissile",Name ="Blitzcrank",Spellslot =_Q},
-    ["BrandBlaze"]                      = {Spellname ="BrandBlaze",Name ="Brand", Spellslot =_Q},
-    ["BrandWildfire"]                      = {Spellname ="BrandWildfire",Name ="Brand", Spellslot =_R},
+    ["BrandQ"]                      = {Spellname ="BrandBlaze",Name ="Brand", Spellslot =_Q},
+    ["BrandR"]                      = {Spellname ="BrandWildfire",Name ="Brand", Spellslot =_R},
     ["BraumQ"]                      = {Spellname ="BraumQ",Name ="Braum",Spellslot =_Q},
     ["BraumRWapper"]                      = {Spellname ="BraumRWapper",Name ="Braum",Spellslot =_R},
     ["CaitlynPiltoverPeacemaker"]                      = {Spellname ="CaitlynPiltoverPeacemaker",Name ="Caitlyn",Spellslot =_Q},
     ["CaitlynEntrapment"]                      = {Spellname ="CaitlynEntrapment",Name ="Caitlyn",Spellslot =_E},
     ["CaitlynAceintheHole"]                      = {Spellname ="CaitlynAceintheHole",Name ="Caitlyn",Spellslot =_R},
-    ["CassiopeiaMiasma"]                      = {Spellname ="CassiopeiaMiasma",Name ="Cassiopeia",Spellslot =_W},
+    ["CassiopeiaW"]                      = {Spellname ="CassiopeiaMiasma",Name ="Cassiopeia",Spellslot =_W},
     ["CassiopeiaTwinFang"]                      = {Spellname ="CassiopeiaTwinFang",Name ="Cassiopeia",Spellslot =_E},
     ["PhosphorusBomb"]                      = {Spellname ="PhosphorusBomb",Name ="Corki",Spellslot =_Q},
     ["MissileBarrage"]                      = {Spellname ="MissileBarrage",Name ="Corki",Spellslot =_R},
     ["DianaArc"]                      = {Spellname ="DianaArc",Name ="Diana",Spellslot =_Q},
     ["InfectedCleaverMissileCast"]                      = {Spellname ="InfectedCleaverMissileCast",Name ="DrMundo",Spellslot =_Q},
-    ["dravenspinning"]                      = {Spellname ="dravenspinning",Name ="Draven",Spellslot =_Q},
     ["DravenDoubleShot"]                      = {Spellname ="DravenDoubleShot",Name ="Draven",Spellslot =_E},
     ["DravenRCast"]                      = {Spellname ="DravenRCast",Name ="Draven",Spellslot =_R},
     ["EkkoQ"]                      = {Spellname ="EkkoQ",Name ="Ekko",Spellslot =_Q},
