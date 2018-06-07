@@ -93,7 +93,6 @@ function JustEvade:__init()
 	end,.1)
 	Callback.Add("Tick", function() self:Dodge() end)
 	Callback.Add("Draw", function() self:Draw() end)
-	Callback.Add("IssueOrder", function(order) self:Block(order) end)
 	Callback.Add("ProcessSpell", function(unit, spell) self:Detect(unit, spell) end)
 
 self.Spells = {
@@ -628,7 +627,7 @@ function JustEvade:Dodge()
 						if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
 							_G.JustEvade = true
 							if self.ReCalc then
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
 								if not EMenu.Main.RP:Value() then
 									self.ReCalc = false
 								end
@@ -644,7 +643,7 @@ function JustEvade:Dodge()
 						if GetDistance(myHero,spell.endPos) < radius+b+EMenu.Misc.ER:Value() then
 							_G.JustEvade = true
 							if self.ReCalc then
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
 								if not EMenu.Main.RP:Value() then
 									self.ReCalc = false
 								end
@@ -663,7 +662,7 @@ function JustEvade:Dodge()
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							if self.ReCalc then
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
 								if not EMenu.Main.RP:Value() then
 									self.ReCalc = false
 								end
@@ -679,7 +678,7 @@ function JustEvade:Dodge()
 						if GetDistance(myHero,spell.endPos) < (radius+b+EMenu.Misc.ER:Value()) then
 							_G.JustEvade = true
 							if self.ReCalc then
-								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
 								if not EMenu.Main.RP:Value() then
 									self.ReCalc = false
 								end
@@ -703,7 +702,7 @@ function JustEvade:Dodge()
 							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
 								if self.ReCalc then
-									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
 									if not EMenu.Main.RP:Value() then
 										self.ReCalc = false
 									end
@@ -726,7 +725,7 @@ function JustEvade:Dodge()
 							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
 								if self.ReCalc then
-									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
 									if not EMenu.Main.RP:Value() then
 										self.ReCalc = false
 									end
@@ -743,7 +742,7 @@ function JustEvade:Dodge()
 							if BPos and GetDistance(myHero,BPos) < (radius+b+EMenu.Misc.ER:Value()) then
 								_G.JustEvade = true
 								if self.ReCalc then
-									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
+									self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,p,BPos,type)
 									if not EMenu.Main.RP:Value() then
 										self.ReCalc = false
 									end
@@ -759,7 +758,7 @@ function JustEvade:Dodge()
 	end
 end
 
-function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius, bPos, type)
+function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius, bPos, sPos, type)
 	if myHero.dead then return end
 	if EMenu.Main.Pathfinding:Value() == 1 then
 		local Pos1 = myHero+Vector(Vector(myHero)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
@@ -1128,24 +1127,9 @@ function JustEvade:AdditionalTime(unit, spell)
 	return 0
 end
 
-function JustEvade:Block(order)
-	for _,spell in pairs(self.DetSpells) do
-		if order.flag ~= 3 and order.position then
-			local SpellPos = VectorPointProjectionOnLineSegment(spell.startPos,spell.endPos,Vector(myHero))
-			local radius = self.Spells[spell.name].radius
-			if SpellPos and GetDistance(order.position, BPos) < ((radius+myHero.boundingRadius+EMenu.Misc.ER:Value())*1.1) then
-				BlockOrder()
-			end
-		end
-	end
-end
-
 function JustEvade:Detect(unit, spell)
 	if unit and spell and unit.team ~= myHero.team then
 		if self.Spells[spell.name] then
-			for i,spell in pairs(self.DetSpells) do
-				TableRemove(self.DetSpells, i)
-			end
 			self.ReCalc = true
 			local SpellDet = self.Spells[spell.name]
 			local SType = SpellDet.type
