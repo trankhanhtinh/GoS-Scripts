@@ -777,7 +777,7 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 			end
 		end
 	elseif EMenu.Main.Pathfinding:Value() == 2 then
-		local MPos = Vector(myHero)+Vector(Vector(mousePos)-myHero.pos):normalized()*(radius+boundingRadius)
+		local MPos = Vector(myHero)+Vector(Vector(mousePos)-myHero.pos):normalized()*radius
 		if type == "linear" then
 			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
