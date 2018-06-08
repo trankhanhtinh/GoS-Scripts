@@ -662,7 +662,7 @@ function JustEvade:Dodge()
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
 						local BPos = VectorPointProjectionOnLineSegment(Vector(p),spell.endPos,Vector(myHero.pos))
-						if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value())*1.1 then
+						if BPos and GetDistance(myHero.pos,BPos) < (radius+b+EMenu.Misc.ER:Value()+10) then
 							_G.JustEvade = true
 							if self.ReCalc then
 								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,b,BPos,type)
@@ -799,8 +799,8 @@ end
 function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius, bPos, type)
 	if myHero.dead then return end
 	if EMenu.Main.Pathfinding:Value() == 1 then
-		local Pos1 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
-		local Pos2 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular2()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+		local Pos1 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
+		local Pos2 = myHero.pos+Vector(Vector(myHero.pos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 		if GetDistance(Pos1, startPos) < GetDistance(Pos2, startPos) then
 			if not MapPosition:inWall(Pos1) then
 				return Pos1
@@ -817,22 +817,22 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 	elseif EMenu.Main.Pathfinding:Value() == 2 then
 		local MPos = Vector(myHero.pos)+Vector(Vector(mousePos)-myHero.pos):Normalized()*(radius+boundingRadius)
 		if type == "linear" then
-			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
-			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
+			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 			if GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2(),bPos) > GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular(),bPos) then
 				if not MapPosition:inWall(Path2) then
-					local Pos1 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos1 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos1
 				else
-					local Pos2 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos2 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos2
 				end
 			else
 				if not MapPosition:inWall(Path1) then
-					local Pos3 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos3 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos3
 				else
-					local Pos4 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos4 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos4
 				end
 			end
@@ -903,21 +903,21 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 		if type == "linear" then
 			local DPos = Vector(VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):Perpendicular(),myHero.pos).x,endPos.y,VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):Perpendicular(),myHero.pos).y)
 			if GetDistance(myHero.pos+Vector(startPos-endPos):Perpendicular(),DPos) >= GetDistance(myHero.pos+Vector(startPos-endPos):Perpendicular2(),DPos) then
-				local Path = DPos+Vector(startPos-endPos):Perpendicular():Normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+				local Path = DPos+Vector(startPos-endPos):Perpendicular():Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 				if not MapPosition:inWall(Path) then
-					local Pos1 = DPos+Vector(startPos-endPos):Perpendicular():Normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos1 = DPos+Vector(startPos-endPos):Perpendicular():Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos1
 				else
-					local Pos2 = DPos+Vector(startPos-endPos):Perpendicular2():Normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos2 = DPos+Vector(startPos-endPos):Perpendicular2():Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos2
 				end
 			else
-				local Path = DPos+Vector(startPos-endPos):Perpendicular2():Normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+				local Path = DPos+Vector(startPos-endPos):Perpendicular2():Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 				if not MapPosition:inWall(Path) then
-					local Pos3 = DPos+Vector(startPos-endPos):Perpendicular2():Normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos3 = DPos+Vector(startPos-endPos):Perpendicular2():Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos3
 				else
-					local Pos4 = DPos+Vector(startPos-endPos):Perpendicular():Normalized()*((radius+boundingRadius+EMenu.Misc.ER:Value())*1.1)
+					local Pos4 = DPos+Vector(startPos-endPos):Perpendicular():Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value()+10)
 					return Pos4
 				end
 			end
