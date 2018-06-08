@@ -1160,9 +1160,6 @@ function JustEvade:OnProcessSpell()
 	local unit, spell = extLib.OnProcessSpell()
 	if unit and unit.team ~= myHero.team then
 		if self.Spells and self.Spells[spell.name] then
-			for i,spell in pairs(self.DetSpells) do
-				TableRemove(self.DetSpells, i)
-			end
 			self.ReCalc = true
 			local SpellDet = self.Spells[spell.name]
 			local SType = SpellDet.type
