@@ -663,6 +663,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
+						self.SafePos = nil
 						TableRemove(self.DetectedSpells, _)
 					end
 				elseif speed and speed == MathHuge then
@@ -679,6 +680,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
+						self.SafePos = nil
 						TableRemove(self.DetectedSpells, _)
 					end
 				end
@@ -698,6 +700,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
+						self.SafePos = nil
 						TableRemove(self.DetectedSpells, _)
 					end
 				elseif speed and speed == MathHuge then
@@ -714,6 +717,7 @@ function JustEvade:Dodge()
 							self.DangerLvl = danger
 						end
 					else
+						self.SafePos = nil
 						TableRemove(self.DetectedSpells, _)
 					end
 				end
@@ -739,6 +743,7 @@ function JustEvade:Dodge()
 							end
 						end
 					else
+						self.SafePos = nil
 						TableRemove(self.DetectedSpells, _)
 					end
 				end
@@ -761,6 +766,9 @@ function JustEvade:Dodge()
 								self.DangerLvl = danger
 							end
 						end
+					else
+						self.SafePos = nil
+						TableRemove(self.DetectedSpells, _)
 					end
 				elseif speed and speed == MathHuge then
 					if spell.startTime+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
@@ -778,6 +786,9 @@ function JustEvade:Dodge()
 								self.DangerLvl = danger
 							end
 						end
+					else
+						self.SafePos = nil
+						TableRemove(self.DetectedSpells, _)
 					end
 				end
 			end
