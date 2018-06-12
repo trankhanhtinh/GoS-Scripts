@@ -598,7 +598,7 @@ function JustEvade:Dodge()
 						local ObjPos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(RiotClock.time-delay-spell.startTime)-radius)
 						local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(Vector(ObjPos),spell.endPos,Vector(myHero.position))
 						local BPos = Vector(pointSegment.x, myHero.position, pointSegment.y)
-                        if BPos and GetDistance(myHero.position, BPos) < (radius+boundingRadius+EMenu.Misc.ER:get()) then
+                        if BPos and GetDistance(myHero.position, BPos) < (radius+boundingRadius+EMenu.Misc.ER:get()+10) then
 							self.JustEvade = true
 							if self.ReCalc then
 								self.SafePos = self:Pathfinding(spell.startPos,spell.endPos,radius,radius2,boundingRadius,BPos,FE,type)
