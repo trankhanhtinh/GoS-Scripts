@@ -548,7 +548,7 @@ function JustEvade:Dodge()
 		if EMenu.Main.Evade:get() and EMenu.Main.Dodge:get() then
 			if self.JustEvade and self.SafePos ~= nil then
 				if GetDistance(self.SafePos,myHero.position) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:get() > RiotClock.time then
-					if EMenu.Misc.DD:get() and self.DangerLvL <= 2 or EMenu.Misc.SD:get() or EMenu.Spells[spell.name]["HP"..spell.name]:get() <= myHero.healthPercent then return end
+					if EMenu.Misc.DD:get() and self.DangerLvl <= 2 or EMenu.Misc.SD:get() or EMenu.Spells[spell.name]["HP"..spell.name]:get() <= myHero.healthPercent then return end
 					MoveToVec(self.SafePos:ToDX3())
 					if self.EvadeSpells[myHero.charName] then
 						for op = 0,3 do
