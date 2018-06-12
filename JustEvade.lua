@@ -38,7 +38,7 @@
 
 local TableInsert = table.insert
 local TableRemove = table.remove
-local MathHuge, MathCeil, MathPi =math.huge, math.ceil, math.pi
+local MathHuge, MathCeil, MathPi = math.huge, math.ceil, math.pi
 
 class 'JustEvade'
 
