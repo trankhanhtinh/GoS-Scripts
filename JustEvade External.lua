@@ -612,10 +612,7 @@ function JustEvade:Dodge()
 		if EMenu.Main.Evade:Value() and EMenu.Main.Dodge:Value() then
 			if _G.JustEvade and self.SafePos ~= nil then
 				if GetDistance(self.SafePos, myHero.pos) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:Value() > Game.Timer() then
-					if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() or EMenu.Spells[spell.name]["HP"..spell.name]:Value() <= GetPercentHP(myHero) then
-						_G.JustEvade = false
-						return
-					end
+					if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() or EMenu.Spells[spell.name]["HP"..spell.name]:Value() <= GetPercentHP(myHero) then return end
 					if _G.SDK then
 						_G.SDK.Orbwalker:SetMovement(false)
 						_G.SDK.Orbwalker:SetAttack(false)
