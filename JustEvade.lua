@@ -403,7 +403,7 @@ self.EvadeSpells = {
 		[1] = {type=1,displayName="Valkyrie",name="CorkiW",danger=2,range=600,slot=1},
 	},
 	["Draven"] = {
-		[2] = {type=2,displayName="Blood Rush",name="DravenW",danger=2,slot=2},
+		[1] = {type=2,displayName="Blood Rush",name="DravenW",danger=2,slot=1},
 	},
 	["Ekko"] = {
 		[2] = {type=1,displayName="Phase Dive",name="EkkoE",danger=1,range=325,slot=2},
