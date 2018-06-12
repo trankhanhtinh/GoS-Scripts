@@ -554,44 +554,43 @@ end
 function JustEvade:Dodge()
 	if myHero.dead then return end
 	for _,spell in pairs(self.DetectedSpells) do
-		if EMenu.Main.Evade:Value() and _G.JustEvade and self.SafePos ~= nil then
-			if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:Value() > GetGameTimer() then
-				if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() or EMenu.Spells[spell.name]["HP"..spell.name]:Value() <= GetCurrentHP(myHero)/GetMaxHP(myHero)*100 then
-					_G.JustEvade = false
-					return
-				end
-				if _G.DAC_Loaded then
-					DAC:MovementEnabled(false)
-					DAC:AttacksEnabled(false)
-				elseif _G.AutoCarry_Loaded then
-					DACR.movementEnabled = false
-					DACR.attacksEnabled = false
-				elseif _G.GoSWalkLoaded then
-					_G.GoSWalk:EnableMovement(false)
-					_G.GoSWalk:EnableAttack(false)
-				elseif _G.IOW then
-					IOW.movementEnabled = false
-					IOW.attacksEnabled = false
-				end
-				BlockF7OrbWalk(true)
-				BlockF7Dodge(true)
-				BlockInput(true)
-				MoveToXYZ(self.SafePos.x,self.SafePos.y,self.SafePos.z)
-				if self.EvadeSpells[GetObjectName(myHero)] then
-					for op = 0,3 do
-						if self.EvadeSpells[GetObjectName(myHero)][op] then
-							if EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["US"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then
-								if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.DangerLvl >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Danger"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then
-									if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
-										CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
-									elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 2 then
-										CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].slot)
-									elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 3 then
-										CastTargetSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot)
-									elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 4 then
-										for _, enemy in pairs(GetEnemyHeroes()) do
-											if ValidTarget(enemy, self.EvadeSpells[GetObjectName(myHero)][op].range) then
-												CastTargetSpell(enemy, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+		if EMenu.Main.Evade:Value() then
+			if _G.JustEvade and self.SafePos ~= nil then
+				if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:Value() > GetGameTimer() then
+					if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() or EMenu.Spells[spell.name]["HP"..spell.name]:Value() <= GetPercentHP(myHero) then return end
+					if _G.DAC_Loaded then
+						DAC:MovementEnabled(false)
+						DAC:AttacksEnabled(false)
+					elseif _G.AutoCarry_Loaded then
+						DACR.movementEnabled = false
+						DACR.attacksEnabled = false
+					elseif _G.GoSWalkLoaded then
+						_G.GoSWalk:EnableMovement(false)
+						_G.GoSWalk:EnableAttack(false)
+					elseif _G.IOW then
+						IOW.movementEnabled = false
+						IOW.attacksEnabled = false
+					end
+					BlockF7OrbWalk(true)
+					BlockF7Dodge(true)
+					BlockInput(true)
+					MoveToXYZ(self.SafePos.x,self.SafePos.y,self.SafePos.z)
+					if self.EvadeSpells[GetObjectName(myHero)] then
+						for op = 0,3 do
+							if self.EvadeSpells[GetObjectName(myHero)][op] then
+								if EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["US"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then
+									if CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot) == READY and self.DangerLvl >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Danger"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then
+										if self.EvadeSpells[GetObjectName(myHero)][op].type == 1 then
+											CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].slot, self.SafePos)
+										elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 2 then
+											CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].slot)
+										elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 3 then
+											CastTargetSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+										elseif self.EvadeSpells[GetObjectName(myHero)][op].type == 4 then
+											for _, enemy in pairs(GetEnemyHeroes()) do
+												if ValidTarget(enemy, self.EvadeSpells[GetObjectName(myHero)][op].range) then
+													CastTargetSpell(enemy, self.EvadeSpells[GetObjectName(myHero)][op].slot)
+												end
 											end
 										end
 									end
