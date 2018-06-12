@@ -1133,7 +1133,6 @@ function JustEvade:AdditionalTime(unit, spell)
 	if unit.charName == "Nasus" and spell == 2 then return 1 end
 	if unit.charName == "Nidalee" and spell == 1 then return 1 end
 	if unit.charName == "Nunu" and spell == 3 then return 3 end
-	if unit.charName == "Pantheon" and spell == 3 then return 2.5 end
 	if unit.charName == "Rakan" and spell == 1 then return 1 end
 	if unit.charName == "Rumble" and spell == 3 then return 5 end
 	if unit.charName == "Singed" and spell == 1 then return 1 end
