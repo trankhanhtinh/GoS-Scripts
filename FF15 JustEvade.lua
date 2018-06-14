@@ -57,7 +57,7 @@ function GetMousePos()
 	return pwHud.hudManager.activeVirtualCursorPos
 end
 
-function Ready(spell)
+function IsReady(spell)
 	return myHero.spellbook:CanUseSpell(spell) == 0
 end
 
