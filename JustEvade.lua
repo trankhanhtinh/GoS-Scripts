@@ -557,7 +557,7 @@ function JustEvade:Dodge()
 		if EMenu.Main.Evade:Value() then
 			if _G.JustEvade and self.SafePos ~= nil then
 				if GetDistance(self.SafePos,myHero) > myHero.boundingRadius and self.Timer+EMenu.Misc.TE:Value() > GetGameTimer() then
-					if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() or EMenu.Spells[spell.name]["HP"..spell.name]:Value() <= GetPercentHP(myHero) then return end
+					if EMenu.Misc.DD:Value() and self.DangerLvl <= 2 or EMenu.Misc.SD:Value() or EMenu.Spells[spell.name]["HP"..spell.name]:Value() < GetPercentHP(myHero) then return end
 					if _G.DAC_Loaded then
 						DAC:MovementEnabled(false)
 						DAC:AttacksEnabled(false)
