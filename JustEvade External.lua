@@ -153,11 +153,11 @@ function JustEvade:__init()
 		end
 		if self.EvadeSpells[myHero.charName] then
 			for i = 0,3 do
-				if self.EvadeSpells[myHero.charName][i] and self.EvadeSpells[myHero.charName][i].displayName then
-					if not EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].displayName] then
-						EMenu.EvadeSpells:MenuElement({id = self.EvadeSpells[myHero.charName][i].displayName, name = ""..myHero.charName.." "..(self.SpSlot[i] or "?").." | "..self.EvadeSpells[myHero.charName][i].displayName, type = MENU})
-						EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].displayName]:MenuElement({id = "US"..self.EvadeSpells[myHero.charName][i].displayName, name = "Use Spell", value = true})
-						EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].displayName]:MenuElement({id = "Danger"..self.EvadeSpells[myHero.charName][i].displayName, name = "Danger Level", value = (self.EvadeSpells[myHero.charName][i].danger or 1), min = 1, max = 3, step = 1})
+				if self.EvadeSpells[myHero.charName][i] and self.EvadeSpells[myHero.charName][i].name then
+					if not EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].name] then
+						EMenu.EvadeSpells:MenuElement({id = self.EvadeSpells[myHero.charName][i].name, name = ""..myHero.charName.." "..(self.SpSlot[i] or "?").." | "..self.EvadeSpells[myHero.charName][i].displayName, type = MENU})
+						EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].name]:MenuElement({id = "US"..self.EvadeSpells[myHero.charName][i].name, name = "Use Spell", value = true})
+						EMenu.EvadeSpells[self.EvadeSpells[myHero.charName][i].name]:MenuElement({id = "Danger"..self.EvadeSpells[myHero.charName][i].name, name = "Danger Level", value = (self.EvadeSpells[myHero.charName][i].danger or 1), min = 1, max = 3, step = 1})
 					end
 				end
 			end
