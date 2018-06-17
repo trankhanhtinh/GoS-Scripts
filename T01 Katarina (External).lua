@@ -6,10 +6,13 @@
 --   |____|    \_____  /___| |____|__ (____  /__| (____  /__|  |__|___|  (____  /
 --                   \/              \/    \/          \/              \/     \/ 
 --
--- Current version: 1.0.1
+-- Current version: 1.0.2
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2
+-- + Fixed bug with damage calc
+-- + Minor changes
 -- 1.0.1
 -- + Optimized code
 -- 1.0
@@ -379,26 +382,14 @@ function Katarina:Calc()
 					if t then
 						for j = 1, #t do
 							if hero.activeSpell.name == t[j] then
-								if hero.activeSpell.speed > 0 then
-									if IS[hero.networkID] == nil then
-										IS[hero.networkID] = {
-										startPos = hero.activeSpell.startPos, 
-										endPos = hero.activeSpell.startPos+Vector(hero.activeSpell.startPos,hero.activeSpell.placementPos):Normalized()*hero.activeSpell.range, 
-										radius = hero.activeSpell.width, 
-										speed = hero.activeSpell.speed, 
-										startTime = hero.activeSpell.startTime
-										}
-									end
-								else
-									if IS[hero.networkID] == nil then
-										IS[hero.networkID] = {
-										startPos = hero.activeSpell.startPos, 
-										endPos = hero.activeSpell.startPos+Vector(hero.activeSpell.startPos,hero.activeSpell.placementPos):Normalized()*hero.activeSpell.range, 
-										radius = hero.activeSpell.width, 
-										speed = 9999, 
-										startTime = hero.activeSpell.startTime
-										}
-									end
+								if IS[hero.networkID] == nil then
+									IS[hero.networkID] = {
+									startPos = hero.activeSpell.startPos,
+									endPos = hero.activeSpell.startPos+Vector(hero.activeSpell.startPos,hero.activeSpell.placementPos):Normalized()*hero.activeSpell.range,
+									radius = hero.activeSpell.width or 100,
+									speed = hero.activeSpell.speed or 9999,
+									startTime = hero.activeSpell.startTime
+									}
 								end
 							end
 						end
@@ -465,7 +456,7 @@ function Katarina:Draw()
 		end
 		if self.KatarinaMenu.Drawings.DrawTD:Value() then
 			if ValidTarget(enemy) then
-				if enemy.health < TotalDmg then
+				if TotalDmg and enemy.health < TotalDmg then
 					Draw.Circle(enemy.pos, 100, 20, Draw.Color(255, 220, 20, 60))
 				end
 			end
@@ -525,7 +516,7 @@ function Katarina:Combo()
 				if self.KatarinaMenu.Combo.ModeE:Value() == 1 then
 					self:UseE(target)
 				elseif self.KatarinaMenu.Combo.ModeE:Value() == 2 then
-					if Counter + 100 > GetTickCount() then return end
+					if Counter + 50 > GetTickCount() then return end
 					for i = 0, Game.ObjectCount() do
 						local object = Game.Object(i)
 						if object and object.name:lower():find("katarina_base_dagger_ground_indicator") then
@@ -591,7 +582,7 @@ function Katarina:Harass()
 				if self.KatarinaMenu.Harass.ModeE:Value() == 1 then
 					self:UseE(target)
 				elseif self.KatarinaMenu.Harass.ModeE:Value() == 2 then
-					if Counter + 100 > GetTickCount() then return end
+					if Counter + 50 > GetTickCount() then return end
 					for i = 0, Game.ObjectCount() do
 						local object = Game.Object(i)
 						if object and object.name:lower():find("katarina_base_dagger_ground_indicator") then
@@ -610,18 +601,18 @@ end
 
 function Katarina:KillSteal()
 	for i,enemy in pairs(GetEnemyHeroes()) do
-		if IsReady(_E) then
+		if IsReady(_E) and GotBuff(myHero, "katarinarsound") == 0 then
 			if self.KatarinaMenu.KillSteal.UseE:Value() then
 				if ValidTarget(enemy, KatarinaE.range) then
-					if enemy.health < EDmg then
+					if EDmg and enemy.health < EDmg then
 						Control.CastSpell(HK_E, enemy)
 					end
 				end
 			end
-		elseif IsReady(_Q) then
+		elseif IsReady(_Q) and GotBuff(myHero, "katarinarsound") == 0 then
 			if self.KatarinaMenu.KillSteal.UseQ:Value() then
 				if ValidTarget(enemy, KatarinaQ.range) then
-					if enemy.health < QDmg then
+					if QDmg and enemy.health < QDmg then
 						Control.CastSpell(HK_Q, enemy)
 					end
 				end
