@@ -606,7 +606,7 @@ function Yasuo:WindWall()
 	for i = 1, Game.HeroCount() do
 		local h = Game.Hero(i);
 		if h.isEnemy then
-			if h.activeSpell.valid and h.activeSpell.width > 0 and h.activeSpell.range > 0 and h.activeSpell.speed > 0 then
+			if h.activeSpell.valid and h.activeSpell.range > 0 then
 				local t = Spells[h.charName]
 				if t then
 					for j = 1, #t do
@@ -615,8 +615,8 @@ function Yasuo:WindWall()
 								IS[h.networkID] = {
 								sPos = h.activeSpell.startPos, 
 								ePos = h.activeSpell.startPos + Vector(h.activeSpell.startPos, h.activeSpell.placementPos):Normalized() * h.activeSpell.range, 
-								radius = h.activeSpell.width, 
-								speed = h.activeSpell.speed, 
+								radius = h.activeSpell.width or 100, 
+								speed = h.activeSpell.speed or 9999, 
 								startTime = h.activeSpell.startTime
 								}
 							end
