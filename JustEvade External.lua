@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.6.1 BETA
+-- Current version: 1.0.7 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.7 BETA
+-- + Added threeway drawings
 -- 1.0.6.1 BETA
 -- + Experimental Update
 -- 1.0.6 BETA
@@ -678,7 +680,7 @@ function JustEvade:Dodge()
 			local danger = EMenu.Spells[spell.name]["Danger"..spell.name]:Value()
 			local collision = self.Spells[spell.name].collision
 			local b = myHero.boundingRadius
-			if type == "linear" then
+			if type == "linear" or type == "threeway" then
 				if speed and speed ~= MathHuge then
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
 						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):Normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
@@ -831,7 +833,7 @@ end
 function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius, bPos, FE, type)
 	if myHero.dead then return end
 	if FE then
-		if type == "linear" then
+		if type == "linear" or type == "threeway" then
 			local DPos = Vector(VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):Perpendicular(),myHero.pos).x,endPos.y,VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):Perpendicular(),myHero.pos).y)
 			if GetDistance(myHero.pos+Vector(startPos-endPos):Perpendicular(),DPos) >= GetDistance(myHero.pos+Vector(startPos-endPos):Perpendicular2(),DPos) then
 				local Path = DPos+Vector(startPos-endPos):Perpendicular():Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
@@ -897,7 +899,7 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 		end
 	else
 		local MPos = Vector(myHero.pos)+Vector(Vector(mousePos)-myHero.pos):Normalized()
-		if type == "linear" then
+		if type == "linear" or type == "threeway" then
 			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			if GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2(),bPos) > GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular(),bPos) then
@@ -1019,6 +1021,21 @@ function JustEvade:Draw()
 						end
 					end
 				end
+				if type == "threeway" then
+					local angle = self.Spells[spell.name].angle
+					local endPos1 = self:RotateVector2D(spell.endPos, spell.startPos, MathRad(angle))
+					local endPos2 = self:RotateVector2D(spell.endPos, spell.startPos, MathRad(-angle))
+					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
+						local pos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
+						local pos1 = spell.startPos+Vector(endPos1-spell.startPos):normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
+						local pos2 = spell.startPos+Vector(endPos2-spell.startPos):normalized()*(speed*(Game.Timer()-delay-spell.startTime)-radius)
+						self:DrawRectangleOutline(spell.startPos, spell.endPos, (spell.startTime+delay < Game.Timer() and pos or nil), radius)
+						self:DrawRectangleOutline(spell.startPos, endPos1, (spell.startTime+delay < Game.Timer() and pos1 or nil), radius)
+						self:DrawRectangleOutline(spell.startPos, endPos2, (spell.startTime+delay < Game.Timer() and pos2 or nil), radius)
+					else
+						TableRemove(self.DetectedSpells, _)
+					end
+				end
 				if type == "circular" then
 					if speed ~= MathHuge then
 						if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
@@ -1073,6 +1090,20 @@ function JustEvade:Draw()
 			end
 		end
 	end
+end
+
+function JustEvade:RotateVector2D(v, n, theta)
+	x,y = v.x, v.z
+	x_origin, y_origin = n.x, n.z
+	local cs = MathCos(theta)
+	local sn = MathSin(theta)
+	local translated_x = x - x_origin
+	local translated_y = y - y_origin
+	local result_x = translated_x * cs - translated_y * sn
+	local result_y = translated_x * sn + translated_y * cs
+	result_x = result_x + x_origin
+	result_y = result_y + y_origin
+	return Vector(result_x, v.y, result_y)
 end
 
 function JustEvade:DrawLine3D(x,y,z,a,b,c,radius,color)
@@ -1173,41 +1204,62 @@ function JustEvade:AdditionalTime(unit, spell)
 	return 0
 end
 
+function JustEvade:CalculateEndPos(startPos, placementPos, unitPos, radius, range, collision, type)
+	if type == "linear" or type == "threeway" or type == "conic" then
+		if collision then
+			for i = 1, Game.MinionCount() do
+				local minion = Game.Minion(i)
+				if minion and minion.isAlly and GetDistance(minion.pos, startPos) < range then
+					local Collision = VectorPointProjectionOnLineSegment(startPos, placementPos, Vector(minion))
+					if Collision and GetDistance(Collision, minion.pos) < (radius+minion.boundingRadius) then
+						local range2 = GetDistance(startPos, Collision)
+						local endPos = startPos-Vector(startPos-placementPos):Normalized()*range2
+						return endPos
+					else
+						local endPos = startPos-Vector(startPos-placementPos):Normalized()*range
+						return endPos
+					end
+				else
+					local endPos = startPos-Vector(startPos-placementPos):Normalized()*range
+					return endPos
+				end
+			end
+		else
+			local endPos = startPos-Vector(startPos-placementPos):Normalized()*range
+			return endPos
+		end
+	elseif type == "circular" or type == "rectangular" or type == "annular" then
+		if range > 0 then
+			if GetDistance(unitPos, placementPos) > range then
+				local endPos = startPos-Vector(startPos-placementPos):Normalized()*range
+				return endPos
+			else
+				local endPos = placementPos
+				return endPos
+			end
+		else
+			local endPos = unitPos
+			return endPos
+		end
+	end
+end
+
 function JustEvade:OnProcessSpell()
 	local unit, spell = extLib.OnProcessSpell()
 	if unit and unit.team ~= myHero.team then
 		if self.Spells and self.Spells[spell.name] then
 			self.ReCalc = true
+			local startPos = Vector(spell.startPos)
+			local placementPos = Vector(spell.placementPos)
+			local unitPos = Vector(unit.pos)
 			local SpellDet = self.Spells[spell.name]
-			local SType = SpellDet.type
+			local SRadius = SpellDet.radius
 			local SRange = SpellDet.range
-			if SType == "linear" or SType == "conic" then
-				if SpellDet.displayName == "Steel Tempest" or SpellDet.displayName == "Steel Wind Rising" or SpellDet.displayName == "Gathering Storm" or SpellDet.displayName == "Death Sentence" then
-					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):Normalized()*(-SRange)
-					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-					TableInsert(self.DetectedSpells, s)
-				else
-					local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):Normalized()*SRange
-					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-					TableInsert(self.DetectedSpells, s)
-				end
-			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
-				if SRange > 0 then
-					if GetDistance(unit.pos, spell.placementPos) > SRange then
-						local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.placementPos):Normalized()*SRange
-						s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-						TableInsert(self.DetectedSpells, s)
-					else
-						local endPos = spell.placementPos
-						s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-						TableInsert(self.DetectedSpells, s)
-					end
-				else
-					local endPos = unit.pos
-					s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-					TableInsert(self.DetectedSpells, s)
-				end
-			end
+			local SCol = SpellDet.collision
+			local SType = SpellDet.type
+			local endPos = self:CalculateEndPos(startPos, placementPos, unitPos, SRadius, SRange, SCol, SType)
+			s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+			TableInsert(self.DetectedSpells, s)
 		end
 	end
 end
