@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.6 BETA
+-- Current version: 1.0.6.1 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.6.1 BETA
+-- + Experimental Update
 -- 1.0.6 BETA
 -- + Rebuilt Pathfinding
 -- + Added menu options (Danger Level, Fast Evade & %HP To Dodge)
@@ -894,7 +896,7 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 			end
 		end
 	else
-		local MPos = Vector(myHero.pos)+Vector(Vector(mousePos)-myHero.pos):Normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+		local MPos = Vector(myHero.pos)+Vector(Vector(mousePos)-myHero.pos):Normalized()
 		if type == "linear" then
 			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
