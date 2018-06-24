@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.3.2
+-- Current version: 1.2.3.3
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, Leblanc, MasterYi,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.3.3
+-- + Fixed Katarina dagger search
 -- 1.2.3.2
 -- + Added DAC & DAC:R support
 -- + Corrected spell data
@@ -4226,28 +4228,18 @@ OnSpellCast(function(_E)
 end)
 
 OnCreateObj(function(Object)
-	if GetObjectBaseName(Object) == "HiddenMinion" then
+	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally" then
 		table.insert(Dagger, Object)
 		DelayAction(function() table.remove(Dagger, 1) end, 4)
 	end
 end)
 OnDeleteObj(function(Object)
-	if GetObjectBaseName(Object) == "HiddenMinion" then
+	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally" then
 		for i,rip in pairs(Dagger) do
 			if GetNetworkID(Object) == GetNetworkID(rip) then
 				table.remove(Dagger,i) 
 			end
 		end
-	end
-end)
-OnObjectLoad(function(Object)
-	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally" then
-		Dagger = Object
-	end
-end)
-OnCreateObj(function(Object)
-	if GetObjectBaseName(Object) == "Katarina_Base_W_Indicator_Ally" then
-		Dagger = Object
 	end
 end)
 
