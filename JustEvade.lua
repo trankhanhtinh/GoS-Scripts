@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.6.1 BETA
+-- Current version: 1.0.7 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.7 BETA
+-- + Added threeway drawings
 -- 1.0.6.1 BETA
 -- + Experimental Update
 -- 1.0.6 BETA
@@ -40,7 +42,7 @@
 
 local TableInsert = table.insert
 local TableRemove = table.remove
-local MathHuge, MathCeil, MathPi = math.huge, math.ceil, math.pi
+local MathHuge, MathCeil, MathPi, MathRad, MathSin, MathCos = math.huge, math.ceil, math.pi, math.rad, math.sin, math.cos
 
 class 'JustEvade'
 
@@ -337,7 +339,7 @@ self.Spells = {
 	["TristanaW"]={charName="Tristana",slot=_W,type="circular",displayName="Rocket Jump",danger=2,speed=1100,range=900,delay=0.25,radius=250,collision=false},
 	["TrundleCircle"]={charName="Trundle",slot=_E,type="circular",displayName="Pillar of Ice",danger=2,speed=MathHuge,range=1000,delay=0.25,radius=375,collision=false},
 	["TryndamereE"]={charName="Tryndamere",slot=_E,type="linear",displayName="Spinning Slash",danger=2,speed=1300,range=660,delay=0,radius=225,collision=false},
-	["WildCards"]={charName="TwistedFate",slot=_Q,type="threeway",displayName="Wild Cards",danger=1,speed=1000,range=1450,delay=0.25,radius=40,angle=28,collision=false},
+	["WildCards"]={charName="TwistedFate",slot=_Q,type="threeway",displayName="Wild Cards",danger=1,speed=1000,range=1450,delay=0.25,radius=40,angle=27.5,collision=false},
 	["TwitchVenomCask"]={charName="Twitch",slot=_W,type="circular",displayName="Venom Cask",danger=2,speed=1400,range=950,delay=0.25,radius=340,collision=false},
 	["UrgotQ"]={charName="Urgot",slot=_Q,type="circular",displayName="Corrosive Charge",danger=1,speed=MathHuge,range=800,delay=0.6,radius=215,collision=false},
 	["UrgotE"]={charName="Urgot",slot=_E,type="linear",displayName="Disdain",danger=2,speed=1050,range=475,delay=0.45,radius=100,collision=false},
@@ -647,7 +649,7 @@ function JustEvade:Dodge()
 			local danger = EMenu.Spells[spell.name]["Danger"..spell.name]:Value()
 			local collision = self.Spells[spell.name].collision
 			local b = myHero.boundingRadius
-			if type == "linear" then
+			if type == "linear" or type == "threeway" then
 				if speed and speed ~= MathHuge then
 					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 						local p = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()-delay-spell.startTime)-radius)
@@ -988,6 +990,21 @@ function JustEvade:Draw()
 						end
 					end
 				end
+				if type == "threeway" then
+					local angle = self.Spells[spell.name].angle
+					local endPos1 = self:RotateVector2D(spell.endPos, spell.startPos, MathRad(angle))
+					local endPos2 = self:RotateVector2D(spell.endPos, spell.startPos, MathRad(-angle))
+					if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
+						local pos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()-delay-spell.startTime)-radius)
+						local pos1 = spell.startPos+Vector(endPos1-spell.startPos):normalized()*(speed*(GetGameTimer()-delay-spell.startTime)-radius)
+						local pos2 = spell.startPos+Vector(endPos2-spell.startPos):normalized()*(speed*(GetGameTimer()-delay-spell.startTime)-radius)
+						self:DrawRectangleOutline(spell.startPos, spell.endPos, (spell.startTime+delay < GetGameTimer() and pos or nil), radius)
+						self:DrawRectangleOutline(spell.startPos, endPos1, (spell.startTime+delay < GetGameTimer() and pos1 or nil), radius)
+						self:DrawRectangleOutline(spell.startPos, endPos2, (spell.startTime+delay < GetGameTimer() and pos2 or nil), radius)
+					else
+						TableRemove(self.DetSpells, _)
+					end
+				end
 				if type == "circular" then
 					if speed ~= MathHuge then
 						if spell.startTime+range/speed+delay+0.5+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
@@ -1042,6 +1059,20 @@ function JustEvade:Draw()
 			end
 		end
 	end
+end
+
+function JustEvade:RotateVector2D(v, n, theta)
+	x,y = v.x, v.z
+	x_origin, y_origin = n.x, n.z
+	local cs = MathCos(theta)
+	local sn = MathSin(theta)
+	local translated_x = x - x_origin
+	local translated_y = y - y_origin
+	local result_x = translated_x * cs - translated_y * sn
+	local result_y = translated_x * sn + translated_y * cs
+	result_x = result_x + x_origin
+	result_y = result_y + y_origin
+	return Vector(result_x, v.y, result_y)
 end
 
 function JustEvade:DrawRectangleOutline(startPos, endPos, pos, radius)
@@ -1137,56 +1168,60 @@ function JustEvade:AdditionalTime(unit, spell)
 	return 0
 end
 
+function JustEvade:CalculateEndPos(startPos, placementPos, unitPos, radius, range, collision, type)
+	if type == "linear" or type == "threeway" or type == "conic" then
+		if collision then
+			for _,minion in pairs(minionManager.objects) do
+				if minion and minion.alive and minion.team == MINION_ALLY and GetDistance(minion.pos, startPos) < range then
+					local Collision = VectorPointProjectionOnLineSegment(startPos, placementPos, Vector(minion))
+					if Collision and GetDistance(Collision, minion.pos) < (radius+minion.boundingRadius) then
+						local range2 = GetDistance(startPos, Collision)
+						local endPos = startPos-Vector(startPos-placementPos):normalized()*range2
+						return endPos
+					else
+						local endPos = startPos-Vector(startPos-placementPos):normalized()*range
+						return endPos
+					end
+				else
+					local endPos = startPos-Vector(startPos-placementPos):normalized()*range
+					return endPos
+				end
+			end
+		else
+			local endPos = startPos-Vector(startPos-placementPos):normalized()*range
+			return endPos
+		end
+	elseif type == "circular" or type == "rectangular" or type == "annular" then
+		if range > 0 then
+			if GetDistance(unitPos, placementPos) > range then
+				local endPos = startPos-Vector(startPos-placementPos):normalized()*range
+				return endPos
+			else
+				local endPos = placementPos
+				return endPos
+			end
+		else
+			local endPos = unitPos
+			return endPos
+		end
+	end
+end
+
 function JustEvade:Detect(unit, spell)
 	if unit and spell and unit.team ~= myHero.team then
 		if self.Spells[spell.name] then
 			self.ReCalc = true
+			local startPos = Vector(spell.startPos)
+			local placementPos = Vector(spell.endPos)
+			local unitPos = Vector(unit.pos)
 			local SpellDet = self.Spells[spell.name]
-			local SCol = SpellDet.collision
-			local SType = SpellDet.type
 			local SRadius = SpellDet.radius
 			local SRange = SpellDet.range
-			if SType == "linear" or SType == "conic" then
-				local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.endPos):normalized()*SRange
-				--if SCol then
-				--	for _,minion in pairs(minionManager.objects) do
-				--		if minion and minion.alive and minion.team == MINION_ALLY and GetDistance(minion.pos, spell.startPos) < SRange then
-				--			local Collision = VectorPointProjectionOnLineSegment(spell.startPos, spell.endPos, Vector(minion))
-				--			if Collision and GetDistance(Collision, minion.pos) < (SRadius+myHero.boundingRadius) then
-				--				local SRange2 = GetDistance(spell.startPos, Collision)
-				--				local endPos2 = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.endPos):normalized()*SRange2
-				--				s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos2), name = spell.name}
-				--				TableInsert(self.DetectedSpells, s)
-				--			else
-								s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-								TableInsert(self.DetectedSpells, s)
-				--			end
-				--		else
-				--			s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-				--			TableInsert(self.DetectedSpells, s)
-				--		end
-				--	end
-				--else
-				--	s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-				--	TableInsert(self.DetectedSpells, s)
-				--end
-			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
-				if SRange > 0 then
-					if GetDistance(unit.pos, spell.endPos) > SRange then
-						local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.endPos):normalized()*SRange
-						s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-						TableInsert(self.DetectedSpells, s)
-					else
-						local endPos = spell.endPos
-						s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-						TableInsert(self.DetectedSpells, s)
-					end
-				else
-					local endPos = unit.pos
-					s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-					TableInsert(self.DetectedSpells, s)
-				end
-			end
+			local SCol = SpellDet.collision
+			local SType = SpellDet.type
+			local endPos = self:CalculateEndPos(startPos, placementPos, unitPos, SRadius, SRange, SCol, SType)
+			s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+			TableInsert(self.DetectedSpells, s)
 		end
 	end
 	if unit == myHero and _G.JustEvade then
