@@ -46,7 +46,7 @@ require 'MapPositionGOS'
 local extLib = require 'extLib'
 local TableInsert = table.insert
 local TableRemove = table.remove
-local MathHuge, MathCeil, MathPi = math.huge, math.ceil, math.pi
+local MathHuge, MathCeil, MathPi, MathRad, MathSin, MathCos = math.huge, math.ceil, math.pi, math.rad, math.sin, math.cos
 
 class 'JustEvade'
 
