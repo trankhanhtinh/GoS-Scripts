@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.6 BETA
+-- Current version: 1.0.6.1 BETA
 -- Intermediate GoS script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.6.1 BETA
+-- + Experimental Update
 -- 1.0.6 BETA
 -- + Rebuilt Pathfinding
 -- + Added menu options (Danger Level, Fast Evade & %HP To Dodge)
@@ -863,7 +865,7 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 			end
 		end
 	else
-		local MPos = Vector(myHero)+Vector(Vector(mousePos)-myHero.pos):normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
+		local MPos = Vector(myHero)+Vector(Vector(GetMousePos())-myHero.pos):normalized()
 		if type == "linear" then
 			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
@@ -972,18 +974,6 @@ function JustEvade:Draw()
 				local collision = self.Spells[spell.name].collision
 				if type == "linear" then
 					if speed ~= MathHuge then
-				--		if collision then
-				--			SpellCol = Collision(speed,range,delay*1000,radius)
-				--			OK, Objects = SpellCol:__GetMinionCollision(spell.source,spell.endPos,ALLY)
-				--			if OK then
-				--				for i, object in pairs(Objects) do
-				--					if #Objects > 0 then
-				--						range = GetDistance(spell.source,Objects[1])
-				--						local range = GetDistance(spell.source,Objects[1])
-				--					end
-				--				end
-				--			end
-				--		end
 						if spell.startTime+range/speed+delay+self:AdditionalTime(spell.source, spell.slot) > GetGameTimer() then
 							local pos = spell.startPos+Vector(Vector(spell.endPos)-spell.startPos):normalized()*(speed*(GetGameTimer()-delay-spell.startTime)-radius)
 							self:DrawRectangleOutline(spell.startPos, spell.endPos, (spell.startTime+delay < GetGameTimer() and pos or nil), radius)
@@ -1152,12 +1142,34 @@ function JustEvade:Detect(unit, spell)
 		if self.Spells[spell.name] then
 			self.ReCalc = true
 			local SpellDet = self.Spells[spell.name]
+			local SCol = SpellDet.collision
 			local SType = SpellDet.type
+			local SRadius = SpellDet.radius
 			local SRange = SpellDet.range
 			if SType == "linear" or SType == "conic" then
 				local endPos = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.endPos):normalized()*SRange
-				s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
-				TableInsert(self.DetectedSpells, s)
+				--if SCol then
+				--	for _,minion in pairs(minionManager.objects) do
+				--		if minion and minion.alive and minion.team == MINION_ALLY and GetDistance(minion.pos, spell.startPos) < SRange then
+				--			local Collision = VectorPointProjectionOnLineSegment(spell.startPos, spell.endPos, Vector(minion))
+				--			if Collision and GetDistance(Collision, minion.pos) < (SRadius+myHero.boundingRadius) then
+				--				local SRange2 = GetDistance(spell.startPos, Collision)
+				--				local endPos2 = Vector(spell.startPos)-Vector(Vector(spell.startPos)-spell.endPos):normalized()*SRange2
+				--				s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos2), name = spell.name}
+				--				TableInsert(self.DetectedSpells, s)
+				--			else
+								s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+								TableInsert(self.DetectedSpells, s)
+				--			end
+				--		else
+				--			s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+				--			TableInsert(self.DetectedSpells, s)
+				--		end
+				--	end
+				--else
+				--	s = {slot = SpellDet.slot, source = unit, startTime = GetGameTimer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
+				--	TableInsert(self.DetectedSpells, s)
+				--end
 			elseif SType == "circular" or SType == "rectangular" or SType == "annular" then
 				if SRange > 0 then
 					if GetDistance(unit.pos, spell.endPos) > SRange then
