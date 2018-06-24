@@ -802,7 +802,7 @@ end
 function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius, bPos, FE, type)
 	if myHero.dead then return end
 	if FE then
-		if type == "linear" then
+		if type == "linear" or type == "threeway" then
 			local DPos = Vector(VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).x,endPos.y,VectorIntersection(startPos,endPos,myHero.pos+(Vector(startPos)-Vector(endPos)):perpendicular(),myHero.pos).y)
 			if GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular(),DPos) >= GetDistance(GetOrigin(myHero)+Vector(startPos-endPos):perpendicular2(),DPos) then
 				local Path = DPos+Vector(startPos-endPos):perpendicular():normalized()*(radius+boundingRadius+EMenu.Misc.ER:Value())
@@ -868,7 +868,7 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 		end
 	else
 		local MPos = Vector(myHero)+Vector(Vector(GetMousePos())-myHero.pos):normalized()
-		if type == "linear" then
+		if type == "linear" or type == "threeway" then
 			local Path1 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			local Path2 = Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:Value())
 			if GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular2(),bPos) > GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):normalized():perpendicular(),bPos) then
