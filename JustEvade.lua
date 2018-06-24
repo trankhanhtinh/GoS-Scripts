@@ -1002,7 +1002,7 @@ function JustEvade:Draw()
 						self:DrawRectangleOutline(spell.startPos, endPos1, (spell.startTime+delay < GetGameTimer() and pos1 or nil), radius)
 						self:DrawRectangleOutline(spell.startPos, endPos2, (spell.startTime+delay < GetGameTimer() and pos2 or nil), radius)
 					else
-						TableRemove(self.DetSpells, _)
+						TableRemove(self.DetectedSpells, _)
 					end
 				end
 				if type == "circular" then
