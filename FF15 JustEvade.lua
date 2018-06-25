@@ -700,17 +700,17 @@ function JustEvade:Pathfinding(startPos, endPos, radius, radius2, boundingRadius
 			local Pos1 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular()*(radius+boundingRadius+EMenu.Misc.ER:get())
 			local Pos2 = Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2()*(radius+boundingRadius+EMenu.Misc.ER:get())
 			if GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular2(),bPos) > GetDistance(Vector(MPos)+Vector(Vector(MPos)-endPos):Normalized():Perpendicular(),bPos) then
-				return Pos1
-			else
 				return Pos2
+			else
+				return Pos1
 			end
 		elseif type == "circular" then
 			local Pos1 = Vector(endPos)+(myHero.position-Vector(endPos)):Normalized()*(radius+boundingRadius+EMenu.Misc.ER:get())
 			local Pos2 = Vector(endPos)+(Vector(MPos)-Vector(endPos)):Normalized()*(radius+boundingRadius+EMenu.Misc.ER:get())
-			if MPos and GetDistance(MPos, Path1) > GetDistance(MPos, Path2) then
-				return Pos1
-			else
+			if MPos and GetDistance(MPos, Pos1) > GetDistance(MPos, Pos2) then
 				return Pos2
+			else
+				return Pos1
 			end
 		end
 	end
