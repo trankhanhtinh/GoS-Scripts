@@ -46,7 +46,7 @@ require 'MapPositionGOS'
 local extLib = require 'extLib'
 local TableInsert = table.insert
 local TableRemove = table.remove
-local MathHuge, MathCeil, MathPi, MathRad, MathSin, MathCos = math.huge, math.ceil, math.pi, math.rad, math.sin, math.cos
+local MathHuge, MathCeil, MathSqrt, MathPi, MathRad, MathSin, MathCos = math.huge, math.ceil, math.sqrt, math.pi, math.rad, math.sin, math.cos
 
 class 'JustEvade'
 
@@ -63,7 +63,7 @@ function GetDistanceSqr(Pos1, Pos2)
 end
 
 function GetDistance(Pos1, Pos2)
-	return math.sqrt(GetDistanceSqr(Pos1, Pos2))
+	return MathSqrt(GetDistanceSqr(Pos1, Pos2))
 end
 
 function GetEnemyHeroes()
@@ -1081,8 +1081,8 @@ function JustEvade:Draw()
 				end
 				if type == "annular" then
 					if spell.startTime+delay+self:AdditionalTime(spell.source, spell.slot) > Game.Timer() then
-						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,5,Draw.Color(255,255,255,255))
-						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius/1.5,2,5,Draw.Color(255,255,255,255))
+						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius,2,Draw.Color(255,255,255,255))
+						Draw.Circle(spell.endPos.x,spell.endPos.y,spell.endPos.z,radius/1.5,2,Draw.Color(255,255,255,255))
 					else
 						TableRemove(self.DetectedSpells, _)
 					end
