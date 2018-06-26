@@ -1204,7 +1204,7 @@ function JustEvade:AdditionalTime(unit, spell)
 	return 0
 end
 
-function JustEvade:CalculateEndPos(startPos, placementPos, unitPos, radius, range, collision, type)
+function JustEvade:CalculateEndPos(startPos, placementPos, unitPos, radius, range, collision, displayName, type)
 	if type == "linear" or type == "threeway" or type == "conic" then
 		if collision then
 			for i = 1, Game.MinionCount() do
@@ -1225,8 +1225,13 @@ function JustEvade:CalculateEndPos(startPos, placementPos, unitPos, radius, rang
 				end
 			end
 		else
-			local endPos = startPos-Vector(startPos-placementPos):Normalized()*range
-			return endPos
+			if displayName == "Steel Tempest" or displayName == "Steel Wind Rising" or displayName == "Gathering Storm" or displayName == "Death Sentence" then
+				local endPos = startPos-Vector(startPos-placementPos):Normalized()*(-range)
+				return endPos
+			else
+				local endPos = startPos-Vector(startPos-placementPos):Normalized()*range
+				return endPos
+			end
 		end
 	elseif type == "circular" or type == "rectangular" or type == "annular" then
 		if range > 0 then
@@ -1256,8 +1261,9 @@ function JustEvade:OnProcessSpell()
 			local SRadius = SpellDet.radius
 			local SRange = SpellDet.range
 			local SCol = SpellDet.collision
+			local SDName = SpellDet.displayName
 			local SType = SpellDet.type
-			local endPos = self:CalculateEndPos(startPos, placementPos, unitPos, SRadius, SRange, SCol, SType)
+			local endPos = self:CalculateEndPos(startPos, placementPos, unitPos, SRadius, SRange, SCol, SDName, SType)
 			s = {slot = SpellDet.slot, source = unit, startTime = Game.Timer(), startPos = Vector(spell.startPos), endPos = Vector(endPos), name = spell.name}
 			TableInsert(self.DetectedSpells, s)
 		end
