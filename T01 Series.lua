@@ -8,7 +8,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.2.3.3
+-- Current version: 1.2.3.4
 -- Intermediate GoS script which supports currently 21 champions.
 -- Features:
 -- + Supports Ahri, Annie, Brand, Cassiopeia, Fizz, Gnar, Jayce, Katarina, Leblanc, MasterYi,
@@ -31,6 +31,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.2.3.4
+-- + Updated damage calc for Patch 8.13
 -- 1.2.3.3
 -- + Fixed Katarina dagger search
 -- 1.2.3.2
@@ -8559,7 +8561,7 @@ OnDraw(function(myHero)
 	if VladimirMenu.Drawings.DrawR:Value() then DrawCircle(pos,VladimirR.range,1,25,0xff0000ff) end
 	local QDmg = (20*GetCastLevel(myHero,_Q)+60)+(0.6*GetBonusAP(myHero))
 	local WDmg = 55*GetCastLevel(myHero,_W)+25
-	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.06*GetMaxHP(myHero))+GetBonusAP(myHero)
+	local EDmg = (30*GetCastLevel(myHero,_E)+30)+(0.06*GetMaxHP(myHero))+(0.8*GetBonusAP(myHero))
 	local RDmg = (100*GetCastLevel(myHero,_R)+50)+(0.7*GetBonusAP(myHero))
 	local ComboDmg = QDmg + WDmg + EDmg + RDmg
 	local WERDmg = WDmg + EDmg + RDmg
