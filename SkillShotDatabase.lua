@@ -16,6 +16,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- [27-06] Updated for patch 8.13
+-- (Aatrox Q & W)
 -- [31-05] Updated for patch 8.11
 -- (Pyke Q & R)
 -- [02-05] Updated for patch 8.9
@@ -33,8 +35,10 @@
 -- [16-02] Initial release for patch 8.3
 
 Spells = {
-	["AatroxQ"]={charName="Aatrox",slot=_Q,type="circular",speed=450,range=650,delay=0.25,radius=275,hitbox=true,aoe=true,cc=true,collision=false},
-	["AatroxE"]={charName="Aatrox",slot=_E,type="triangular",speed=1250,range=1000,delay=0.25,radius1=120,radius2=0,hitbox=true,aoe=true,cc=true,collision=false},
+	["AatroxQ"]={charName="Aatrox",slot=_Q,type="linear",speed=math.huge,range=650,delay=0.6,radius=130,hitbox=true,aoe=true,cc=true,collision=false},
+	["AatroxQ2"]={charName="Aatrox",slot=_Q,type="linear",speed=math.huge,range=500,delay=0.6,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
+	["AatroxQ3"]={charName="Aatrox",slot=_Q,type="circular",speed=math.huge,range=200,delay=0.6,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
+	["AatroxW"]={charName="Aatrox",slot=_W,type="linear",speed=1800,range=825,delay=0.25,radius=80,hitbox=true,aoe=false,cc=true,collision=true},
 	["AhriOrbofDeception"]={charName="Ahri",slot=_Q,type="linear",speed=2500,range=880,delay=0.25,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
 	["AhriOrbReturn"]={charName="Ahri",slot=_Q,type="linear",speed=2500,range=880,delay=0.25,radius=100,hitbox=true,aoe=true,cc=false,collision=false},
 	["AhriSeduce"]={charName="Ahri",slot=_E,type="linear",speed=1550,range=975,delay=0.25,radius=60,hitbox=true,aoe=false,cc=false,collision=true},
