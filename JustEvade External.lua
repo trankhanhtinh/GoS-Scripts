@@ -1,11 +1,13 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.7 BETA
+-- Current version: 1.0.8 BETA
 -- Intermediate GoS External script which draws and attempts to dodge enemy spells.
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.8 BETA
+-- + Updated spell data for Aatrox (Only W working)
 -- 1.0.7 BETA
 -- + Added threeway drawings
 -- 1.0.6.1 BETA
@@ -176,8 +178,10 @@ function JustEvade:__init()
 	Callback.Add("Tick", function() self:OnProcessSpell() end)
 
 self.Spells = {
-	--["AatroxQ"]={charName="Aatrox",slot=_Q,type="circular",displayName="Dark Flight",danger=2,speed=450,range=650,delay=0.25,radius=275,collision=false},
-	["AatroxE"]={charName="Aatrox",slot=_E,type="linear",displayName="Blades of Torment",danger=1,speed=1250,range=1000,delay=0.25,radius=120,collision=false},
+	--["AatroxQ"]={charName="Aatrox",slot=_Q,type="linear",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=650,delay=0.6,radius=130,collision=false},
+	--["AatroxQ2"]={charName="Aatrox",slot=_Q,type="linear",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=500,delay=0.6,radius=300,collision=false},
+	--["AatroxQ3"]={charName="Aatrox",slot=_Q,type="circular",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=200,delay=0.6,radius=300,collision=false},
+	["AatroxW"]={charName="Aatrox",slot=_W,type="linear",displayName="Infernal Chains",danger=2,speed=1800,range=825,delay=0.25,radius=80,collision=true},
 	["AhriOrbofDeception"]={charName="Ahri",slot=_Q,type="linear",displayName="Orb of Deception",danger=1,speed=2500,range=880,delay=0.25,radius=100,collision=false},
 	["AhriSeduce"]={charName="Ahri",slot=_E,type="linear",displayName="Charm",danger=1,speed=1550,range=975,delay=0.25,radius=60,collision=true},
 	["Pulverize"]={charName="Alistar",slot=_Q,type="circular",displayName="Pulverize",danger=1,speed=MathHuge,range=0,delay=0.25,radius=365,collision=false},
