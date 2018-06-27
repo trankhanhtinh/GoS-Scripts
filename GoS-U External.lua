@@ -19,7 +19,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2.2 BETA
+-- Current version: 1.0.2.3 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Ezreal, Jinx, Vayne
@@ -42,6 +42,10 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.2.3 BETA
+-- + Updated calc damage for Patch 8.13
+-- + Improved R spell casting
+-- + Minor changes
 -- 1.0.2.2 BETA
 -- + Fixed menu value check
 -- 1.0.2.1 BETA
@@ -73,6 +77,52 @@ end
 ---------------
 -- Functions --
 ---------------
+
+function CalcMagicalDamage(source, target, amount)
+	local mr = target.magicResist
+	local value = 100 / (100 + (mr * source.magicPenPercent) - source.magicPen)
+	if mr < 0 then
+		value = 2 - 100 / (100 - mr)
+	elseif (mr * source.magicPenPercent) - source.magicPen < 0 then
+		value = 1
+	end
+	return math.max(0, math.floor(value * amount))
+end
+
+function CalcPhysicalDamage(source, target, amount)
+	local ArmorPenPercent = source.armorPenPercent
+	local ArmorPenFlat = source.armorPen * (0.6 + (0.4 * (target.levelData.lvl / 18))) 
+	local BonusArmorPen = source.bonusArmorPenPercent
+	if source.type == Obj_AI_Minion then
+		ArmorPenPercent = 1
+		ArmorPenFlat = 0
+		BonusArmorPen = 1
+	elseif source.type == Obj_AI_Turret then
+		ArmorPenFlat = 0
+		BonusArmorPen = 1
+		if source.charName:find("3") or source.charName:find("4") then
+			ArmorPenPercent = 0.25
+		else
+			ArmorPenPercent = 0.7
+		end	
+		if target.type == Obj_AI_Minion then
+			amount = amount * 1.25
+			if target.charName:find("MinionSiege") then
+				amount = amount * 0.7
+			end
+			return amount
+		end
+	end
+	local armor = target.armor
+	local bonusArmor = target.bonusArmor
+	local value = 100 / (100 + (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat)
+	if armor < 0 then
+		value = 2 - 100 / (100 - armor)
+	elseif (armor * ArmorPenPercent) - (bonusArmor * (1 - BonusArmorPen)) - ArmorPenFlat < 0 then
+		value = 1
+	end
+	return math.max(0, math.floor(value * amount))
+end
 
 function DisableAll()
 	if _G.SDK then
@@ -253,7 +303,7 @@ function Mode()
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 			return "Harass"
 		elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] then
-			return "LaneClear"
+			return "Clear"
 		end
 	else
 		return GOS.GetMode()
@@ -349,8 +399,7 @@ function GoSuUtility:UtilityTick()
 	Item_HK[ITEM_6] = HK_ITEM_6
 	Item_HK[ITEM_7] = HK_ITEM_7
 	self:BaseUlt()
-	self:Items1()
-	self:Items2()
+	self:Items()
 	self:SS()
 end
 
@@ -386,8 +435,8 @@ function GoSuUtility:BaseUlt()
 	for i, enemy in pairs(Enemies) do
 		if enemy.valid and not enemy.dead and GetRecallData(enemy).isRecalling then
 			if myHero.charName == "Ashe" then
-				local AsheRDmg = (({200, 400, 600})[myHero:GetSpellData(_R).level] + myHero.ap)
-				if AsheRDmg >= (enemy.health + enemy.hpRegen * 20 + enemy.magicResist) then
+				local AsheRDmg = CalcMagicalDamage(myHero, enemy, (({200, 400, 600})[myHero:GetSpellData(_R).level] + myHero.ap))
+				if AsheRDmg >= (enemy.health + enemy.hpRegen * 20) then
 					local Distance = enemy.pos:DistanceTo(EnemySpawnPos.pos)
 					local Delay = 0.25
 					local Speed = 1600
@@ -396,8 +445,9 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = HitTime
 					if RecallTime - HitTime > 0.1 then return end
 					DisableAll()
-					Control.SetCursorPos(EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
-					Control.CastSpell(HK_R, EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
+					local CastPos = myHero.pos-(myHero.pos-EnemySpawnPos.pos):Normalized()*300
+					Control.SetCursorPos(CastPos)
+					Control.CastSpell(HK_R, CastPos)
 					DelayAction(EnableAll,0.3)
 					self.HitTime = 0
 				end
@@ -412,8 +462,9 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = HitTime
 					if RecallTime - HitTime > 0.1 then return end
 					DisableAll()
-					Control.SetCursorPos(EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
-					Control.CastSpell(HK_R, EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
+					local CastPos = myHero.pos-(myHero.pos-EnemySpawnPos.pos):Normalized()*300
+					Control.SetCursorPos(CastPos)
+					Control.CastSpell(HK_R, CastPos)
 					DelayAction(EnableAll,1.05)
 					self.HitTime = 0
 				end
@@ -428,8 +479,9 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = HitTime
 					if RecallTime - HitTime > 0.1 then return end
 					DisableAll()
-					Control.SetCursorPos(EnemySpawnPos.posMM.x, EnemySpawnPos.posMM.y)
-					Control.CastSpell(HK_R)
+					local CastPos = myHero.pos-(myHero.pos-EnemySpawnPos.pos):Normalized()*300
+					Control.SetCursorPos(CastPos)
+					Control.CastSpell(HK_R, CastPos)
 					DelayAction(EnableAll,0.65)
 					self.HitTime = 0
 				end
@@ -441,7 +493,8 @@ end
 function GoSuUtility:UtilityDraw()
 	for i, enemy in pairs(GetEnemyHeroes()) do
 		if self.UMenu.Draws.DrawJng:Value() then
-			if enemy:GetSpellData(SUMMONER_1).name == "SummonerSmite" or enemy:GetSpellData(SUMMONER_2).name == "SummonerSmite" then
+			SmiteSlot = (enemy:GetSpellData(SUMMONER_1).name:lower():find("Smite") and SUMMONER_1 or (enemy:GetSpellData(SUMMONER_2).name:lower():find("Smite") and SUMMONER_2 or nil))
+			if SmiteSlot then
 				Smite = true
 			else
 				Smite = false
@@ -471,7 +524,8 @@ function GoSuUtility:UtilityDraw()
 	end
 end
 
-function GoSuUtility:Items1()
+function GoSuUtility:Items()
+	if target == nil then return end
 	if EnemiesAround(myHero, 1000) >= 1 then
 		if (target.health / target.maxHealth)*100 <= self.UMenu.Items.OI:Value() then
 			if self.UMenu.Items.UseBC:Value() then
@@ -497,9 +551,6 @@ function GoSuUtility:Items1()
 			end
 		end
 	end
-end
-
-function GoSuUtility:Items2()
 	if self.UMenu.Items.UseMS:Value() then
 		if GetItemSlot(myHero, 3139) > 0 then
 			if myHero:GetSpellData(GetItemSlot(myHero, 3139)).currentCd == 0 then
@@ -571,7 +622,7 @@ function Ashe:Menu()
 	self.AsheMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Ranger's Focus]", value = true, leftIcon = QIcon})
 	self.AsheMenu.Combo:MenuElement({id = "UseW", name = "Use W [Volley]", value = true, leftIcon = WIcon})
 	self.AsheMenu.Combo:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = RIcon})
-	self.AsheMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
+	self.AsheMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
 	self.AsheMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.AsheMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	
@@ -583,7 +634,7 @@ function Ashe:Menu()
 	self.AsheMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.AsheMenu.KillSteal:MenuElement({id = "UseW", name = "Use W [Volley]", value = true, leftIcon = WIcon})
 	self.AsheMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = RIcon})
-	self.AsheMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
+	self.AsheMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
 	
 	self.AsheMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.AsheMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Ranger's Focus]", value = true, leftIcon = QIcon})
@@ -622,11 +673,15 @@ end
 function Ashe:Tick()
 	if myHero.dead or Game.IsChatOpen() == true then return end
 	self:Auto()
-	self:Combo()
-	self:Harass()
 	self:KillSteal()
-	self:LaneClear()
 	self:AntiGapcloser()
+	if Mode() == "Combo" then
+		self:Combo()
+	elseif Mode() == "Harass" then
+		self:Harass()
+	elseif Mode() == "Clear" then
+		self:LaneClear()
+	end
 end
 
 function Ashe:Draw()
@@ -658,20 +713,23 @@ function Ashe:UseR(target)
 	if self.AsheMenu.Prediction.PredictionR:Value() == 1 then
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, AsheR.range, AsheR.delay, AsheR.speed, AsheR.width, self.AsheMenu.HitChance.HPredHit:Value(), AsheR.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, AsheR.range) then
-			Control.SetCursorPos(aimPosition)
-			Control.CastSpell(HK_R, aimPosition)
+			local RCastPos = myHero.pos-(myHero.pos-Vector(aimPosition)):Normalized()*300
+			Control.SetCursorPos(RCastPos)
+			Control.CastSpell(HK_R, RCastPos)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, AsheR.range, AsheR.delay, AsheR.speed, AsheR.width, AsheR.collision, self.AsheMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, AsheR.range) then
-				Control.SetCursorPos(aimPosition)
-				Control.CastSpell(HK_R, aimPosition)
+				local RCastPos = myHero.pos-(myHero.pos-Vector(aimPosition)):Normalized()*300
+				Control.SetCursorPos(RCastPos)
+				Control.CastSpell(HK_R, RCastPos)
 			end
 		end
 	elseif self.AsheMenu.Prediction.PredictionR:Value() == 2 then
 		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, AsheR.delay, AsheR.width, AsheR.range, AsheR.speed, myHero.pos, AsheR.collision, AsheR.type)
 		if (HitChance >= self.AsheMenu.HitChance.TPredHit:Value() ) then
-			Control.SetCursorPos(castpos)
-			Control.CastSpell(HK_R, castpos)
+			local RCastPos = myHero.pos-(myHero.pos-Vector(castpos)):Normalized()*300
+			Control.SetCursorPos(RCastPos)
+			Control.CastSpell(HK_R, RCastPos)
 		end
 	end
 end
@@ -691,30 +749,28 @@ end
 
 function Ashe:Combo()
 	if target == nil then return end
-	if Mode() == "Combo" then
-		if self.AsheMenu.Combo.UseQ:Value() then
-			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range+100) then
-					if GotBuff(myHero, "asheqcastready") == 4 then
-						Control.CastSpell(HK_Q)
-					end
+	if self.AsheMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) then
+			if ValidTarget(target, myHero.range+100) then
+				if GotBuff(myHero, "asheqcastready") == 4 then
+					Control.CastSpell(HK_Q)
 				end
 			end
 		end
-		if self.AsheMenu.Combo.UseW:Value() then
-			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-				if ValidTarget(target, AsheW.range) then
-					self:UseW(target)
-				end
+	end
+	if self.AsheMenu.Combo.UseW:Value() then
+		if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, AsheW.range) then
+				self:UseW(target)
 			end
 		end
-		if self.AsheMenu.Combo.UseR:Value() then
-			if IsReady(_R) then
-				if ValidTarget(target, self.AsheMenu.Combo.Distance:Value()) then
-					if GetPercentHP(target) < self.AsheMenu.Combo.HP:Value() then
-						if EnemiesAround(myHero, self.AsheMenu.Combo.Distance:Value()+myHero.range) >= self.AsheMenu.Combo.X:Value() then
-							self:UseR(target)
-						end
+	end
+	if self.AsheMenu.Combo.UseR:Value() then
+		if IsReady(_R) then
+			if ValidTarget(target, self.AsheMenu.Combo.Distance:Value()) then
+				if GetPercentHP(target) < self.AsheMenu.Combo.HP:Value() then
+					if EnemiesAround(myHero, self.AsheMenu.Combo.Distance:Value()+myHero.range) >= self.AsheMenu.Combo.X:Value() then
+						self:UseR(target)
 					end
 				end
 			end
@@ -724,22 +780,20 @@ end
 
 function Ashe:Harass()
 	if target == nil then return end
-	if Mode() == "Harass" then
-		if self.AsheMenu.Harass.UseQ:Value() then
-			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range+100) then
-					if GotBuff(myHero, "asheqcastready") == 4 then
-						Control.CastSpell(HK_Q)
-					end
+	if self.AsheMenu.Harass.UseQ:Value() then
+		if IsReady(_Q) then
+			if ValidTarget(target, myHero.range+100) then
+				if GotBuff(myHero, "asheqcastready") == 4 then
+					Control.CastSpell(HK_Q)
 				end
 			end
 		end
-		if self.AsheMenu.Harass.UseW:Value() then
-			if GetPercentMana(myHero) > self.AsheMenu.Harass.MP:Value() then
-				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-					if ValidTarget(target, AsheW.range) then
-						self:UseW(target)
-					end
+	end
+	if self.AsheMenu.Harass.UseW:Value() then
+		if GetPercentMana(myHero) > self.AsheMenu.Harass.MP:Value() then
+			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, AsheW.range) then
+					self:UseW(target)
 				end
 			end
 		end
@@ -751,8 +805,8 @@ function Ashe:KillSteal()
 		if IsReady(_R) then
 			if self.AsheMenu.KillSteal.UseR:Value() then
 				if ValidTarget(enemy, self.AsheMenu.KillSteal.Distance:Value()) then
-					local AsheRDmg = (({200, 400, 600})[myHero:GetSpellData(_R).level] + myHero.ap)
-					if (enemy.health + enemy.hpRegen * 6 + enemy.magicResist) < AsheRDmg then
+					local AsheRDmg = CalcMagicalDamage(myHero, enemy, (({200, 400, 600})[myHero:GetSpellData(_R).level] + myHero.ap))
+					if (enemy.health + enemy.hpRegen * 6) < AsheRDmg then
 						self:UseR(enemy)
 					end
 				end
@@ -760,8 +814,8 @@ function Ashe:KillSteal()
 		elseif IsReady(_W) then
 			if self.AsheMenu.KillSteal.UseW:Value() then
 				if ValidTarget(enemy, AsheW.range) then
-					local AsheWDmg = (({20, 35, 50, 65, 80})[myHero:GetSpellData(_W).level] + myHero.totalDamage)
-					if (enemy.health + enemy.hpRegen * 4 + enemy.armor) < AsheWDmg then
+					local AsheWDmg = CalcPhysicalDamage(myHero, enemy, (({20, 35, 50, 65, 80})[myHero:GetSpellData(_W).level] + myHero.totalDamage))
+					if (enemy.health + enemy.hpRegen * 4) < AsheWDmg then
 						self:UseW(enemy)
 					end
 				end
@@ -771,26 +825,24 @@ function Ashe:KillSteal()
 end
 
 function Ashe:LaneClear()
-	if Mode() == "LaneClear" then
-		if self.AsheMenu.LaneClear.UseW:Value() then
-			if GetPercentMana(myHero) > self.AsheMenu.LaneClear.MP:Value() then
-				if IsReady(_W) then
-					local BestPos, BestHit = GetBestLinearFarmPos(AsheW.range, AsheW.width*9)
-					if BestPos and BestHit >= 3 then
-						Control.SetCursorPos(BestPos)
-						Control.CastSpell(HK_W, BestPos)
-					end
+	if self.AsheMenu.LaneClear.UseW:Value() then
+		if GetPercentMana(myHero) > self.AsheMenu.LaneClear.MP:Value() then
+			if IsReady(_W) then
+				local BestPos, BestHit = GetBestLinearFarmPos(AsheW.range, AsheW.width*9)
+				if BestPos and BestHit >= 3 then
+					Control.SetCursorPos(BestPos)
+					Control.CastSpell(HK_W, BestPos)
 				end
 			end
 		end
-		if self.AsheMenu.LaneClear.UseQ:Value() then
-			for i = 1, Game.MinionCount() do
-				local minion = Game.Minion(i)
-				if minion and minion.isEnemy then
-					if ValidTarget(minion, myHero.range) then
-						if GotBuff(myHero, "asheqcastready") == 4 then
-							Control.CastSpell(HK_Q)
-						end
+	end
+	if self.AsheMenu.LaneClear.UseQ:Value() then
+		for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+			if minion and minion.isEnemy then
+				if ValidTarget(minion, myHero.range) then
+					if GotBuff(myHero, "asheqcastready") == 4 then
+						Control.CastSpell(HK_Q)
 					end
 				end
 			end
@@ -830,7 +882,7 @@ function Ezreal:Menu()
 	self.EzrealMenu.Combo:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = true, leftIcon = WIcon})
 	self.EzrealMenu.Combo:MenuElement({id = "UseE", name = "Use E [Arcane Shift]", value = true, leftIcon = EIcon})
 	self.EzrealMenu.Combo:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = RIcon})
-	self.EzrealMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
+	self.EzrealMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
 	self.EzrealMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.EzrealMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	
@@ -842,7 +894,7 @@ function Ezreal:Menu()
 	
 	self.EzrealMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.EzrealMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = RIcon})
-	self.EzrealMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
+	self.EzrealMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
 	
 	self.EzrealMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.EzrealMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = false, leftIcon = QIcon})
@@ -885,11 +937,15 @@ end
 function Ezreal:Tick()
 	if myHero.dead or Game.IsChatOpen() == true then return end
 	self:Auto()
-	self:Combo()
-	self:Harass()
 	self:KillSteal()
-	self:LastHit()
-	self:LaneClear()
+	if Mode() == "Combo" then
+		self:Combo()
+	elseif Mode() == "Harass" then
+		self:Harass()
+	elseif Mode() == "Clear" then
+		self:LaneClear()
+		self:LastHit()
+	end
 end
 
 function Ezreal:Draw()
@@ -942,20 +998,23 @@ function Ezreal:UseR(target)
 	if self.EzrealMenu.Prediction.PredictionR:Value() == 1 then
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, EzrealR.range, EzrealR.delay, EzrealR.speed, EzrealR.width, self.EzrealMenu.HitChance.HPredHit:Value(), EzrealR.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, EzrealR.range) then
-			Control.SetCursorPos(aimPosition)
-			Control.CastSpell(HK_R, aimPosition)
+			local RCastPos = myHero.pos-(myHero.pos-Vector(aimPosition)):Normalized()*300
+			Control.SetCursorPos(RCastPos)
+			Control.CastSpell(HK_R, RCastPos)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, EzrealR.range, EzrealR.delay, EzrealR.speed, EzrealR.width, EzrealR.collision, self.EzrealMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, EzrealR.range) then
-				Control.SetCursorPos(aimPosition)
-				Control.CastSpell(HK_R, aimPosition)
+				local RCastPos = myHero.pos-(myHero.pos-Vector(castpos)):Normalized()*300
+				Control.SetCursorPos(RCastPos)
+				Control.CastSpell(HK_R, RCastPos)
 			end
 		end
 	elseif self.EzrealMenu.Prediction.PredictionR:Value() == 2 then
 		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, EzrealR.delay, EzrealR.width, EzrealR.range, EzrealR.speed, myHero.pos, EzrealR.collision, EzrealR.type)
 		if (HitChance >= self.EzrealMenu.HitChance.TPredHit:Value() ) then
-			Control.SetCursorPos(castpos)
-			Control.CastSpell(HK_R, castpos)
+			local RCastPos = myHero.pos-(myHero.pos-Vector(aimPosition)):Normalized()*300
+			Control.SetCursorPos(RCastPos)
+			Control.CastSpell(HK_R, RCastPos)
 		end
 	end
 end
@@ -984,35 +1043,33 @@ end
 
 function Ezreal:Combo()
 	if target == nil then return end
-	if Mode() == "Combo" then
-		if self.EzrealMenu.Combo.UseQ:Value() then
-			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-				if ValidTarget(target, EzrealQ.range) then
-					self:UseQ(target)
-				end
+	if self.EzrealMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, EzrealQ.range) then
+				self:UseQ(target)
 			end
 		end
-		if self.EzrealMenu.Combo.UseW:Value() then
-			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-				if ValidTarget(target, EzrealW.range) then
-					self:UseW(target)
-				end
+	end
+	if self.EzrealMenu.Combo.UseW:Value() then
+		if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, EzrealW.range) then
+				self:UseW(target)
 			end
 		end
-		if self.EzrealMenu.Combo.UseE:Value() then
-			if IsReady(_E) then
-				if ValidTarget(target, EzrealE.range+myHero.range) then
-					Control.CastSpell(HK_E, mousePos)
-				end
+	end
+	if self.EzrealMenu.Combo.UseE:Value() then
+		if IsReady(_E) then
+			if ValidTarget(target, EzrealE.range+myHero.range) then
+				Control.CastSpell(HK_E, mousePos)
 			end
 		end
-		if self.EzrealMenu.Combo.UseR:Value() then
-			if IsReady(_R) then
-				if ValidTarget(target, self.EzrealMenu.Combo.Distance:Value()) then
-					if GetPercentHP(target) < self.EzrealMenu.Combo.HP:Value() then
-						if EnemiesAround(myHero, self.EzrealMenu.Combo.Distance:Value()+myHero.range) >= self.EzrealMenu.Combo.X:Value() then
-							self:UseR(target)
-						end
+	end
+	if self.EzrealMenu.Combo.UseR:Value() then
+		if IsReady(_R) then
+			if ValidTarget(target, self.EzrealMenu.Combo.Distance:Value()) then
+				if GetPercentHP(target) < self.EzrealMenu.Combo.HP:Value() then
+					if EnemiesAround(myHero, self.EzrealMenu.Combo.Distance:Value()+myHero.range) >= self.EzrealMenu.Combo.X:Value() then
+						self:UseR(target)
 					end
 				end
 			end
@@ -1022,22 +1079,20 @@ end
 
 function Ezreal:Harass()
 	if target == nil then return end
-	if Mode() == "Harass" then
-		if self.EzrealMenu.Harass.UseQ:Value() then
-			if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
-				if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-					if ValidTarget(target, EzrealQ.range) then
-						self:UseQ(target)
-					end
+	if self.EzrealMenu.Harass.UseQ:Value() then
+		if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
+			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, EzrealQ.range) then
+					self:UseQ(target)
 				end
 			end
 		end
-		if self.EzrealMenu.Harass.UseW:Value() then
-			if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
-				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-					if ValidTarget(target, EzrealW.range) then
-						self:UseW(target)
-					end
+	end
+	if self.EzrealMenu.Harass.UseW:Value() then
+		if GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() then
+			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, EzrealW.range) then
+					self:UseW(target)
 				end
 			end
 		end
@@ -1049,8 +1104,8 @@ function Ezreal:KillSteal()
 		if IsReady(_R) then
 			if self.EzrealMenu.KillSteal.UseR:Value() then
 				if ValidTarget(enemy, self.EzrealMenu.KillSteal.Distance:Value()) then
-					local EzrealRDmg = (0.3*(({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap))
-					if (enemy.health + enemy.hpRegen * 6 + enemy.magicResist) < EzrealRDmg then
+					local EzrealRDmg = CalcMagicalDamage(myHero, enemy, (0.3*(({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap)))
+					if (enemy.health + enemy.hpRegen * 6) < EzrealRDmg then
 						self:UseR(enemy)
 					end
 				end
@@ -1060,15 +1115,13 @@ function Ezreal:KillSteal()
 end
 
 function Ezreal:LaneClear()
-	if Mode() == "LaneClear" then
-		if self.EzrealMenu.LaneClear.UseQ:Value() then
-			if GetPercentMana(myHero) > self.EzrealMenu.LaneClear.MP:Value() then
-				for i = 1, Game.MinionCount() do
-					local minion = Game.Minion(i)
-					if minion and minion.isEnemy then
-						if ValidTarget(minion, EzrealQ.range) then
-							Control.CastSpell(HK_Q, minion)
-						end
+	if self.EzrealMenu.LaneClear.UseQ:Value() then
+		if GetPercentMana(myHero) > self.EzrealMenu.LaneClear.MP:Value() then
+			for i = 1, Game.MinionCount() do
+				local minion = Game.Minion(i)
+				if minion and minion.isEnemy then
+					if ValidTarget(minion, EzrealQ.range) then
+						Control.CastSpell(HK_Q, minion)
 					end
 				end
 			end
@@ -1077,19 +1130,17 @@ function Ezreal:LaneClear()
 end
 
 function Ezreal:LastHit()
-	if Mode() == "LaneClear" then
-		if self.EzrealMenu.LastHit.UseQ:Value() then
-			if GetPercentMana(myHero) > self.EzrealMenu.LastHit.MP:Value() then
-				for i = 1, Game.MinionCount() do
-					local minion = Game.Minion(i)
-					if minion and minion.isEnemy then
-						if ValidTarget(minion, EzrealQ.range) then
-							local EzrealQDmg = (({15, 40, 65, 90, 115})[myHero:GetSpellData(_Q).level] + 1.1 * myHero.bonusDamage + 0.4 * myHero.ap)
-							if minion.health < EzrealQDmg then
-								local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, EzrealQ.delay, EzrealQ.width, EzrealQ.range, EzrealQ.speed, myHero.pos, EzrealQ.collision, EzrealQ.type)
-								if HitChance >= 1 then
-									Control.CastSpell(HK_Q, castpos)
-								end
+	if self.EzrealMenu.LastHit.UseQ:Value() then
+		if GetPercentMana(myHero) > self.EzrealMenu.LastHit.MP:Value() then
+			for i = 1, Game.MinionCount() do
+				local minion = Game.Minion(i)
+				if minion and minion.isEnemy then
+					if ValidTarget(minion, EzrealQ.range) then
+						local EzrealQDmg = (({15, 40, 65, 90, 115})[myHero:GetSpellData(_Q).level] + 1.1 * myHero.bonusDamage + 0.4 * myHero.ap)
+						if minion.health < EzrealQDmg then
+							local castpos,HitChance, pos = TPred:GetBestCastPosition(minion, EzrealQ.delay, EzrealQ.width, EzrealQ.range, EzrealQ.speed, myHero.pos, EzrealQ.collision, EzrealQ.type)
+							if HitChance >= 1 then
+								Control.CastSpell(HK_Q, castpos)
 							end
 						end
 					end
@@ -1118,7 +1169,7 @@ function Jinx:Menu()
 	self.JinxMenu.Combo:MenuElement({id = "UseW", name = "Use W [Zap!]", value = true, leftIcon = WIcon})
 	self.JinxMenu.Combo:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = true, leftIcon = EIcon})
 	self.JinxMenu.Combo:MenuElement({id = "UseR", name = "Use R [Mega Death Rocket!]", value = true, leftIcon = RIcon})
-	self.JinxMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
+	self.JinxMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
 	self.JinxMenu.Combo:MenuElement({id = "ModeE", name = "Cast Mode: E", drop = {"Standard", "On Immobile"}, value = 1})
 	self.JinxMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.JinxMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
@@ -1133,7 +1184,7 @@ function Jinx:Menu()
 	self.JinxMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.JinxMenu.KillSteal:MenuElement({id = "UseW", name = "Use W [Zap!]", value = true, leftIcon = WIcon})
 	self.JinxMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Mega Death Rocket!]", value = true, leftIcon = RIcon})
-	self.JinxMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 3000, step = 50})
+	self.JinxMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
 	
 	self.JinxMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.JinxMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Switcheroo!]", value = false, leftIcon = QIcon})
@@ -1177,11 +1228,15 @@ end
 function Jinx:Tick()
 	if myHero.dead or Game.IsChatOpen() == true then return end
 	self:Auto()
-	self:Combo()
-	self:Harass()
 	self:KillSteal()
-	self:LaneClear()
 	self:AntiGapcloser()
+	if Mode() == "Combo" then
+		self:Combo()
+	elseif Mode() == "Harass" then
+		self:Harass()
+	elseif Mode() == "Clear" then
+		self:LaneClear()
+	end
 end
 
 function Jinx:Draw()
@@ -1233,20 +1288,23 @@ function Jinx:UseR(target)
 	if self.JinxMenu.Prediction.PredictionR:Value() == 1 then
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, JinxR.range, JinxR.delay, JinxR.speed, JinxR.width, self.JinxMenu.HitChance.HPredHit:Value(), JinxR.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, JinxR.range) then
-			Control.SetCursorPos(aimPosition)
-			Control.CastSpell(HK_R, aimPosition)
+			local RCastPos = myHero.pos-(myHero.pos-Vector(aimPosition)):Normalized()*300
+			Control.SetCursorPos(RCastPos)
+			Control.CastSpell(HK_R, RCastPos)
 		else
 			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, JinxR.range, JinxR.delay, JinxR.speed, JinxR.width, JinxR.collision, self.JinxMenu.HitChance.HPredHit:Value(), nil)
 			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, JinxR.range) then
-				Control.SetCursorPos(aimPosition)
-				Control.CastSpell(HK_R, aimPosition)
+				local RCastPos = myHero.pos-(myHero.pos-Vector(aimPosition)):Normalized()*300
+				Control.SetCursorPos(RCastPos)
+				Control.CastSpell(HK_R, RCastPos)
 			end
 		end
 	elseif self.JinxMenu.Prediction.PredictionR:Value() == 2 then
 		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, JinxR.delay, JinxR.width, JinxR.range, JinxR.speed, myHero.pos, JinxR.collision, JinxR.type)
 		if (HitChance >= self.JinxMenu.HitChance.TPredHit:Value() ) then
-			Control.SetCursorPos(castpos)
-			Control.CastSpell(HK_R, castpos)
+			local RCastPos = myHero.pos-(myHero.pos-Vector(castpos)):Normalized()*300
+			Control.SetCursorPos(RCastPos)
+			Control.CastSpell(HK_R, RCastPos)
 		end
 	end
 end
@@ -1266,60 +1324,53 @@ end
 
 function Jinx:Combo()
 	if target == nil then return end
-	if Mode() == "Combo" then
-		if self.JinxMenu.Combo.UseQ:Value() then
-			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range) then
-					if myHero:GetSpellData(_Q).toggleState == 2 then
-						if EnemiesAround(target, 150) <= 1 then
-							Control.CastSpell(HK_Q)
-						end
-					else
-						if EnemiesAround(target, 150) > 1 then
-							Control.CastSpell(HK_Q)
-						end
-					end
-				end
-			end
-		end
-		if self.JinxMenu.Combo.UseQ:Value() then
-			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range+175) then
-					if GetDistance(myHero.pos, target.pos) > 600 and myHero:GetSpellData(_Q).toggleState == 1 then
+	if self.JinxMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) then
+			if ValidTarget(target, myHero.range) then
+				if myHero:GetSpellData(_Q).toggleState == 2 then
+					if EnemiesAround(target, 150) <= 1 then
 						Control.CastSpell(HK_Q)
-					elseif GetDistance(myHero.pos, target.pos) < 600 and myHero:GetSpellData(_Q).toggleState == 2 then
+					end
+				else
+					if EnemiesAround(target, 150) > 1 then
 						Control.CastSpell(HK_Q)
 					end
 				end
-			end
-		end
-		if self.JinxMenu.Combo.UseW:Value() then
-			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-				if ValidTarget(target, JinxW.range) and GetDistance(myHero.pos, target.pos) > 500 then
-					self:UseW(target)
+			elseif ValidTarget(target, myHero.range+200) then
+				if GetDistance(myHero.pos, target.pos) > 600 and myHero:GetSpellData(_Q).toggleState == 1 then
+					Control.CastSpell(HK_Q)
+				elseif GetDistance(myHero.pos, target.pos) < 600 and myHero:GetSpellData(_Q).toggleState == 2 then
+					Control.CastSpell(HK_Q)
 				end
 			end
 		end
-		if self.JinxMenu.Combo.UseE:Value() then
-			if IsReady(_E) then
-				if ValidTarget(target, JinxE.range) then
-					if self.JinxMenu.Combo.ModeE:Value() == 1 then
+	end
+	if self.JinxMenu.Combo.UseW:Value() then
+		if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, JinxW.range) and GetDistance(myHero.pos, target.pos) > 500 then
+				self:UseW(target)
+			end
+		end
+	end
+	if self.JinxMenu.Combo.UseE:Value() then
+		if IsReady(_E) then
+			if ValidTarget(target, JinxE.range) then
+				if self.JinxMenu.Combo.ModeE:Value() == 1 then
+					self:UseE(target)
+				elseif self.JinxMenu.Combo.ModeE:Value() == 2 then
+					if IsImmobile(target) then
 						self:UseE(target)
-					elseif self.JinxMenu.Combo.ModeE:Value() == 2 then
-						if IsImmobile(target) then
-							self:UseE(target)
-						end
 					end
 				end
 			end
 		end
-		if self.JinxMenu.Combo.UseR:Value() then
-			if IsReady(_R) then
-				if ValidTarget(target, self.JinxMenu.Combo.Distance:Value()) then
-					if GetPercentHP(target) < self.JinxMenu.Combo.HP:Value() then
-						if EnemiesAround(myHero, self.JinxMenu.Combo.Distance:Value()+myHero.range) >= self.JinxMenu.Combo.X:Value() then
-							self:UseR(target)
-						end
+	end
+	if self.JinxMenu.Combo.UseR:Value() then
+		if IsReady(_R) then
+			if ValidTarget(target, self.JinxMenu.Combo.Distance:Value()) then
+				if GetPercentHP(target) < self.JinxMenu.Combo.HP:Value() then
+					if EnemiesAround(myHero, self.JinxMenu.Combo.Distance:Value()+myHero.range) >= self.JinxMenu.Combo.X:Value() then
+						self:UseR(target)
 					end
 				end
 			end
@@ -1329,54 +1380,47 @@ end
 
 function Jinx:Harass()
 	if target == nil then return end
-	if Mode() == "Harass" then
-		if self.JinxMenu.Harass.UseQ:Value() then
-			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range) then
-					if myHero:GetSpellData(_Q).toggleState == 2 then
-						if EnemiesAround(target, 150) <= 1 then
+	if self.JinxMenu.Harass.UseQ:Value() then
+		if IsReady(_Q) then
+			if ValidTarget(target, myHero.range) then
+				if myHero:GetSpellData(_Q).toggleState == 2 then
+					if EnemiesAround(target, 150) <= 1 then
+						Control.CastSpell(HK_Q)
+					end
+				else
+					if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
+						if EnemiesAround(target, 150) > 1 then
 							Control.CastSpell(HK_Q)
 						end
-					else
-						if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
-							if EnemiesAround(target, 150) > 1 then
-								Control.CastSpell(HK_Q)
-							end
-						end
 					end
+				end
+			elseif ValidTarget(target, myHero.range+200) then
+				if GetDistance(myHero.pos, target.pos) > 600 and myHero:GetSpellData(_Q).toggleState == 1 and GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
+					Control.CastSpell(HK_Q)
+				elseif GetDistance(myHero.pos, target.pos) < 600 and myHero:GetSpellData(_Q).toggleState == 2 then
+					Control.CastSpell(HK_Q)
 				end
 			end
 		end
-		if self.JinxMenu.Harass.UseQ:Value() then
-			if IsReady(_Q) then
-				if ValidTarget(target, myHero.range+175) then
-					if GetDistance(myHero.pos, target.pos) > 600 and myHero:GetSpellData(_Q).toggleState == 1 and GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
-						Control.CastSpell(HK_Q)
-					elseif GetDistance(myHero.pos, target.pos) < 600 and myHero:GetSpellData(_Q).toggleState == 2 then
-						Control.CastSpell(HK_Q)
-					end
+	end
+	if self.JinxMenu.Harass.UseW:Value() then
+		if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
+			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, JinxW.range) and GetDistance(myHero.pos, target.pos) > 500 then
+					self:UseW(target)
 				end
 			end
 		end
-		if self.JinxMenu.Harass.UseW:Value() then
-			if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
-				if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
-					if ValidTarget(target, JinxW.range) and GetDistance(myHero.pos, target.pos) > 500 then
-						self:UseW(target)
-					end
-				end
-			end
-		end
-		if self.JinxMenu.Harass.UseE:Value() then
-			if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
-				if IsReady(_E) then
-					if ValidTarget(target, JinxE.range) then
-						if self.JinxMenu.Harass.ModeE:Value() == 1 then
+	end
+	if self.JinxMenu.Harass.UseE:Value() then
+		if GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() then
+			if IsReady(_E) then
+				if ValidTarget(target, JinxE.range) then
+					if self.JinxMenu.Harass.ModeE:Value() == 1 then
+						self:UseE(target)
+					elseif self.JinxMenu.Harass.ModeE:Value() == 2 then
+						if IsImmobile(target) then
 							self:UseE(target)
-						elseif self.JinxMenu.Harass.ModeE:Value() == 2 then
-							if IsImmobile(target) then
-								self:UseE(target)
-							end
 						end
 					end
 				end
@@ -1390,8 +1434,8 @@ function Jinx:KillSteal()
 		if IsReady(_R) then
 			if self.JinxMenu.KillSteal.UseR:Value() then
 				if ValidTarget(enemy, self.JinxMenu.KillSteal.Distance:Value()) then
-					local JinxRDmg = (({125, 175, 225})[myHero:GetSpellData(_R).level] + 0.75 * myHero.bonusDamage + (({0.25, 0.3, 0.35})[myHero:GetSpellData(_R).level])*(enemy.maxHealth - enemy.health))
-					if (enemy.health + enemy.hpRegen * 6 + enemy.armor) < JinxRDmg then
+					local JinxRDmg = CalcPhysicalDamage(myHero, enemy, (({125, 175, 225})[myHero:GetSpellData(_R).level] + 0.75 * myHero.bonusDamage + (({0.25, 0.3, 0.35})[myHero:GetSpellData(_R).level])*(enemy.maxHealth - enemy.health)))
+					if (enemy.health + enemy.hpRegen * 6) < JinxRDmg then
 						self:UseR(enemy)
 					end
 				end
@@ -1399,8 +1443,8 @@ function Jinx:KillSteal()
 		elseif IsReady(_W) then
 			if self.JinxMenu.KillSteal.UseW:Value() then
 				if ValidTarget(enemy, JinxW.range) then
-					local JinxWDmg = (({10, 60, 110, 160, 210})[myHero:GetSpellData(_W).level] + 1.4 * myHero.totalDamage)
-					if (enemy.health + enemy.hpRegen * 4 + enemy.armor) < JinxWDmg then
+					local JinxWDmg = CalcPhysicalDamage(myHero, enemy, (({10, 60, 110, 160, 210})[myHero:GetSpellData(_W).level] + 1.6 * myHero.totalDamage))
+					if (enemy.health + enemy.hpRegen * 4) < JinxWDmg then
 						self:UseW(enemy)
 					end
 				end
@@ -1410,32 +1454,30 @@ function Jinx:KillSteal()
 end
 
 function Jinx:LaneClear()
-	if Mode() == "LaneClear" then
-		if self.JinxMenu.LaneClear.UseE:Value() then
-			if GetPercentMana(myHero) > self.JinxMenu.LaneClear.MP:Value() then
-				if IsReady(_E) then
-					local BestPos, BestHit = GetBestCircularFarmPos(JinxE.range, JinxE.width)
-					if BestPos and BestHit >= 3 then
-						Control.SetCursorPos(BestPos)
-						Control.CastSpell(HK_E, BestPos)
-					end
+	if self.JinxMenu.LaneClear.UseE:Value() then
+		if GetPercentMana(myHero) > self.JinxMenu.LaneClear.MP:Value() then
+			if IsReady(_E) then
+				local BestPos, BestHit = GetBestCircularFarmPos(JinxE.range, JinxE.width)
+				if BestPos and BestHit >= 3 then
+					Control.SetCursorPos(BestPos)
+					Control.CastSpell(HK_E, BestPos)
 				end
 			end
 		end
-		if self.JinxMenu.LaneClear.UseQ:Value() then
-			for i = 1, Game.MinionCount() do
-				local minion = Game.Minion(i)
-				if minion and minion.isEnemy then
-					if ValidTarget(minion, myHero.range) then
-						if myHero:GetSpellData(_Q).toggleState == 2 then
-							if MinionsAround(minion.pos, 150, minion.team) <= 1 then
+	end
+	if self.JinxMenu.LaneClear.UseQ:Value() then
+		for i = 1, Game.MinionCount() do
+			local minion = Game.Minion(i)
+			if minion and minion.isEnemy then
+				if ValidTarget(minion, myHero.range) then
+					if myHero:GetSpellData(_Q).toggleState == 2 then
+						if MinionsAround(minion.pos, 150, minion.team) <= 1 then
+							Control.CastSpell(HK_Q)
+						end
+					else
+						if GetPercentMana(myHero) > self.JinxMenu.LaneClear.MP:Value() then
+							if MinionsAround(minion.pos, 150, minion.team) > 1 then
 								Control.CastSpell(HK_Q)
-							end
-						else
-							if GetPercentMana(myHero) > self.JinxMenu.LaneClear.MP:Value() then
-								if MinionsAround(minion.pos, 150, minion.team) > 1 then
-									Control.CastSpell(HK_Q)
-								end
 							end
 						end
 					end
@@ -1525,11 +1567,15 @@ end
 function Vayne:Tick()
 	if myHero.dead or Game.IsChatOpen() == true then return end
 	self:Auto()
-	self:Combo()
-	self:Harass()
 	self:KillSteal()
-	self:LastHit()
 	self:AntiGapcloser()
+	if Mode() == "Combo" then
+		self:Combo()
+	elseif Mode() == "Harass" then
+		self:Harass()
+	elseif Mode() == "Clear" then
+		self:LastHit()
+	end
 end
 
 function Vayne:Draw()
@@ -1579,34 +1625,32 @@ end
 
 function Vayne:Combo()
 	if target == nil then return end
-	if Mode() == "Combo" then
-		if self.VayneMenu.Combo.UseQ:Value() then
-			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-				if ValidTarget(target, VayneQ.range+myHero.range) then
-					if self.VayneMenu.Combo.ModeQ:Value() == 1 then
+	if self.VayneMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, VayneQ.range+myHero.range) then
+				if self.VayneMenu.Combo.ModeQ:Value() == 1 then
+					Control.CastSpell(HK_Q, mousePos)
+				elseif self.VayneMenu.Combo.ModeQ:Value() == 2 then
+					if GotBuff(target, "VayneSilveredDebuff") >= 2 then 
 						Control.CastSpell(HK_Q, mousePos)
-					elseif self.VayneMenu.Combo.ModeQ:Value() == 2 then
-						if GotBuff(target, "VayneSilveredDebuff") >= 2 then 
-							Control.CastSpell(HK_Q, mousePos)
-						end
 					end
 				end
 			end
 		end
-		if self.VayneMenu.Combo.UseE:Value() then
-			if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
-				if ValidTarget(target, VayneE.range) then
-					self:UseE(target)
-				end
+	end
+	if self.VayneMenu.Combo.UseE:Value() then
+		if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, VayneE.range) then
+				self:UseE(target)
 			end
 		end
-		if self.VayneMenu.Combo.UseR:Value() then
-			if IsReady(_R) then
-				if ValidTarget(target, myHero.range+500) then
-					if GetPercentHP(target) < self.VayneMenu.Combo.HP:Value() then
-						if EnemiesAround(myHero, VayneQ.range+myHero.range+100) >= self.VayneMenu.Combo.X:Value() then
-							Control.CastSpell(HK_R)
-						end
+	end
+	if self.VayneMenu.Combo.UseR:Value() then
+		if IsReady(_R) then
+			if ValidTarget(target, myHero.range+500) then
+				if GetPercentHP(target) < self.VayneMenu.Combo.HP:Value() then
+					if EnemiesAround(myHero, VayneQ.range+myHero.range+100) >= self.VayneMenu.Combo.X:Value() then
+						Control.CastSpell(HK_R)
 					end
 				end
 			end
@@ -1616,28 +1660,26 @@ end
 
 function Vayne:Harass()
 	if target == nil then return end
-	if Mode() == "Harass" then
-		if self.VayneMenu.Harass.UseQ:Value() then
-			if GetPercentMana(myHero) > self.VayneMenu.Harass.MP:Value() then
-				if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
-					if ValidTarget(target, VayneQ.range+myHero.range) then
-						if self.VayneMenu.Harass.ModeQ:Value() == 1 then
+	if self.VayneMenu.Harass.UseQ:Value() then
+		if GetPercentMana(myHero) > self.VayneMenu.Harass.MP:Value() then
+			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, VayneQ.range+myHero.range) then
+					if self.VayneMenu.Harass.ModeQ:Value() == 1 then
+						Control.CastSpell(HK_Q, mousePos)
+					elseif self.VayneMenu.Harass.ModeQ:Value() == 2 then
+						if GotBuff(target, "VayneSilveredDebuff") >= 2 then 
 							Control.CastSpell(HK_Q, mousePos)
-						elseif self.VayneMenu.Harass.ModeQ:Value() == 2 then
-							if GotBuff(target, "VayneSilveredDebuff") >= 2 then 
-								Control.CastSpell(HK_Q, mousePos)
-							end
 						end
 					end
 				end
 			end
 		end
-		if self.VayneMenu.Harass.UseE:Value() then
-			if GetPercentMana(myHero) > self.VayneMenu.Harass.MP:Value() then
-				if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
-					if ValidTarget(target, VayneE.range) then
-						self:UseE(target)
-					end
+	end
+	if self.VayneMenu.Harass.UseE:Value() then
+		if GetPercentMana(myHero) > self.VayneMenu.Harass.MP:Value() then
+			if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, VayneE.range) then
+					self:UseE(target)
 				end
 			end
 		end
@@ -1649,8 +1691,8 @@ function Vayne:KillSteal()
 		if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
 			if self.VayneMenu.KillSteal.UseE:Value() then
 				if ValidTarget(enemy, VayneE.range) then
-					local VayneEDmg = (({50, 90, 120, 155, 190})[myHero:GetSpellData(_E).level] + 0.5 * myHero.bonusDamage)
-					if (enemy.health + enemy.hpRegen * 2 + enemy.armor) < VayneEDmg then
+					local VayneEDmg = CalcPhysicalDamage(myHero, enemy, (({50, 90, 120, 155, 190})[myHero:GetSpellData(_E).level] + 0.5 * myHero.bonusDamage))
+					if (enemy.health + enemy.hpRegen * 2) < VayneEDmg then
 						self:UseE(enemy)
 					end
 				end
@@ -1660,17 +1702,15 @@ function Vayne:KillSteal()
 end
 
 function Vayne:LastHit()
-	if Mode() == "LaneClear" then
-		if self.VayneMenu.LastHit.UseQ:Value() then
-			if GetPercentMana(myHero) > self.VayneMenu.LastHit.MP:Value() then
-				for i = 1, Game.MinionCount() do
-					local minion = Game.Minion(i)
-					if minion and minion.isEnemy then
-						if ValidTarget(minion, myHero.range) then
-							local VayneQDmg = (((0.05 * myHero:GetSpellData(_Q).level + 0.45) * myHero.totalDamage) + myHero.totalDamage)
-							if minion.health < VayneQDmg then
-								Control.CastSpell(HK_Q, mousePos)
-							end
+	if self.VayneMenu.LastHit.UseQ:Value() then
+		if GetPercentMana(myHero) > self.VayneMenu.LastHit.MP:Value() then
+			for i = 1, Game.MinionCount() do
+				local minion = Game.Minion(i)
+				if minion and minion.isEnemy then
+					if ValidTarget(minion, myHero.range) then
+						local VayneQDmg = (((0.05 * myHero:GetSpellData(_Q).level + 0.45) * myHero.totalDamage) + myHero.totalDamage)
+						if minion.health < VayneQDmg then
+							Control.CastSpell(HK_Q, mousePos)
 						end
 					end
 				end
