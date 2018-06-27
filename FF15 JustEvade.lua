@@ -137,10 +137,10 @@ function JustEvade:__init()
 	AddEvent(Events.OnProcessSpell, function(...) self:OnProcessSpell(...) end)
 
 self.Spells = {
-	["AatroxQ"]={charName="Aatrox",slot=Q,type="linear",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=650,delay=0.6,radius=130,hitbox=true,aoe=true,cc=true,collision=false},
-	["AatroxQ2"]={charName="Aatrox",slot=Q,type="linear",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=500,delay=0.6,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
-	["AatroxQ3"]={charName="Aatrox",slot=Q,type="circular",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=200,delay=0.6,radius=300,hitbox=true,aoe=true,cc=true,collision=false},
-	["AatroxW"]={charName="Aatrox",slot=W,type="linear",displayName="Infernal Chains",danger=2,speed=1800,range=825,delay=0.25,radius=80,hitbox=true,aoe=false,cc=true,collision=true},
+	["AatroxQ"]={charName="Aatrox",slot=Q,type="linear",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=650,delay=0.6,radius=130,collision=false},
+	["AatroxQ2"]={charName="Aatrox",slot=Q,type="linear",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=500,delay=0.6,radius=300,collision=false},
+	["AatroxQ3"]={charName="Aatrox",slot=Q,type="circular",displayName="The Darkin Blade",danger=2,speed=MathHuge,range=200,delay=0.6,radius=300,collision=false},
+	["AatroxW"]={charName="Aatrox",slot=W,type="linear",displayName="Infernal Chains",danger=2,speed=1800,range=825,delay=0.25,radius=80,collision=true},
 	["AhriOrbofDeception"]={charName="Ahri",slot=Q,type="linear",displayName="Orb of Deception",danger=1,speed=2500,range=880,delay=0.25,radius=100,collision=false},
 	["AhriSeduce"]={charName="Ahri",slot=E,type="linear",displayName="Charm",danger=1,speed=1550,range=975,delay=0.25,radius=60,collision=true},
 	["Pulverize"]={charName="Alistar",slot=Q,type="circular",displayName="Pulverize",danger=1,speed=MathHuge,range=0,delay=0.25,radius=365,collision=false},
