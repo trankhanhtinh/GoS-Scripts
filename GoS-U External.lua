@@ -19,7 +19,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.2.3 BETA
+-- Current version: 1.0.3 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Ezreal, Jinx, Vayne
@@ -42,6 +42,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.3 BETA
+-- + Added Kalista
 -- 1.0.2.3 BETA
 -- + Updated calc damage for Patch 8.13
 -- + Improved R spell casting
@@ -1499,6 +1501,272 @@ function Jinx:AntiGapcloser()
 			if self.JinxMenu.AntiGapcloser.UseE:Value() then
 				if ValidTarget(antigap, self.JinxMenu.AntiGapcloser.DistanceE:Value()) then
 					self:UseE(antigap)
+				end
+			end
+		end
+	end
+end
+
+class "Kalista"
+
+local HeroIcon = "https://www.mobafire.com/images/champion/square/kalista.png"
+local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/9b/Pierce.png"
+local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/91/Sentinel.png"
+local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/b/b8/Rend.png"
+local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e9/Fate%27s_Call.png"
+
+function Kalista:Menu()
+	self.KalistaMenu = MenuElement({type = MENU, id = "Kalista", name = "[GoS-U] Kalista", leftIcon = HeroIcon})
+	self.KalistaMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.KalistaMenu.Auto:MenuElement({id = "UseR", name = "Use R [Fate's Call]", value = true, leftIcon = RIcon})
+	self.KalistaMenu.Auto:MenuElement({id = "HP", name = "HP-Manager: R", value = 20, min = 0, max = 100, step = 5})
+	
+	self.KalistaMenu:MenuElement({id = "ERend", name = "E [Rend]", type = MENU})
+	self.KalistaMenu.ERend:MenuElement({id = "ResetE", name = "Use E (Reset)", value = true})
+	self.KalistaMenu.ERend:MenuElement({id = "OutOfAA", name = "Use E (Out Of AA)", value = true})
+	self.KalistaMenu.ERend:MenuElement({id = "MS", name = "Minimum Spears", value = 6, min = 0, max = 20, step = 1})
+	
+	self.KalistaMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.KalistaMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Pierce]", value = true, leftIcon = QIcon})
+	self.KalistaMenu.Combo:MenuElement({id = "UseE", name = "Use E [Rend]", value = true, leftIcon = EIcon})
+	
+	self.KalistaMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.KalistaMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Pierce]", value = true, leftIcon = QIcon})
+	self.KalistaMenu.Harass:MenuElement({id = "UseE", name = "Use E [Rend]", value = true, leftIcon = EIcon})
+	self.KalistaMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.KalistaMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.KalistaMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q [Pierce]", value = true, leftIcon = QIcon})
+	self.KalistaMenu.KillSteal:MenuElement({id = "UseE", name = "Use E [Rend]", value = true, leftIcon = EIcon})
+	
+	self.KalistaMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
+	self.KalistaMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Pierce]", value = false, leftIcon = QIcon})
+	self.KalistaMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.KalistaMenu:MenuElement({id = "LastHit", name = "LastHit", type = MENU})
+	self.KalistaMenu.LastHit:MenuElement({id = "UseE", name = "Use E [Rend]", value = true, leftIcon = EIcon})
+	self.KalistaMenu.LastHit:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.KalistaMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.KalistaMenu.HitChance:MenuElement({id = "HPredHit", name = "HitChance: HPrediction", value = 1, min = 1, max = 5, step = 1})
+	self.KalistaMenu.HitChance:MenuElement({id = "TPredHit", name = "HitChance: TPrediction", value = 1, min = 0, max = 5, step = 1})
+	
+	self.KalistaMenu:MenuElement({id = "Prediction", name = "Prediction", type = MENU})
+	self.KalistaMenu.Prediction:MenuElement({id = "PredictionW", name = "Prediction: W", drop = {"HPrediction", "TPrediction"}, value = 2})
+	self.KalistaMenu.Prediction:MenuElement({id = "PredictionE", name = "Prediction: E", drop = {"HPrediction", "TPrediction"}, value = 2})
+	self.KalistaMenu.Prediction:MenuElement({id = "PredictionR", name = "Prediction: R", drop = {"HPrediction", "TPrediction"}, value = 2})
+	
+	self.KalistaMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.KalistaMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.KalistaMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.KalistaMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+end
+
+function Kalista:Spells()
+	KalistaQ = {speed = 2400, range = 1150, delay = 0.35, width = 40, collision = true, aoe = false, type = "line"}
+	KalistaE = {range = 1000}
+	KalistaR = {range = 1200}
+end
+
+function Kalista:__init()
+	self:Menu()
+	self:Spells()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+end
+
+function Kalista:Tick()
+	if myHero.dead or Game.IsChatOpen() == true then return end
+	self:Auto()
+	self:KillSteal()
+	if Mode() == "Combo" then
+		self:Combo()
+	elseif Mode() == "Harass" then
+		self:Harass()
+	elseif Mode() == "Clear" then
+		self:LaneClear()
+		self:LastHit()
+	end
+end
+
+function Kalista:Draw()
+	if myHero.dead then return end
+	if self.KalistaMenu.Drawings.DrawQ:Value() then Draw.Circle(myHero.pos, KalistaQ.range, 1, Draw.Color(255, 0, 191, 255)) end
+	if self.KalistaMenu.Drawings.DrawE:Value() then Draw.Circle(myHero.pos, KalistaE.range, 1, Draw.Color(255, 30, 144, 255)) end
+	if self.KalistaMenu.Drawings.DrawR:Value() then Draw.Circle(myHero.pos, KalistaR.range, 1, Draw.Color(255, 0, 0, 255)) end
+end
+
+function Kalista:UseQ(target)
+	if self.KalistaMenu.Prediction.PredictionW:Value() == 1 then
+		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, KalistaQ.range, KalistaQ.delay, KalistaQ.speed, KalistaQ.width, self.KalistaMenu.HitChance.HPredHit:Value(), KalistaQ.collision)
+		if target and HPred:IsInRange(myHero.pos, aimPosition, KalistaQ.range) then
+			Control.CastSpell(HK_Q, aimPosition)
+		else
+			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, KalistaQ.range, KalistaQ.delay, KalistaQ.speed, KalistaQ.width, KalistaQ.collision, self.KalistaMenu.HitChance.HPredHit:Value(), nil)
+			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, KalistaQ.range) then
+				Control.CastSpell(HK_Q, aimPosition)
+			end
+		end
+	elseif self.KalistaMenu.Prediction.PredictionW:Value() == 2 then
+		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, KalistaQ.delay, KalistaQ.width, KalistaQ.range, KalistaQ.speed, myHero.pos, KalistaQ.collision, KalistaQ.type)
+		if (HitChance >= self.KalistaMenu.HitChance.TPredHit:Value() ) then
+			Control.CastSpell(HK_Q, castpos)
+		end
+	end
+end
+
+function Kalista:Auto()
+	if target == nil then return end
+	if self.KalistaMenu.Auto.UseR:Value() then
+		for _, ally in pairs(GetAllyHeroes()) do
+			if IsReady(_R) and GotBuff(ally, "kalistacoopstrikeally") == 1 then
+				if ValidTarget(ally, KalistaR.range) and EnemiesAround(ally, 1500) >= 1 then
+					if GetPercentHP(ally) <= self.KalistaMenu.Auto.HP:Value() then
+						Control.CastSpell(HK_R)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Kalista:Combo()
+	if target == nil then return end
+	if self.KalistaMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, KalistaQ.range) then
+				self:UseQ(target)
+			end
+		end
+	end
+	if self.KalistaMenu.Combo.UseE:Value() then
+		if IsReady(_E) then
+			if ValidTarget(target, KalistaE.range) then
+				if GetDistance(target.pos, myHero.pos) <= myHero.range then
+					if self.KalistaMenu.ERend.ResetE:Value() then
+						for i = 1, Game.MinionCount() do
+							local minion = Game.Minion(i)
+							if minion and minion.isEnemy then
+								if ValidTarget(minion, KalistaE.range) and GotBuff(minion, "kalistaexpungemarker") >= 1 then
+									local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1))
+									if minion.health < KalistaEDmg then
+										if GotBuff(target, "kalistaexpungemarker") >= self.KalistaMenu.ERend.MS:Value() then
+											Control.CastSpell(HK_E)
+										end
+									end
+								end
+							end
+						end
+					end
+				elseif GetDistance(target.pos, myHero.pos) >= myHero.range then
+					if self.KalistaMenu.ERend.OutOfAA:Value() then
+						if GotBuff(target, "kalistaexpungemarker") >= self.KalistaMenu.ERend.MS:Value() then
+							Control.CastSpell(HK_E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Kalista:Harass()
+	if target == nil then return end
+	if GetPercentMana(myHero) > self.KalistaMenu.Harass.MP:Value() then
+		if self.KalistaMenu.Harass.UseQ:Value() then
+			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, KalistaQ.range) then
+					self:UseQ(target)
+				end
+			end
+		end
+		if self.KalistaMenu.Harass.UseE:Value() then
+			if IsReady(_E) then
+				if ValidTarget(target, KalistaE.range) then
+					if GetDistance(target.pos, myHero.pos) <= myHero.range then
+						if self.KalistaMenu.ERend.ResetE:Value() then
+							for i = 1, Game.MinionCount() do
+								local minion = Game.Minion(i)
+								if minion and minion.isEnemy then
+									if ValidTarget(minion, KalistaE.range) and GotBuff(minion, "kalistaexpungemarker") >= 1 then
+										local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1))
+										if minion.health < KalistaEDmg then
+											if GotBuff(target, "kalistaexpungemarker") >= self.KalistaMenu.ERend.MS:Value() then
+												Control.CastSpell(HK_E)
+											end
+										end
+									end
+								end
+							end
+						end
+					elseif GetDistance(target.pos, myHero.pos) >= myHero.range then
+						if self.KalistaMenu.ERend.OutOfAA:Value() then
+							if GotBuff(target, "kalistaexpungemarker") >= self.KalistaMenu.ERend.MS:Value() then
+								Control.CastSpell(HK_E)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Kalista:KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if IsReady(_Q) then
+			if self.KalistaMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, KalistaQ.range) then
+					local KalistaQDmg = CalcPhysicalDamage(myHero, enemy, (({10, 70, 130, 190, 250})[myHero:GetSpellData(_Q).level] + myHero.totalDamage))
+					if (enemy.health + enemy.hpRegen * 2) < KalistaQDmg then
+						self:UseQ(enemy)
+					end
+				end
+			end
+		elseif IsReady(_E) then
+			if self.KalistaMenu.KillSteal.UseE:Value() then
+				if ValidTarget(enemy, KalistaE.range) then
+					if GotBuff(enemy, "kalistaexpungemarker") > 0 then
+						local KalistaEDmg = CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(enemy,"kalistaexpungemarker")-1)))
+						if (enemy.health + enemy.hpRegen * 2) < KalistaEDmg then
+							Control.CastSpell(HK_E)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Kalista:LaneClear()
+	if self.KalistaMenu.LaneClear.UseQ:Value() then
+		if GetPercentMana(myHero) > self.KalistaMenu.LaneClear.MP:Value() then
+			for i = 1, Game.MinionCount() do
+				local minion = Game.Minion(i)
+				if minion and minion.isEnemy and minion.alive then
+					if ValidTarget(minion, KalistaQ.range) then
+						Control.CastSpell(HK_Q, minion)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Kalista:LastHit()
+	if self.KalistaMenu.LastHit.UseE:Value() then
+		if GetPercentMana(myHero) > self.KalistaMenu.LastHit.MP:Value() then
+			for i = 1, Game.MinionCount() do
+				local minion = Game.Minion(i)
+				if minion and minion.isEnemy and minion.alive then
+					if ValidTarget(minion, KalistaE.range) then
+						if GotBuff(minion, "kalistaexpungemarker") > 0 then
+							local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1))
+							if minion.health < KalistaEDmg then
+								Control.CastSpell(HK_E)
+							end
+						end
+					end
 				end
 			end
 		end
