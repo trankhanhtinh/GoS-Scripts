@@ -12,7 +12,7 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.1.6
+-- Current version: 1.1.6.1
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
 -- + Supports Ashe, Caitlyn, Corki, Draven, Ezreal, Jhin, Jinx, Kaisa, Kalista,
@@ -35,6 +35,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.1.6.1
+-- + Updated damage calc for Patch 8.13
 -- 1.1.6
 -- + Added DAC & DAC:R support
 -- 1.1.5.4
@@ -2815,7 +2817,7 @@ end
 
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		local WDmg = (50*GetCastLevel(myHero,_Q)-40)+(1.4*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
+		local WDmg = (50*GetCastLevel(myHero,_Q)-40)+(1.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero)))
 		local EDmg = (50*GetCastLevel(myHero,_W)+20)+GetBonusAP(myHero)
 		local RDmg = (100*GetCastLevel(myHero,_R)+150)+(1.5*GetBonusDmg(myHero))+((0.05*GetCastLevel(myHero,_R)+0.2)*(GetMaxHP(enemy)-GetCurrentHP(enemy)))
 		local ComboDmg = WDmg + EDmg + RDmg
@@ -3477,7 +3479,7 @@ end
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 		local QDmg = (60*GetCastLevel(myHero,_Q)-50)+(GetBaseDamage(myHero)+GetBonusDmg(myHero))
-		local EDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.025*GetCastLevel(myHero,_E)+0.175)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(enemy,"kalistaexpungemarker")-1))
+		local EDmg = (10*GetCastLevel(myHero,_E)+10+(0.6*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))+(((4*GetCastLevel(myHero,_E)+6)+((0.0375*GetCastLevel(myHero,_E)+0.1625)*(GetBaseDamage(myHero)+GetBonusDmg(myHero))))*(GotBuff(enemy,"kalistaexpungemarker")-1))
 		local ComboDmg = QDmg + EDmg
 		if ValidTarget(enemy) then
 			if KalistaMenu.Drawings.DrawDMG:Value() then
@@ -5712,7 +5714,7 @@ end
 function DrawDamage()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 		local WDmg = (50*GetCastLevel(myHero,_W)+35)+(0.5*GetBonusAP(myHero))
-		local EDmg = (22*GetCastLevel(myHero,_E)+110)+((0.22*GetCastLevel(myHero,_E)+0.88)*GetBonusDmg(myHero))+(1.1*GetBonusAP(myHero))
+		local EDmg = (22*GetCastLevel(myHero,_E)+110)+((0.33*GetCastLevel(myHero,_E)+0.77)*GetBonusDmg(myHero))+(1.1*GetBonusAP(myHero))
 		local RDmg = (100*GetCastLevel(myHero,_R)+200)+GetBonusAP(myHero)
 		local ComboDmg = WDmg + EDmg + RDmg
 		local ERDmg = EDmg + RDmg
