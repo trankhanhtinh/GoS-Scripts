@@ -37,6 +37,7 @@
 -- ===============
 -- 1.1.6.1
 -- + Updated damage calc for Patch 8.13
+-- + Improved logic for Jinx's Q
 -- 1.1.6
 -- + Added DAC & DAC:R support
 -- 1.1.5.4
@@ -2970,7 +2971,7 @@ function Combo()
 	if Mode() == "Combo" then
 		if JinxMenu.Combo.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+				if ValidTarget(target, GetRange(myHero)) then
 					if Q2 then
 						if EnemiesAround(target, 150) <= 1 then
 							useQ(target)
@@ -2979,6 +2980,12 @@ function Combo()
 						if EnemiesAround(target, 150) > 1 then
 							useQ(target)
 						end
+					end
+				elseif ValidTarget(target, GetRange(myHero)+200) then
+					if GetDistance(myHero, target) > 600 and not Q2 then
+						useQ(target)
+					elseif GetDistance(myHero, target) < 600 and Q2 then
+						useQ(target)
 					end
 				end
 			end
@@ -3017,7 +3024,7 @@ function Harass()
 	if Mode() == "Harass" then
 		if JinxMenu.Harass.UseQ:Value() then
 			if CanUseSpell(myHero,_Q) == READY then
-				if ValidTarget(target, GetRange(myHero)+GetHitBox(myHero)) then
+				if ValidTarget(target, GetRange(myHero)) then
 					if Q2 then
 						if EnemiesAround(target, 150) <= 1 then
 							useQ(target)
@@ -3028,6 +3035,14 @@ function Harass()
 								useQ(target)
 							end
 						end
+					end
+				elseif ValidTarget(target, GetRange(myHero)+200) then
+					if GetDistance(myHero, target) > 600 and not Q2 then
+						if 100*GetCurrentMana(myHero)/GetMaxMana(myHero) > JinxMenu.Harass.MP:Value() then
+							useQ(target)
+						end
+					elseif GetDistance(myHero, target) < 600 and Q2 then
+						useQ(target)
 					end
 				end
 			end
