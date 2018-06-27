@@ -1523,7 +1523,7 @@ function Kalista:Menu()
 	
 	self.KalistaMenu:MenuElement({id = "ERend", name = "E [Rend]", type = MENU})
 	self.KalistaMenu.ERend:MenuElement({id = "ResetE", name = "Use E (Reset)", value = true})
-	self.KalistaMenu.ERend:MenuElement({id = "OutOfAA", name = "Use E (Out Of AA)", value = true})
+	self.KalistaMenu.ERend:MenuElement({id = "OutOfAA", name = "Use E (Out Of AA)", value = false})
 	self.KalistaMenu.ERend:MenuElement({id = "MS", name = "Minimum Spears", value = 6, min = 0, max = 20, step = 1})
 	
 	self.KalistaMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
@@ -1648,7 +1648,7 @@ function Kalista:Combo()
 							local minion = Game.Minion(i)
 							if minion and minion.isEnemy then
 								if ValidTarget(minion, KalistaE.range) and GotBuff(minion, "kalistaexpungemarker") >= 1 then
-									local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1))
+									local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + ((({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1)))
 									if minion.health < KalistaEDmg then
 										if GotBuff(target, "kalistaexpungemarker") >= self.KalistaMenu.ERend.MS:Value() then
 											Control.CastSpell(HK_E)
@@ -1689,7 +1689,7 @@ function Kalista:Harass()
 								local minion = Game.Minion(i)
 								if minion and minion.isEnemy then
 									if ValidTarget(minion, KalistaE.range) and GotBuff(minion, "kalistaexpungemarker") >= 1 then
-										local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1))
+										local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + ((({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1)))
 										if minion.health < KalistaEDmg then
 											if GotBuff(target, "kalistaexpungemarker") >= self.KalistaMenu.ERend.MS:Value() then
 												Control.CastSpell(HK_E)
@@ -1727,7 +1727,7 @@ function Kalista:KillSteal()
 			if self.KalistaMenu.KillSteal.UseE:Value() then
 				if ValidTarget(enemy, KalistaE.range) then
 					if GotBuff(enemy, "kalistaexpungemarker") > 0 then
-						local KalistaEDmg = CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(enemy,"kalistaexpungemarker")-1)))
+						local KalistaEDmg = CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + ((({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(enemy,"kalistaexpungemarker")-1))))
 						if (enemy.health + enemy.hpRegen * 2) < KalistaEDmg then
 							Control.CastSpell(HK_E)
 						end
@@ -1761,7 +1761,7 @@ function Kalista:LastHit()
 				if minion and minion.isEnemy and minion.alive then
 					if ValidTarget(minion, KalistaE.range) then
 						if GotBuff(minion, "kalistaexpungemarker") > 0 then
-							local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + (({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1))
+							local KalistaEDmg = ((({20, 30, 40, 50, 60})[myHero:GetSpellData(_E).level] + (0.6 * myHero.totalDamage)) + ((({10, 14, 19, 25, 32})[myHero:GetSpellData(_E).level] + ((0.025 * myHero:GetSpellData(_E).level + 0.175) * myHero.totalDamage)) * (GotBuff(minion,"kalistaexpungemarker")-1)))
 							if minion.health < KalistaEDmg then
 								Control.CastSpell(HK_E)
 							end
