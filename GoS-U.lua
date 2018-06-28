@@ -93,7 +93,7 @@
 -- + Initial release
 -- + Imported Ashe & Utility
 
-local GSVer = 1.16
+local GSVer = 1.161
 
 function AutoUpdate(data)
 	local num = tonumber(data)
