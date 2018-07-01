@@ -456,8 +456,8 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = 0
 				end
 			elseif myHero.charName == "Ezreal" then
-				local EzrealRDmg = (0.3*(({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap))
-				if EzrealRDmg >= (enemy.health + enemy.hpRegen * 20 + enemy.magicResist) then
+				local EzrealRDmg = CalcMagicalDamage(myHero, enemy, (0.3*(({350, 500, 650})[myHero:GetSpellData(_R).level] + myHero.bonusDamage + 0.9 * myHero.ap)))
+				if EzrealRDmg >= (enemy.health + enemy.hpRegen * 20) then
 					local Distance = enemy.pos:DistanceTo(EnemySpawnPos.pos)
 					local Delay = 1
 					local Speed = 2000
@@ -473,8 +473,8 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = 0
 				end
 			elseif myHero.charName == "Jinx" then
-				local JinxRDmg = (({250, 350, 450})[myHero:GetSpellData(_R).level] + ({25, 30, 35})[myHero:GetSpellData(_R).level] / 100 * (enemy.maxHealth - enemy.health) + 1.5 * myHero.totalDamage)
-				if JinxRDmg >= (enemy.health + enemy.hpRegen * 20 + enemy.armor) then
+				local JinxRDmg = CalcPhysicalDamage(myHero, enemy, (({250, 350, 450})[myHero:GetSpellData(_R).level] + ({25, 30, 35})[myHero:GetSpellData(_R).level] / 100 * (enemy.maxHealth - enemy.health) + 1.5 * myHero.totalDamage))
+				if JinxRDmg >= (enemy.health + enemy.hpRegen * 20) then
 					local Distance = enemy.pos:DistanceTo(EnemySpawnPos.pos)
 					local Delay = 0.6
 					local Speed = Distance > 1350 and (2295000 + (Distance - 1350) * 2200) / Distance or 1700
