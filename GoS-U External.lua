@@ -19,10 +19,10 @@
 -- ==================
 -- == Introduction ==
 -- ==================
--- Current version: 1.0.3 BETA
+-- Current version: 1.0.4 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Ezreal, Jinx, Kalista, Vayne
+-- + Supports Ashe, Caitlyn, Ezreal, Jinx, Kalista, Vayne
 -- + 2 choosable predictions (HPrediction, TPrediction),
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -42,6 +42,8 @@
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.4 BETA
+-- + Added Caitlyn
 -- 1.0.3 BETA
 -- + Added Kalista
 -- 1.0.2.3 BETA
@@ -857,6 +859,331 @@ function Ashe:AntiGapcloser()
 		if IsReady(_W) then
 			if self.AsheMenu.AntiGapcloser.UseW:Value() then
 				if ValidTarget(antigap, self.AsheMenu.AntiGapcloser.DistanceW:Value()) then
+					self:UseW(antigap)
+				end
+			end
+		end
+	end
+end
+
+class "Caitlyn"
+
+local HeroIcon = "https://www.mobafire.com/images/champion/square/caitlyn.png"
+local QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fd/Piltover_Peacemaker.png"
+local WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/03/Yordle_Snap_Trap.png"
+local EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0b/90_Caliber_Net.png"
+local RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/aa/Ace_in_the_Hole.png"
+
+function Caitlyn:Menu()
+	self.CaitlynMenu = MenuElement({type = MENU, id = "Caitlyn", name = "[GoS-U] Caitlyn", leftIcon = HeroIcon})
+	self.CaitlynMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.CaitlynMenu.Auto:MenuElement({id = "UseQ", name = "Use Q [Piltover Peacemaker]", value = true, leftIcon = QIcon})
+	self.CaitlynMenu.Auto:MenuElement({id = "UseW", name = "Use W [Yordle Snap Trap]", value = true, leftIcon = WIcon})
+	self.CaitlynMenu.Auto:MenuElement({id = "ModeQ", name = "Cast Mode: Q", drop = {"Standard", "On Immobile"}, value = 2})
+	self.CaitlynMenu.Auto:MenuElement({id = "ModeW", name = "Cast Mode: W", drop = {"Standard", "On Immobile"}, value = 2})
+	self.CaitlynMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.CaitlynMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.CaitlynMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Piltover Peacemaker]", value = true, leftIcon = QIcon})
+	self.CaitlynMenu.Combo:MenuElement({id = "UseW", name = "Use W [Yordle Snap Trap]", value = true, leftIcon = WIcon})
+	self.CaitlynMenu.Combo:MenuElement({id = "UseE", name = "Use E [90 Caliber Net]", value = true, leftIcon = EIcon})
+	self.CaitlynMenu.Combo:MenuElement({id = "ModeQ", name = "Cast Mode: Q", drop = {"Standard", "On Immobile"}, value = 1})
+	self.CaitlynMenu.Combo:MenuElement({id = "ModeW", name = "Cast Mode: W", drop = {"Standard", "On Immobile"}, value = 1})
+	
+	self.CaitlynMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.CaitlynMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Piltover Peacemaker]", value = true, leftIcon = QIcon})
+	self.CaitlynMenu.Harass:MenuElement({id = "UseE", name = "Use E [90 Caliber Net]", value = true, leftIcon = EIcon})
+	self.CaitlynMenu.Harass:MenuElement({id = "ModeQ", name = "Cast Mode: Q", drop = {"Standard", "On Immobile"}, value = 1})
+	self.CaitlynMenu.Harass:MenuElement({id = "ModeW", name = "Cast Mode: W", drop = {"Standard", "On Immobile"}, value = 2})
+	self.CaitlynMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.CaitlynMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.CaitlynMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q [Piltover Peacemaker]", value = true, leftIcon = QIcon})
+	self.CaitlynMenu.KillSteal:MenuElement({id = "UseR", name = "Draw Killable With R", value = true, leftIcon = RIcon})
+	
+	self.CaitlynMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
+	self.CaitlynMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Piltover Peacemaker]", value = false, leftIcon = QIcon})
+	self.CaitlynMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	
+	self.CaitlynMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.CaitlynMenu.AntiGapcloser:MenuElement({id = "UseW", name = "Use W [Yordle Snap Trap]", value = true, leftIcon = WIcon})
+	self.CaitlynMenu.AntiGapcloser:MenuElement({id = "UseE", name = "Use E [90 Caliber Net]", value = true, leftIcon = EIcon})
+	self.CaitlynMenu.AntiGapcloser:MenuElement({id = "DistanceW", name = "Distance: W", value = 300, min = 25, max = 500, step = 25})
+	self.CaitlynMenu.AntiGapcloser:MenuElement({id = "DistanceE", name = "Distance: E", value = 300, min = 25, max = 500, step = 25})
+	
+	self.CaitlynMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.CaitlynMenu.HitChance:MenuElement({id = "HPredHit", name = "HitChance: HPrediction", value = 1, min = 1, max = 5, step = 1})
+	self.CaitlynMenu.HitChance:MenuElement({id = "TPredHit", name = "HitChance: TPrediction", value = 1, min = 0, max = 5, step = 1})
+	
+	self.CaitlynMenu:MenuElement({id = "Prediction", name = "Prediction", type = MENU})
+	self.CaitlynMenu.Prediction:MenuElement({id = "PredictionQ", name = "Prediction: Q", drop = {"HPrediction", "TPrediction"}, value = 2})
+	self.CaitlynMenu.Prediction:MenuElement({id = "PredictionW", name = "Prediction: W", drop = {"HPrediction", "TPrediction"}, value = 2})
+	self.CaitlynMenu.Prediction:MenuElement({id = "PredictionE", name = "Prediction: E", drop = {"HPrediction", "TPrediction"}, value = 2})
+	
+	self.CaitlynMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.CaitlynMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.CaitlynMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
+	self.CaitlynMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.CaitlynMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+end
+
+function Caitlyn:Spells()
+	CaitlynQ = {speed = 2200, range = 1250, delay = 0.625, width = 60, collision = false, aoe = true, type = "line"}
+	CaitlynW = {speed = math.huge, range = 800, delay = 0.25, width = 75, collision = false, aoe = false, type = "circular"}
+	CaitlynE = {speed = 1600, range = 750, delay = 0.25, width = 70, collision = true, aoe = false, type = "linear"}
+	CaitlynR = {range = myHero:GetSpellData(_R).range}
+end
+
+function Caitlyn:__init()
+	self:Menu()
+	self:Spells()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+end
+
+function Caitlyn:Tick()
+	if myHero.dead or Game.IsChatOpen() == true then return end
+	self:Auto()
+	self:KillSteal()
+	self:AntiGapcloser()
+	if Mode() == "Combo" then
+		self:Combo()
+	elseif Mode() == "Harass" then
+		self:Harass()
+	elseif Mode() == "Clear" then
+		self:LaneClear()
+	end
+end
+
+function Caitlyn:Draw()
+	if myHero.dead then return end
+	if self.CaitlynMenu.Drawings.DrawQ:Value() then Draw.Circle(myHero.pos, CaitlynQ.range, 1, Draw.Color(255, 0, 191, 255)) end
+	if self.CaitlynMenu.Drawings.DrawW:Value() then Draw.Circle(myHero.pos, CaitlynW.range, 1, Draw.Color(255, 65, 105, 225)) end
+	if self.CaitlynMenu.Drawings.DrawE:Value() then Draw.Circle(myHero.pos, CaitlynE.range, 1, Draw.Color(255, 30, 144, 255)) end
+	if self.CaitlynMenu.Drawings.DrawR:Value() then Draw.Circle(myHero.pos, CaitlynR.range, 1, Draw.Color(255, 0, 0, 255)) end
+end
+
+function Caitlyn:UseQ(target)
+	if self.CaitlynMenu.Prediction.PredictionQ:Value() == 1 then
+		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, CaitlynQ.range, CaitlynQ.delay, CaitlynQ.speed, CaitlynQ.width, self.CaitlynMenu.HitChance.HPredHit:Value(), CaitlynQ.collision)
+		if target and HPred:IsInRange(myHero.pos, aimPosition, CaitlynQ.range) then
+			Control.CastSpell(HK_Q, aimPosition)
+		else
+			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, CaitlynQ.range, CaitlynQ.delay, CaitlynQ.speed, CaitlynQ.width, CaitlynQ.collision, self.CaitlynMenu.HitChance.HPredHit:Value(), nil)
+			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, CaitlynQ.range) then
+				Control.CastSpell(HK_Q, aimPosition)
+			end
+		end
+	elseif self.CaitlynMenu.Prediction.PredictionQ:Value() == 2 then
+		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, CaitlynQ.delay, CaitlynQ.width, CaitlynQ.range, CaitlynQ.speed, myHero.pos, CaitlynQ.collision, CaitlynQ.type)
+		if (HitChance >= self.CaitlynMenu.HitChance.TPredHit:Value() ) then
+			Control.CastSpell(HK_Q, castpos)
+		end
+	end
+end
+
+function Caitlyn:UseW(target)
+	if self.CaitlynMenu.Prediction.PredictionW:Value() == 1 then
+		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, CaitlynW.range, CaitlynW.delay, CaitlynW.speed, CaitlynW.width, self.CaitlynMenu.HitChance.HPredHit:Value(), CaitlynW.collision)
+		if target and HPred:IsInRange(myHero.pos, aimPosition, CaitlynW.range) then
+			Control.CastSpell(HK_W, aimPosition)
+		else
+			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, CaitlynW.range, CaitlynW.delay, CaitlynW.speed, CaitlynW.width, CaitlynW.collision, self.CaitlynMenu.HitChance.HPredHit:Value(), nil)
+			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, CaitlynW.range) then
+				Control.CastSpell(HK_W, aimPosition)
+			end
+		end
+	elseif self.CaitlynMenu.Prediction.PredictionW:Value() == 2 then
+		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, CaitlynW.delay, CaitlynW.width, CaitlynW.range, CaitlynW.speed, myHero.pos, CaitlynW.collision, CaitlynW.type)
+		if (HitChance >= self.CaitlynMenu.HitChance.TPredHit:Value() ) then
+			Control.CastSpell(HK_W, castpos)
+		end
+	end
+end
+
+function Caitlyn:UseE(target)
+	if self.CaitlynMenu.Prediction.PredictionE:Value() == 1 then
+		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, CaitlynE.range, CaitlynE.delay, CaitlynE.speed, CaitlynE.width, self.CaitlynMenu.HitChance.HPredHit:Value(), CaitlynE.collision)
+		if target and HPred:IsInRange(myHero.pos, aimPosition, CaitlynE.range) then
+			Control.CastSpell(HK_E, aimPosition)
+		else
+			local hitChance, aimPosition = HPred:GetUnreliableTarget(myHero.pos, CaitlynE.range, CaitlynE.delay, CaitlynE.speed, CaitlynE.width, CaitlynE.collision, self.CaitlynMenu.HitChance.HPredHit:Value(), nil)
+			if hitChance and HPred:IsInRange(myHero.pos, aimPosition, CaitlynE.range) then
+				Control.CastSpell(HK_E, aimPosition)
+			end
+		end
+	elseif self.CaitlynMenu.Prediction.PredictionE:Value() == 2 then
+		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, CaitlynE.delay, CaitlynE.width, CaitlynE.range, CaitlynE.speed, myHero.pos, CaitlynE.collision, CaitlynE.type)
+		if (HitChance >= self.CaitlynMenu.HitChance.TPredHit:Value() ) then
+			Control.CastSpell(HK_E, castpos)
+		end
+	end
+end
+
+function Caitlyn:Auto()
+	if target == nil then return end
+	if GetPercentMana(myHero) > self.CaitlynMenu.Auto.MP:Value() then
+		if self.CaitlynMenu.Auto.UseQ:Value() then
+			if IsReady(_Q) then
+				if ValidTarget(target, CaitlynQ.range) then
+					if self.CaitlynMenu.Auto.ModeQ:Value() == 1 then
+						self:UseQ(target)
+					elseif self.CaitlynMenu.Auto.ModeQ:Value() == 2 then
+						if IsImmobile(target) then
+							self:UseQ(target)
+						end
+					end
+				end
+			end
+		end
+		if self.CaitlynMenu.Auto.UseW:Value() then
+			if IsReady(_W) then
+				if ValidTarget(target, CaitlynW.range) then
+					if self.CaitlynMenu.Auto.ModeW:Value() == 1 then
+						self:UseW(target)
+					elseif self.CaitlynMenu.Auto.ModeW:Value() == 2 then
+						if IsImmobile(target) then
+							self:UseW(target)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Caitlyn:Combo()
+	if target == nil then return end
+	if self.CaitlynMenu.Combo.UseQ:Value() then
+		if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, CaitlynQ.range) then
+				if self.CaitlynMenu.Combo.ModeQ:Value() == 1 then
+					self:UseQ(target)
+				elseif self.CaitlynMenu.Combo.ModeQ:Value() == 2 then
+					if IsImmobile(target) then
+						self:UseQ(target)
+					end
+				end
+			end
+		end
+	end
+	if self.CaitlynMenu.Combo.UseW:Value() then
+		if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, CaitlynW.range) then
+				if self.CaitlynMenu.Combo.ModeW:Value() == 1 then
+					self:UseW(target)
+				elseif self.CaitlynMenu.Combo.ModeW:Value() == 2 then
+					if IsImmobile(target) then
+						self:UseW(target)
+					end
+				end
+			end
+		end
+	end
+	if self.CaitlynMenu.Combo.UseE:Value() then
+		if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
+			if ValidTarget(target, CaitlynE.range) then
+				self:UseE(target)
+			elseif ValidTarget(target, CaitlynE.range+400) then
+				local EPos = Vector(myHero.pos)+(Vector(myHero.pos)-Vector(target.pos))
+				Control.CastSpell(HK_E, EPos)
+			end
+		end
+	end
+end
+
+function Caitlyn:Harass()
+	if target == nil then return end
+	if GetPercentMana(myHero) > self.CaitlynMenu.Harass.MP:Value() then
+		if self.CaitlynMenu.Harass.UseQ:Value() then
+			if IsReady(_Q) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, CaitlynQ.range) then
+					if self.CaitlynMenu.Harass.ModeQ:Value() == 1 then
+						self:UseQ(target)
+					elseif self.CaitlynMenu.Harass.ModeQ:Value() == 2 then
+						if IsImmobile(target) then
+							self:UseQ(target)
+						end
+					end
+				end
+			end
+		end
+		if self.CaitlynMenu.Harass.UseW:Value() then
+			if IsReady(_W) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, CaitlynW.range) then
+					if self.CaitlynMenu.Harass.ModeW:Value() == 1 then
+						self:UseW(target)
+					elseif self.CaitlynMenu.Harass.ModeW:Value() == 2 then
+						if IsImmobile(target) then
+							self:UseW(target)
+						end
+					end
+				end
+			end
+		end
+		if self.CaitlynMenu.Harass.UseE:Value() then
+			if IsReady(_E) and myHero.attackData.state ~= STATE_WINDUP then
+				if ValidTarget(target, CaitlynE.range) then
+					self:UseE(target)
+				elseif ValidTarget(target, CaitlynE.range+400) then
+					local EPos = Vector(myHero.pos)+(Vector(myHero.pos)-Vector(target.pos))
+					Control.CastSpell(HK_E, EPos)
+				end
+			end
+		end
+	end
+end
+
+function Caitlyn:KillSteal()
+	for i,enemy in pairs(GetEnemyHeroes()) do
+		if IsReady(_Q) then
+			if self.CaitlynMenu.KillSteal.UseQ:Value() then
+				if ValidTarget(enemy, CaitlynQ.range) then
+					local CaitlynQDmg = CalcPhysicalDamage(myHero, enemy, ((({20.1, 46.9, 73.7, 100.5, 127.3})[myHero:GetSpellData(_Q).level]) + ((0.067 * myHero:GetSpellData(_Q).level + 0.804) * myHero.totalDamage)))
+					if (enemy.health + enemy.hpRegen * 4) < CaitlynQDmg then
+						self:UseQ(enemy)
+					end
+				end
+			end
+		elseif IsReady(_R) then
+			if self.CaitlynMenu.KillSteal.UseR:Value() then
+				if ValidTarget(enemy, CaitlynR.range) then
+					local CaitlynRDmg = CalcPhysicalDamage(myHero, enemy, ((({250, 475, 700})[myHero:GetSpellData(_R).level]) + (2 * myHero.bonusDamage)))
+					if (enemy.health + enemy.hpRegen * 4) < CaitlynRDmg then
+						Draw.Circle(enemy.pos, 100, 5, Draw.Color(255, 255, 215, 0))
+					end
+				end
+			end
+		end
+	end
+end
+
+function Caitlyn:LaneClear()
+	if self.CaitlynMenu.LaneClear.UseQ:Value() then
+		if GetPercentMana(myHero) > self.CaitlynMenu.LaneClear.MP:Value() then
+			if IsReady(_Q) then
+				local BestPos, BestHit = GetBestLinearFarmPos(CaitlynQ.range, CaitlynQ.width)
+				if BestPos and BestHit >= 4 then
+					Control.SetCursorPos(BestPos)
+					Control.CastSpell(HK_Q, BestPos)
+				end
+			end
+		end
+	end
+end
+
+function Caitlyn:AntiGapcloser()
+	for i,antigap in pairs(GetEnemyHeroes()) do
+		if IsReady(_E) then
+			if self.CaitlynMenu.AntiGapcloser.UseE:Value() then
+				if ValidTarget(antigap, self.CaitlynMenu.AntiGapcloser.DistanceE:Value()) then
+					local EPos = Vector(myHero.pos)+(Vector(myHero.pos)-Vector(antigap.pos))
+					Control.CastSpell(HK_E, EPos)
+				end
+			end
+		elseif IsReady(_W) then
+			if self.CaitlynMenu.AntiGapcloser.UseW:Value() then
+				if ValidTarget(antigap, self.CaitlynMenu.AntiGapcloser.DistanceW:Value()) then
 					self:UseW(antigap)
 				end
 			end
