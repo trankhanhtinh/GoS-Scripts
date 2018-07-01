@@ -6,10 +6,12 @@
 --   |   |  |       | |   |     |   |  |   _   | _____| ||       ||       |
 --   |___|  |_______| |___|     |___|  |__| |__||_______||_______||_______|
 --
--- Current version: 1.0.7
+-- Current version: 1.0.8
 -- ===============
 -- == Changelog ==
 -- ===============
+-- 1.0.8
+-- + Added Under-Turret Logic
 -- 1.0.7
 -- + Added Pyke Q to spell database
 -- + Optimized code
@@ -75,6 +77,10 @@ function GetDistanceSqr(Pos1, Pos2)
 	local dx = Pos1.x - Pos2.x
 	local dz = (Pos1.z or Pos1.y) - (Pos2.z or Pos2.y)
 	return dx^2 + dz^2
+end
+
+function GetDashPos(unit)
+	return myHero.pos+(unit.pos-myHero.pos):Normalized()*500
 end
 
 function GetDistance(Pos1, Pos2)
@@ -187,6 +193,18 @@ function Mode()
 	end
 end
 
+function IsUnderTurret(unit)
+	for i = 1, Game.TurretCount() do
+		local turret = Game.Turret(i);
+		if turret and turret.isEnemy and turret.valid and turret.health > 0 then
+			if GetDistance(unit, turret.pos) <= 850 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function ValidTarget(target, range)
 	range = range and range or math.huge
 	return target ~= nil and target.valid and target.visible and not target.dead and target.distance <= range
@@ -226,6 +244,7 @@ function Yasuo:Menu()
 	self.YasuoMenu.Combo:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
 	self.YasuoMenu.Combo:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
 	self.YasuoMenu.Combo:MenuElement({id = "UseR", name = "Use R [Last Breath]", value = true, leftIcon = RIcon})
+	self.YasuoMenu.Combo:MenuElement({id = "Turret", name = "Under-Turret Logic", value = false})
 	self.YasuoMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.YasuoMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	
@@ -233,6 +252,7 @@ function Yasuo:Menu()
 	self.YasuoMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Steel Tempest]", value = true, leftIcon = QIcon})
 	self.YasuoMenu.Harass:MenuElement({id = "UseQ3", name = "Use Q3 [Gathering Storm]", value = true, leftIcon = Q3Icon})
 	self.YasuoMenu.Harass:MenuElement({id = "UseE", name = "Use E [Sweeping Blade]", value = true, leftIcon = EIcon})
+	self.YasuoMenu.Harass:MenuElement({id = "Turret", name = "Under-Turret Logic", value = true})
 	
 	self.YasuoMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.YasuoMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Last Breath]", value = true, leftIcon = RIcon})
@@ -668,7 +688,13 @@ function Yasuo:Combo()
 		if IsReady(_E) then
 			if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
 				if GotBuff(target, "YasuoDashWrapper") == 0 then
-					Control.CastSpell(HK_E, target)
+					if self.YasuoMenu.Combo.Turret:Value() then
+						if not IsUnderTurret(GetDashPos(target)) then
+							Control.CastSpell(HK_E, target)
+						end
+					else
+						Control.CastSpell(HK_E, target)
+					end
 				end
 			elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
 				for i = 1, Game.MinionCount() do
@@ -677,9 +703,17 @@ function Yasuo:Combo()
 						if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
 							local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
 							if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-								ETravel = false
-								Control.CastSpell(HK_E, minion)
-								DelayAction(function() ETravel = true end, 0.8)
+								if self.YasuoMenu.Combo.Turret:Value() then
+									if not IsUnderTurret(GetDashPos(minion)) then
+										ETravel = false
+										Control.CastSpell(HK_E, minion)
+										DelayAction(function() ETravel = true end, 0.85)
+									end
+								else
+									ETravel = false
+									Control.CastSpell(HK_E, minion)
+									DelayAction(function() ETravel = true end, 0.85)
+								end
 							end
 						end
 					end
@@ -724,7 +758,13 @@ function Yasuo:Harass()
 		if IsReady(_E) then
 			if GetDistance(target.pos) < YasuoE.range and GetDistance(target.pos) > myHero.range then
 				if GotBuff(target, "YasuoDashWrapper") == 0 then
-					Control.CastSpell(HK_E, target)
+					if self.YasuoMenu.Harass.Turret:Value() then
+						if not IsUnderTurret(GetDashPos(target)) then
+							Control.CastSpell(HK_E, target)
+						end
+					else
+						Control.CastSpell(HK_E, target)
+					end
 				end
 			elseif GetDistance(target.pos) < YasuoE.range+1300 and GetDistance(target.pos) > myHero.range then
 				for i = 1, Game.MinionCount() do
@@ -733,9 +773,17 @@ function Yasuo:Harass()
 						if GetDistance(minion.pos) <= YasuoE.range and GotBuff(minion, "YasuoDashWrapper") == 0 then
 							local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(myHero.pos, target.pos, minion.pos)
 							if isOnSegment and GetDistance(pointSegment, minion.pos) < 300 then
-								ETravel = false
-								Control.CastSpell(HK_E, minion)
-								DelayAction(function() ETravel = true end, 0.8)
+								if self.YasuoMenu.Harass.Turret:Value() then
+									if not IsUnderTurret(GetDashPos(minion)) then
+										ETravel = false
+										Control.CastSpell(HK_E, minion)
+										DelayAction(function() ETravel = true end, 0.85)
+									end
+								else
+									ETravel = false
+									Control.CastSpell(HK_E, minion)
+									DelayAction(function() ETravel = true end, 0.85)
+								end
 							end
 						end
 					end
@@ -775,7 +823,6 @@ function Yasuo:LaneClear()
 		if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") > 0 then
 			local BestPos, BestHit = GetBestLinearFarmPos(YasuoQ3.range, YasuoQ3.width)
 			if BestPos and BestHit >= 3 then
-				Control.SetCursorPos(BestPos)
 				Control.CastSpell(HK_Q, BestPos)
 			end
 		end
@@ -786,7 +833,6 @@ function Yasuo:LaneClear()
 			if self.YasuoMenu.LaneClear.UseQ:Value() then
 				if IsReady(_Q) and GotBuff(myHero, "YasuoQ3W") == 0 then
 					if ValidTarget(minion, YasuoQ.range) then
-						Control.SetCursorPos(minion)
 						Control.CastSpell(HK_Q, minion)
 					end
 				end
@@ -794,7 +840,6 @@ function Yasuo:LaneClear()
 			if self.YasuoMenu.LaneClear.UseE:Value() then
 				if IsReady(_E) and GotBuff(minion, "YasuoDashWrapper") == 0 then
 					if ValidTarget(minion, YasuoE.range) then
-						Control.SetCursorPos(minion)
 						Control.CastSpell(HK_E, minion)
 					end
 				end
