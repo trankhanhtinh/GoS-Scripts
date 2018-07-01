@@ -22,7 +22,7 @@
 -- Current version: 1.0.3 BETA
 -- Intermediate GoS script which supports only ADC champions.
 -- Features:
--- + Supports Ashe, Ezreal, Jinx, Vayne
+-- + Supports Ashe, Ezreal, Jinx, Kalista, Vayne
 -- + 2 choosable predictions (HPrediction, TPrediction),
 -- + 3 managers (Enemies-around, Mana, HP),
 -- + Configurable casting settings (Auto, Combo, Harass),
@@ -1552,9 +1552,7 @@ function Kalista:Menu()
 	self.KalistaMenu.HitChance:MenuElement({id = "TPredHit", name = "HitChance: TPrediction", value = 1, min = 0, max = 5, step = 1})
 	
 	self.KalistaMenu:MenuElement({id = "Prediction", name = "Prediction", type = MENU})
-	self.KalistaMenu.Prediction:MenuElement({id = "PredictionW", name = "Prediction: W", drop = {"HPrediction", "TPrediction"}, value = 2})
-	self.KalistaMenu.Prediction:MenuElement({id = "PredictionE", name = "Prediction: E", drop = {"HPrediction", "TPrediction"}, value = 2})
-	self.KalistaMenu.Prediction:MenuElement({id = "PredictionR", name = "Prediction: R", drop = {"HPrediction", "TPrediction"}, value = 2})
+	self.KalistaMenu.Prediction:MenuElement({id = "PredictionQ", name = "Prediction: Q", drop = {"HPrediction", "TPrediction"}, value = 2})
 	
 	self.KalistaMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
 	self.KalistaMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
@@ -1597,7 +1595,7 @@ function Kalista:Draw()
 end
 
 function Kalista:UseQ(target)
-	if self.KalistaMenu.Prediction.PredictionW:Value() == 1 then
+	if self.KalistaMenu.Prediction.PredictionQ:Value() == 1 then
 		local target, aimPosition = HPred:GetReliableTarget(myHero.pos, KalistaQ.range, KalistaQ.delay, KalistaQ.speed, KalistaQ.width, self.KalistaMenu.HitChance.HPredHit:Value(), KalistaQ.collision)
 		if target and HPred:IsInRange(myHero.pos, aimPosition, KalistaQ.range) then
 			Control.CastSpell(HK_Q, aimPosition)
@@ -1607,7 +1605,7 @@ function Kalista:UseQ(target)
 				Control.CastSpell(HK_Q, aimPosition)
 			end
 		end
-	elseif self.KalistaMenu.Prediction.PredictionW:Value() == 2 then
+	elseif self.KalistaMenu.Prediction.PredictionQ:Value() == 2 then
 		local castpos,HitChance, pos = TPred:GetBestCastPosition(target, KalistaQ.delay, KalistaQ.width, KalistaQ.range, KalistaQ.speed, myHero.pos, KalistaQ.collision, KalistaQ.type)
 		if (HitChance >= self.KalistaMenu.HitChance.TPredHit:Value() ) then
 			Control.CastSpell(HK_Q, castpos)
