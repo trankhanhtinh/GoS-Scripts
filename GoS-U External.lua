@@ -449,7 +449,7 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = HitTime
 					if RecallTime - HitTime > 0.1 then return end
 					DisableAll()
-					local CastPos = myHero.pos-(myHero.pos-EnemySpawnPos.pos):Normalized()*300
+					local CastPos = Vector(myHero)-Vector(Vector(myHero)-Vector(EnemySpawnPos)):Normalized()*300
 					Control.SetCursorPos(CastPos)
 					Control.CastSpell(HK_R, CastPos)
 					DelayAction(EnableAll,0.3)
@@ -466,7 +466,7 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = HitTime
 					if RecallTime - HitTime > 0.1 then return end
 					DisableAll()
-					local CastPos = myHero.pos-(myHero.pos-EnemySpawnPos.pos):Normalized()*300
+					local CastPos = Vector(myHero)-Vector(Vector(myHero)-Vector(EnemySpawnPos)):Normalized()*300
 					Control.SetCursorPos(CastPos)
 					Control.CastSpell(HK_R, CastPos)
 					DelayAction(EnableAll,1.05)
@@ -483,7 +483,7 @@ function GoSuUtility:BaseUlt()
 					self.HitTime = HitTime
 					if RecallTime - HitTime > 0.1 then return end
 					DisableAll()
-					local CastPos = myHero.pos-(myHero.pos-EnemySpawnPos.pos):Normalized()*300
+					local CastPos = Vector(myHero)-Vector(Vector(myHero)-Vector(EnemySpawnPos)):Normalized()*300
 					Control.SetCursorPos(CastPos)
 					Control.CastSpell(HK_R, CastPos)
 					DelayAction(EnableAll,0.65)
